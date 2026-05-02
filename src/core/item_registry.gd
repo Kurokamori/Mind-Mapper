@@ -1,0 +1,60 @@
+extends Node
+
+const TYPE_TEXT: String = "text"
+const TYPE_IMAGE: String = "image"
+const TYPE_LABEL: String = "label"
+const TYPE_RICH_TEXT: String = "rich_text"
+const TYPE_PRIMITIVE: String = "primitive"
+const TYPE_GROUP: String = "group"
+const TYPE_SOUND: String = "sound"
+const TYPE_TIMER: String = "timer"
+const TYPE_PINBOARD: String = "pinboard"
+const TYPE_SUBPAGE: String = "subpage"
+const TYPE_TODO_LIST: String = "todo_list"
+const TYPE_BLOCK_STACK: String = "block_stack"
+
+var _scenes: Dictionary = {}
+
+
+func _ready() -> void:
+	_scenes[TYPE_TEXT] = preload("res://src/nodes/text/text_node.tscn")
+	_scenes[TYPE_IMAGE] = preload("res://src/nodes/image/image_node.tscn")
+	_scenes[TYPE_LABEL] = preload("res://src/nodes/label/label_node.tscn")
+	_scenes[TYPE_RICH_TEXT] = preload("res://src/nodes/rich_text/rich_text_node.tscn")
+	_scenes[TYPE_PRIMITIVE] = preload("res://src/nodes/primitive/primitive_node.tscn")
+	_scenes[TYPE_GROUP] = preload("res://src/nodes/group/group_node.tscn")
+	_scenes[TYPE_SOUND] = preload("res://src/nodes/sound/sound_node.tscn")
+	_scenes[TYPE_TIMER] = preload("res://src/nodes/timer/timer_node.tscn")
+	_scenes[TYPE_PINBOARD] = preload("res://src/nodes/pinboard/pinboard_node.tscn")
+	_scenes[TYPE_SUBPAGE] = preload("res://src/nodes/subpage/subpage_node.tscn")
+	_scenes[TYPE_TODO_LIST] = preload("res://src/nodes/todo_list/todo_list_node.tscn")
+	_scenes[TYPE_BLOCK_STACK] = preload("res://src/nodes/block_stack/block_stack_node.tscn")
+
+
+func has_type(type_id: String) -> bool:
+	return _scenes.has(type_id)
+
+
+func instantiate(type_id: String) -> BoardItem:
+	if not _scenes.has(type_id):
+		return null
+	var scene: PackedScene = _scenes[type_id]
+	var inst: BoardItem = scene.instantiate()
+	inst.type_id = type_id
+	return inst
+
+
+func instantiate_from_dict(d: Dictionary) -> BoardItem:
+	var type_id: String = String(d.get("type", ""))
+	var inst: BoardItem = instantiate(type_id)
+	if inst == null:
+		return null
+	inst.apply_dict(d)
+	return inst
+
+
+func types() -> PackedStringArray:
+	var out := PackedStringArray()
+	for k in _scenes.keys():
+		out.append(k)
+	return out
