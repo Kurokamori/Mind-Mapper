@@ -1,0 +1,145 @@
+[gd_scene format=3 uid="uid://b2ckt7vpn4yyf"]
+
+[ext_resource type="Script" uid="uid://d2ljsd28cayb6" path="res://src/editor/editor.gd" id="1_editor"]
+[ext_resource type="Script" uid="uid://6i6swtvec7uw" path="res://src/editor/grid_background.gd" id="2_grid"]
+[ext_resource type="Script" uid="uid://d2w7rj3bi1c2b" path="res://src/editor/camera_controller.gd" id="3_camera"]
+[ext_resource type="Script" uid="uid://c30dm8lwbwb8r" path="res://src/editor/marquee.gd" id="4_marquee"]
+[ext_resource type="PackedScene" path="res://src/editor/toolbar.tscn" id="5_toolbar"]
+[ext_resource type="PackedScene" path="res://src/editor/inspector_panel.tscn" id="6_inspector"]
+[ext_resource type="PackedScene" path="res://src/editor/breadcrumb_bar.tscn" id="7_bc"]
+[ext_resource type="PackedScene" path="res://src/editor/link_picker.tscn" id="8_lp"]
+[ext_resource type="Script" uid="uid://d4artmehmwrw3" path="res://src/editor/alignment_guides.gd" id="9_align"]
+[ext_resource type="PackedScene" path="res://src/editor/connection_layer.tscn" id="10_conn"]
+[ext_resource type="PackedScene" path="res://src/editor/board_outliner.tscn" id="11_outliner"]
+[ext_resource type="PackedScene" path="res://src/editor/minimap.tscn" id="12_minimap"]
+[ext_resource type="PackedScene" path="res://src/editor/command_palette.tscn" id="13_palette"]
+
+[node name="Editor" type="Control" unique_id=2075924755]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_editor")
+
+[node name="World" type="Node2D" parent="." unique_id=809604057]
+unique_name_in_owner = true
+position = Vector2(643, 402)
+
+[node name="Grid" type="Node2D" parent="World" unique_id=1230419732]
+unique_name_in_owner = true
+script = ExtResource("2_grid")
+camera_path = NodePath("../Camera")
+
+[node name="Camera" type="Camera2D" parent="World" unique_id=1345110383]
+unique_name_in_owner = true
+script = ExtResource("3_camera")
+
+[node name="ConnectionLayer" parent="World" instance=ExtResource("10_conn")]
+unique_name_in_owner = true
+
+[node name="Items" type="Control" parent="World" unique_id=1648672951]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="Marquee" type="Node2D" parent="World" unique_id=1179195175]
+unique_name_in_owner = true
+script = ExtResource("4_marquee")
+
+[node name="AlignmentGuides" type="Node2D" parent="World" unique_id=532476146]
+unique_name_in_owner = true
+script = ExtResource("9_align")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1857419427]
+
+[node name="Toolbar" parent="CanvasLayer" unique_id=393189 instance=ExtResource("5_toolbar")]
+unique_name_in_owner = true
+anchors_preset = 10
+
+[node name="BreadcrumbBar" parent="CanvasLayer" unique_id=1273366483 instance=ExtResource("7_bc")]
+unique_name_in_owner = true
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 72.0
+
+[node name="InspectorPanel" parent="CanvasLayer" unique_id=1705173604 instance=ExtResource("6_inspector")]
+unique_name_in_owner = true
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = 79.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="BoardOutliner" parent="CanvasLayer" instance=ExtResource("11_outliner")]
+unique_name_in_owner = true
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_top = 79.0
+offset_right = 240.0
+grow_horizontal = 1
+grow_vertical = 2
+
+[node name="Minimap" parent="CanvasLayer" instance=ExtResource("12_minimap")]
+unique_name_in_owner = true
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 248.0
+offset_top = -176.0
+offset_right = 472.0
+offset_bottom = -8.0
+grow_vertical = 0
+
+[node name="CommandPalette" parent="." instance=ExtResource("13_palette")]
+unique_name_in_owner = true
+
+[node name="ImageDialog" type="FileDialog" parent="." unique_id=2133937868]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(800, 600)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png ; PNG Image", "*.jpg, *.jpeg ; JPEG Image", "*.webp ; WebP Image", "*.bmp ; BMP Image")
+
+[node name="EmbedChoicePopup" type="ConfirmationDialog" parent="." unique_id=1937757853]
+unique_name_in_owner = true
+title = "Add Image"
+size = Vector2i(420, 120)
+ok_button_text = "Embed"
+dialog_text = "Embed the image into this project (copies the file) or link to its current location?"
+
+[node name="SoundDialog" type="FileDialog" parent="." unique_id=1810666169]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(800, 600)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.mp3 ; MP3", "*.ogg ; Ogg Vorbis", "*.wav ; WAV")
+
+[node name="EmbedSoundPopup" type="ConfirmationDialog" parent="." unique_id=659884226]
+unique_name_in_owner = true
+title = "Add Sound"
+size = Vector2i(420, 120)
+ok_button_text = "Embed"
+dialog_text = "Embed the audio into this project (copies the file) or link to its current location?"
+
+[node name="LinkPicker" parent="." unique_id=1161495053 instance=ExtResource("8_lp")]
+unique_name_in_owner = true
+
+[node name="ExportDialog" type="FileDialog" parent="." unique_id=860842052]
+unique_name_in_owner = true
+title = "Export current board as PNG"
+size = Vector2i(800, 600)
+ok_button_text = "Save"
+access = 2
+filters = PackedStringArray("*.png ; PNG Image")

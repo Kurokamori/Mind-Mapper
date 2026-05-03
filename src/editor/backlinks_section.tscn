@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/backlinks_section.gd" id="1_bl"]
+
+[node name="BacklinksSection" type="VBoxContainer"]
+script = ExtResource("1_bl")
+theme_override_constants/separation = 4
+
+[node name="HSep" type="HSeparator" parent="."]
+layout_mode = 2
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Backlinks"
+theme_override_font_sizes/font_size = 14
+
+[node name="EmptyLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+text = "Not referenced from anywhere."
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.65, 0.7, 1)
+
+[node name="EntriesContainer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 2

@@ -1,0 +1,47 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/board_outliner.gd" id="1_out"]
+
+[node name="BoardOutliner" type="PanelContainer"]
+custom_minimum_size = Vector2(240, 0)
+script = ExtResource("1_out")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Boards"
+theme_override_font_sizes/font_size = 14
+
+[node name="NewRootButton" type="Button" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Create a new top-level board"
+text = "+"
+
+[node name="Tree" type="Tree" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+hide_root = true
+allow_rmb_select = true
+allow_reselect = true
+drop_mode_flags = 1
+
+[node name="ContextMenu" type="PopupMenu" parent="."]
+unique_name_in_owner = true
+size = Vector2i(160, 80)

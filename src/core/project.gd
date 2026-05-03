@@ -187,6 +187,40 @@ func rename_board(board_id: String, new_name: String) -> bool:
 	return write_board(b) == OK
 
 
+func reparent_board(board_id: String, new_parent_id: String) -> bool:
+	if board_id == "" or board_id == root_board_id:
+		return false
+	if board_id == new_parent_id:
+		return false
+	if new_parent_id != "" and not FileAccess.file_exists(board_path(new_parent_id)):
+		return false
+	if new_parent_id != "" and is_descendant(new_parent_id, board_id):
+		return false
+	var b := read_board(board_id)
+	if b == null:
+		return false
+	if b.parent_board_id == new_parent_id:
+		return true
+	b.parent_board_id = new_parent_id
+	return write_board(b) == OK
+
+
+func is_descendant(candidate_id: String, ancestor_id: String) -> bool:
+	if candidate_id == "" or ancestor_id == "":
+		return false
+	var seen: Dictionary = {}
+	var cur: String = candidate_id
+	while cur != "" and not seen.has(cur):
+		seen[cur] = true
+		if cur == ancestor_id:
+			return true
+		var b: Board = read_board(cur)
+		if b == null:
+			return false
+		cur = b.parent_board_id
+	return false
+
+
 func list_boards() -> Array:
 	var out: Array = []
 	for ids in board_index.keys():
