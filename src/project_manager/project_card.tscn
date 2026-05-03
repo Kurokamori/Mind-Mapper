@@ -1,55 +1,41 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://cdrnhp2t4fo61"]
 
-[ext_resource type="Script" path="res://src/project_manager/project_card.gd" id="1_card"]
+[ext_resource type="Script" uid="uid://0v0v166p63ht" path="res://src/project_manager/project_card.gd" id="1_card"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
-content_margin_left = 12.0
-content_margin_top = 12.0
-content_margin_right = 12.0
-content_margin_bottom = 12.0
-bg_color = Color(0.16, 0.17, 0.2, 1)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
-
-[node name="ProjectCard" type="PanelContainer"]
+[node name="ProjectCard" type="PanelContainer" unique_id=1145300018]
 custom_minimum_size = Vector2(320, 110)
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 script = ExtResource("1_card")
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="." unique_id=675607403]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="VBox"]
+[node name="NameLabel" type="Label" parent="VBox" unique_id=1966902598]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 
-[node name="PathLabel" type="Label" parent="VBox"]
+[node name="PathLabel" type="Label" parent="VBox" unique_id=1953938879]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
 theme_override_font_sizes/font_size = 11
 autowrap_mode = 2
 
-[node name="ModifiedLabel" type="Label" parent="VBox"]
+[node name="ModifiedLabel" type="Label" parent="VBox" unique_id=2110388029]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.55, 0.6, 1)
 theme_override_font_sizes/font_size = 11
 
-[node name="Buttons" type="HBoxContainer" parent="VBox"]
+[node name="Buttons" type="HBoxContainer" parent="VBox" unique_id=1862069045]
 layout_mode = 2
 alignment = 2
 
-[node name="OpenButton" type="Button" parent="VBox/Buttons"]
+[node name="OpenButton" type="Button" parent="VBox/Buttons" unique_id=1095980922]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Open"
 
-[node name="ForgetButton" type="Button" parent="VBox/Buttons"]
+[node name="ForgetButton" type="Button" parent="VBox/Buttons" unique_id=487604647]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Forget"

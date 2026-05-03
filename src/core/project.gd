@@ -4,7 +4,8 @@ extends RefCounted
 const MANIFEST_FILENAME := "project.json"
 const BOARDS_DIR := "boards"
 const ASSETS_DIR := "assets"
-const FORMAT_VERSION := 1
+const SNAPSHOTS_DIR := "snapshots"
+const FORMAT_VERSION := 2
 
 var id: String = ""
 var name: String = "Untitled Project"
@@ -71,7 +72,155 @@ func _ensure_directories() -> Error:
 		DirAccess.make_dir_recursive_absolute(folder_path.path_join(BOARDS_DIR))
 	if not DirAccess.dir_exists_absolute(folder_path.path_join(ASSETS_DIR)):
 		DirAccess.make_dir_recursive_absolute(folder_path.path_join(ASSETS_DIR))
+	if not DirAccess.dir_exists_absolute(folder_path.path_join(SNAPSHOTS_DIR)):
+		DirAccess.make_dir_recursive_absolute(folder_path.path_join(SNAPSHOTS_DIR))
 	return OK
+
+
+func snapshots_path() -> String:
+	return folder_path.path_join(SNAPSHOTS_DIR)
+
+
+func create_snapshot(label: String) -> String:
+	_ensure_directories()
+	var ts: int = int(Time.get_unix_time_from_system())
+	var safe_label: String = label.strip_edges().replace("/", "_").replace("\\", "_").replace(" ", "_")
+	if safe_label == "":
+		safe_label = "snapshot"
+	var snap_id: String = "%d_%s" % [ts, safe_label]
+	var snap_dir: String = snapshots_path().path_join(snap_id)
+	DirAccess.make_dir_recursive_absolute(snap_dir)
+	var manifest: Dictionary = {
+		"id": id,
+		"name": name,
+		"root_board_id": root_board_id,
+		"created_unix": ts,
+		"label": label,
+		"board_index": board_index,
+	}
+	var mf: FileAccess = FileAccess.open(snap_dir.path_join("manifest.json"), FileAccess.WRITE)
+	if mf == null:
+		return ""
+	mf.store_string(JSON.stringify(manifest, "\t"))
+	mf.close()
+	var src_boards_dir: String = folder_path.path_join(BOARDS_DIR)
+	var dst_boards_dir: String = snap_dir.path_join("boards")
+	DirAccess.make_dir_recursive_absolute(dst_boards_dir)
+	var d: DirAccess = DirAccess.open(src_boards_dir)
+	if d != null:
+		d.list_dir_begin()
+		var entry: String = d.get_next()
+		while entry != "":
+			if not d.current_is_dir() and entry.ends_with(".json"):
+				var src_f: FileAccess = FileAccess.open(src_boards_dir.path_join(entry), FileAccess.READ)
+				if src_f != null:
+					var raw: String = src_f.get_as_text()
+					src_f.close()
+					var dst_f: FileAccess = FileAccess.open(dst_boards_dir.path_join(entry), FileAccess.WRITE)
+					if dst_f != null:
+						dst_f.store_string(raw)
+						dst_f.close()
+			entry = d.get_next()
+		d.list_dir_end()
+	return snap_id
+
+
+func list_snapshots() -> Array:
+	var out: Array = []
+	if not DirAccess.dir_exists_absolute(snapshots_path()):
+		return out
+	var d: DirAccess = DirAccess.open(snapshots_path())
+	if d == null:
+		return out
+	d.list_dir_begin()
+	var entry: String = d.get_next()
+	while entry != "":
+		if d.current_is_dir() and entry != "." and entry != "..":
+			var manifest_path: String = snapshots_path().path_join(entry).path_join("manifest.json")
+			if FileAccess.file_exists(manifest_path):
+				var mf: FileAccess = FileAccess.open(manifest_path, FileAccess.READ)
+				if mf != null:
+					var parsed: Variant = JSON.parse_string(mf.get_as_text())
+					mf.close()
+					if typeof(parsed) == TYPE_DICTIONARY:
+						out.append({
+							"id": entry,
+							"label": String((parsed as Dictionary).get("label", entry)),
+							"created_unix": int((parsed as Dictionary).get("created_unix", 0)),
+						})
+		entry = d.get_next()
+	d.list_dir_end()
+	out.sort_custom(func(a, b) -> bool: return int(a.created_unix) > int(b.created_unix))
+	return out
+
+
+func restore_snapshot(snapshot_id: String) -> bool:
+	var snap_dir: String = snapshots_path().path_join(snapshot_id)
+	var src_boards: String = snap_dir.path_join("boards")
+	if not DirAccess.dir_exists_absolute(src_boards):
+		return false
+	var dst_boards: String = folder_path.path_join(BOARDS_DIR)
+	var existing: DirAccess = DirAccess.open(dst_boards)
+	if existing != null:
+		existing.list_dir_begin()
+		var ent: String = existing.get_next()
+		while ent != "":
+			if not existing.current_is_dir() and ent.ends_with(".json"):
+				DirAccess.remove_absolute(dst_boards.path_join(ent))
+			ent = existing.get_next()
+		existing.list_dir_end()
+	var src: DirAccess = DirAccess.open(src_boards)
+	if src != null:
+		src.list_dir_begin()
+		var entry: String = src.get_next()
+		while entry != "":
+			if not src.current_is_dir() and entry.ends_with(".json"):
+				var sf: FileAccess = FileAccess.open(src_boards.path_join(entry), FileAccess.READ)
+				if sf != null:
+					var raw: String = sf.get_as_text()
+					sf.close()
+					var df: FileAccess = FileAccess.open(dst_boards.path_join(entry), FileAccess.WRITE)
+					if df != null:
+						df.store_string(raw)
+						df.close()
+			entry = src.get_next()
+		src.list_dir_end()
+	var manifest_path: String = snap_dir.path_join("manifest.json")
+	if FileAccess.file_exists(manifest_path):
+		var mf: FileAccess = FileAccess.open(manifest_path, FileAccess.READ)
+		if mf != null:
+			var parsed: Variant = JSON.parse_string(mf.get_as_text())
+			mf.close()
+			if typeof(parsed) == TYPE_DICTIONARY:
+				var idx_v: Variant = (parsed as Dictionary).get("board_index", null)
+				if typeof(idx_v) == TYPE_DICTIONARY:
+					board_index = (idx_v as Dictionary).duplicate()
+				root_board_id = String((parsed as Dictionary).get("root_board_id", root_board_id))
+	write_manifest()
+	return true
+
+
+func delete_snapshot(snapshot_id: String) -> bool:
+	var snap_dir: String = snapshots_path().path_join(snapshot_id)
+	if not DirAccess.dir_exists_absolute(snap_dir):
+		return false
+	var boards_subdir: String = snap_dir.path_join("boards")
+	if DirAccess.dir_exists_absolute(boards_subdir):
+		var d: DirAccess = DirAccess.open(boards_subdir)
+		if d != null:
+			d.list_dir_begin()
+			var entry: String = d.get_next()
+			while entry != "":
+				if not d.current_is_dir():
+					DirAccess.remove_absolute(boards_subdir.path_join(entry))
+				entry = d.get_next()
+			d.list_dir_end()
+		DirAccess.remove_absolute(boards_subdir)
+	var manifest_path: String = snap_dir.path_join("manifest.json")
+	if FileAccess.file_exists(manifest_path):
+		DirAccess.remove_absolute(manifest_path)
+	DirAccess.remove_absolute(snap_dir)
+	return true
 
 
 func write_manifest() -> Error:

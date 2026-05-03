@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/url/url_node.gd" id="1_url"]
+
+[node name="UrlNode" type="Control"]
+custom_minimum_size = Vector2(260, 90)
+mouse_filter = 1
+script = ExtResource("1_url")
+
+[node name="TitleLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 18.0
+offset_top = 8.0
+offset_right = 200.0
+offset_bottom = 32.0
+mouse_filter = 2
+text = "Untitled link"
+
+[node name="UrlLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 18.0
+offset_top = 36.0
+offset_right = 200.0
+offset_bottom = 56.0
+mouse_filter = 2
+text = "https://example.com"
+
+[node name="OpenButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 200.0
+offset_top = 8.0
+offset_right = 250.0
+offset_bottom = 80.0
+text = "Open"

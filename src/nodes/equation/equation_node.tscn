@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/equation/equation_node.gd" id="1_eq"]
+
+[node name="EquationNode" type="Control"]
+custom_minimum_size = Vector2(280, 120)
+mouse_filter = 1
+script = ExtResource("1_eq")
+
+[node name="SourceLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 280.0
+offset_bottom = 24.0
+mouse_filter = 2
+text = "E = mc^2"
+
+[node name="Preview" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 270.0
+offset_bottom = 112.0
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="TextEdit" type="TextEdit" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 270.0
+offset_bottom = 112.0

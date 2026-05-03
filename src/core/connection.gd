@@ -38,6 +38,7 @@ var arrow_end: bool = DEFAULT_ARROW_END
 var arrow_start: bool = DEFAULT_ARROW_START
 var label: String = DEFAULT_LABEL
 var label_font_size: int = DEFAULT_LABEL_FONT_SIZE
+var waypoints: Array = []  # Array[Vector2]
 
 
 static func make_new(from_id: String, to_id: String, from_anchor_value: String = ANCHOR_AUTO, to_anchor_value: String = ANCHOR_AUTO) -> Connection:
@@ -64,6 +65,12 @@ static func from_dict(d: Dictionary) -> Connection:
 	c.arrow_start = bool(d.get("arrow_start", DEFAULT_ARROW_START))
 	c.label = String(d.get("label", DEFAULT_LABEL))
 	c.label_font_size = int(d.get("label_font_size", DEFAULT_LABEL_FONT_SIZE))
+	var wp_raw: Variant = d.get("waypoints", [])
+	c.waypoints = []
+	if typeof(wp_raw) == TYPE_ARRAY:
+		for entry in (wp_raw as Array):
+			if typeof(entry) == TYPE_ARRAY and (entry as Array).size() >= 2:
+				c.waypoints.append(Vector2(float(entry[0]), float(entry[1])))
 	return c
 
 
@@ -81,7 +88,15 @@ func to_dict() -> Dictionary:
 		"arrow_start": arrow_start,
 		"label": label,
 		"label_font_size": label_font_size,
+		"waypoints": _waypoints_to_array(),
 	}
+
+
+func _waypoints_to_array() -> Array:
+	var out: Array = []
+	for w in waypoints:
+		out.append([float((w as Vector2).x), float((w as Vector2).y)])
+	return out
 
 
 func clone_dict_with_new_id() -> Dictionary:
@@ -114,6 +129,14 @@ func apply_property(key: String, value: Variant) -> void:
 			from_anchor = String(value)
 		"to_anchor":
 			to_anchor = String(value)
+		"waypoints":
+			waypoints = []
+			if typeof(value) == TYPE_ARRAY:
+				for entry in (value as Array):
+					if typeof(entry) == TYPE_VECTOR2:
+						waypoints.append(entry)
+					elif typeof(entry) == TYPE_ARRAY and (entry as Array).size() >= 2:
+						waypoints.append(Vector2(float(entry[0]), float(entry[1])))
 
 
 func references_item(item_id: String) -> bool:

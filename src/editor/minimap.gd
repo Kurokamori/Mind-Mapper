@@ -1,17 +1,15 @@
 class_name Minimap
 extends PanelContainer
 
+signal close_requested
+
 const PADDING_PX: float = 8.0
-const BG_COLOR: Color = Color(0.07, 0.08, 0.10, 1.0)
-const FRAME_COLOR: Color = Color(0.55, 0.78, 1.0, 0.85)
-const FRAME_FILL_COLOR: Color = Color(0.55, 0.78, 1.0, 0.10)
-const FALLBACK_ITEM_COLOR: Color = Color(0.45, 0.48, 0.55, 1.0)
-const SELECTED_ITEM_COLOR: Color = Color(0.95, 0.85, 0.30, 1.0)
-const EMPTY_FG: Color = Color(0.55, 0.55, 0.62, 1.0)
 const ZOOM_STEP: float = 1.1
 const MIN_BOUNDS_SIZE: Vector2 = Vector2(800.0, 600.0)
 
 @onready var _canvas: Control = %Canvas
+@onready var _close_button: Button = %CloseButton
+@onready var _header: Control = %Header
 
 var _editor: Node = null
 var _camera: Camera2D = null
@@ -20,15 +18,73 @@ var _last_camera_position: Vector2 = Vector2.INF
 var _last_camera_zoom: Vector2 = Vector2.ZERO
 var _last_viewport_size: Vector2 = Vector2.ZERO
 var _dragging: bool = false
+var _panel_dragging: bool = false
+var _panel_drag_offset: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
+	ThemeManager.theme_applied.connect(_on_theme_applied)
+	_apply_translucent_panel()
 	_canvas.draw.connect(_on_canvas_draw)
 	_canvas.gui_input.connect(_on_canvas_input)
 	_canvas.resized.connect(_on_canvas_resized)
+	_close_button.pressed.connect(_on_close_pressed)
+	_header.gui_input.connect(_on_header_gui_input)
 	SelectionBus.selection_changed.connect(_on_selection_changed)
 	AppState.current_board_changed.connect(_on_current_board_changed)
+	get_viewport().size_changed.connect(_clamp_panel_to_viewport)
+	if UserPrefs.minimap_position_set:
+		call_deferred("_apply_floating_position", UserPrefs.minimap_position)
 	set_process(true)
+
+
+func _on_header_gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		if mb.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if mb.pressed:
+			_panel_dragging = true
+			_panel_drag_offset = _header.get_global_mouse_position() - global_position
+			_detach_anchors()
+			_header.accept_event()
+		else:
+			if _panel_dragging:
+				_panel_dragging = false
+				UserPrefs.set_minimap_position(position)
+				_header.accept_event()
+	elif event is InputEventMouseMotion and _panel_dragging:
+		var target: Vector2 = get_global_mouse_position() - _panel_drag_offset
+		_apply_floating_position(target)
+		_header.accept_event()
+
+
+func _detach_anchors() -> void:
+	var current_pos: Vector2 = position
+	set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT, Control.PRESET_MODE_KEEP_SIZE)
+	position = current_pos
+
+
+func _apply_floating_position(target: Vector2) -> void:
+	_detach_anchors()
+	position = _clamp_to_viewport(target)
+
+
+func _clamp_to_viewport(target: Vector2) -> Vector2:
+	var vp: Vector2 = Vector2(get_viewport_rect().size)
+	var max_x: float = max(0.0, vp.x - size.x)
+	var max_y: float = max(0.0, vp.y - size.y)
+	return Vector2(clampf(target.x, 0.0, max_x), clampf(target.y, 0.0, max_y))
+
+
+func _clamp_panel_to_viewport() -> void:
+	if not UserPrefs.minimap_position_set:
+		return
+	position = _clamp_to_viewport(position)
+
+
+func _on_close_pressed() -> void:
+	emit_signal("close_requested")
 
 
 func bind_editor(editor: Node, camera: Camera2D) -> void:
@@ -154,13 +210,19 @@ func _canvas_to_world_point(p: Vector2, transform: Dictionary) -> Vector2:
 
 func _on_canvas_draw() -> void:
 	var canvas_size: Vector2 = _canvas.size
-	_canvas.draw_rect(Rect2(Vector2.ZERO, canvas_size), BG_COLOR, true)
+	var bg_color: Color = ThemeManager.background_color()
+	var frame_base: Color = ThemeManager.accent_color()
+	var frame_color: Color = Color(frame_base.r, frame_base.g, frame_base.b, 0.85)
+	var frame_fill_color: Color = Color(frame_base.r, frame_base.g, frame_base.b, 0.10)
+	var fallback_item_color: Color = ThemeManager.subtle_color()
+	var selected_item_color: Color = ThemeManager.selection_highlight_color()
+	_canvas.draw_rect(Rect2(Vector2.ZERO, canvas_size), bg_color, true)
 	if _editor == null or not _editor.has_method("all_items"):
 		return
 	var items: Array = _editor.all_items()
 	var transform: Dictionary = _world_to_canvas_transform()
 	if float(transform.get("scale", 0.0)) <= 0.0:
-		_draw_empty_message(canvas_size)
+		_draw_empty_message(canvas_size, ThemeManager.dim_foreground_color())
 		return
 	for v: Variant in items:
 		if not (v is BoardItem):
@@ -173,20 +235,20 @@ func _on_canvas_draw() -> void:
 			rect.size.x = 1.5
 		if rect.size.y < 1.5:
 			rect.size.y = 1.5
-		var fill: Color = _color_for_item(item)
+		var fill: Color = _color_for_item(item, fallback_item_color)
 		_canvas.draw_rect(rect, fill, true)
 		if item.is_selected():
-			_canvas.draw_rect(rect, SELECTED_ITEM_COLOR, false, 1.0)
+			_canvas.draw_rect(rect, selected_item_color, false, 1.0)
 	var vp_rect_world: Rect2 = _viewport_world_rect()
 	if vp_rect_world.size.x > 0.0 and vp_rect_world.size.y > 0.0:
 		var top_left: Vector2 = _world_to_canvas_point(vp_rect_world.position, transform)
 		var bottom_right: Vector2 = _world_to_canvas_point(vp_rect_world.position + vp_rect_world.size, transform)
 		var rect: Rect2 = Rect2(top_left, bottom_right - top_left).abs()
-		_canvas.draw_rect(rect, FRAME_FILL_COLOR, true)
-		_canvas.draw_rect(rect, FRAME_COLOR, false, 1.5)
+		_canvas.draw_rect(rect, frame_fill_color, true)
+		_canvas.draw_rect(rect, frame_color, false, 1.5)
 
 
-func _draw_empty_message(canvas_size: Vector2) -> void:
+func _draw_empty_message(canvas_size: Vector2, fg: Color) -> void:
 	var font: Font = ThemeDB.fallback_font
 	if font == null:
 		return
@@ -194,10 +256,10 @@ func _draw_empty_message(canvas_size: Vector2) -> void:
 	var msg: String = "Empty"
 	var text_size: Vector2 = font.get_string_size(msg, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size)
 	var pos: Vector2 = (canvas_size - text_size) * 0.5 + Vector2(0.0, font.get_ascent(font_size) * 0.5)
-	_canvas.draw_string(font, pos, msg, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, EMPTY_FG)
+	_canvas.draw_string(font, pos, msg, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, fg)
 
 
-func _color_for_item(item: BoardItem) -> Color:
+func _color_for_item(item: BoardItem, fallback: Color) -> Color:
 	for property_name: String in ["accent_color", "bg_color", "title_bg_color"]:
 		if not (property_name in item):
 			continue
@@ -205,7 +267,7 @@ func _color_for_item(item: BoardItem) -> Color:
 		if typeof(raw) == TYPE_COLOR:
 			var c: Color = raw
 			return Color(c.r, c.g, c.b, 1.0)
-	return FALLBACK_ITEM_COLOR
+	return fallback
 
 
 func _on_canvas_input(event: InputEvent) -> void:
@@ -246,3 +308,13 @@ func _zoom_camera(factor: float) -> void:
 	var new_z: float = clamp(current_z * factor, EditorCameraController.MIN_ZOOM, EditorCameraController.MAX_ZOOM)
 	_camera.zoom = Vector2(new_z, new_z)
 	_canvas.queue_redraw()
+
+
+func _apply_translucent_panel() -> void:
+	ThemeManager.apply_translucent_panel(self)
+
+
+func _on_theme_applied() -> void:
+	_apply_translucent_panel()
+	if _canvas != null:
+		_canvas.queue_redraw()

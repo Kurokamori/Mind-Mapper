@@ -18,11 +18,27 @@ theme_override_constants/margin_bottom = 6
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Header" type="Label" parent="Margin/VBox"]
+[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 0
+mouse_default_cursor_shape = 13
+tooltip_text = "Drag to move"
+
+[node name="Title" type="Label" parent="Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
 text = "Minimap"
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.7, 0.7, 0.78, 1)
+
+[node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Close minimap"
+text = "X"
 
 [node name="Canvas" type="Control" parent="Margin/VBox"]
 unique_name_in_owner = true

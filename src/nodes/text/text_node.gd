@@ -3,13 +3,15 @@ extends BoardItem
 
 const PADDING: Vector2 = Vector2(10, 8)
 const DEFAULT_FONT_SIZE: int = 18
-const DEFAULT_BG: Color = Color(0.16, 0.17, 0.20, 1.0)
-const DEFAULT_FG: Color = Color(0.95, 0.96, 0.98, 1.0)
+const LEGACY_DEFAULT_BG: Color = Color(0.16, 0.17, 0.20, 1.0)
+const LEGACY_DEFAULT_FG: Color = Color(0.95, 0.96, 0.98, 1.0)
 
 @export var text: String = "Double-click to edit"
 @export var font_size: int = DEFAULT_FONT_SIZE
-@export var bg_color: Color = DEFAULT_BG
-@export var fg_color: Color = DEFAULT_FG
+@export var bg_color: Color = Color(0, 0, 0, 1)
+@export var fg_color: Color = Color(1, 1, 1, 1)
+@export var bg_color_custom: bool = false
+@export var fg_color_custom: bool = false
 
 @onready var _label: Label = %Label
 @onready var _edit: TextEdit = %TextEdit
@@ -21,7 +23,25 @@ func _ready() -> void:
 	super._ready()
 	_edit.focus_exited.connect(_commit_text)
 	SelectionBus.selection_changed.connect(_on_selection_changed)
+	ThemeManager.theme_applied.connect(_on_theme_applied)
+	ThemeManager.node_palette_changed.connect(_on_node_palette_changed)
 	_layout()
+	_refresh_visuals()
+
+
+func resolved_bg_color() -> Color:
+	return bg_color if bg_color_custom else ThemeManager.node_bg_color()
+
+
+func resolved_fg_color() -> Color:
+	return fg_color if fg_color_custom else ThemeManager.node_fg_color()
+
+
+func _on_theme_applied() -> void:
+	_refresh_visuals()
+
+
+func _on_node_palette_changed(_old: Dictionary, _new: Dictionary) -> void:
 	_refresh_visuals()
 
 
@@ -37,19 +57,19 @@ func default_size() -> Vector2:
 
 
 func _draw_body() -> void:
-	var rect: Rect2 = Rect2(Vector2.ZERO, size)
-	draw_rect(rect, bg_color, true)
-	draw_rect(rect, bg_color.darkened(0.25), false, 1.0)
+	var bg: Color = resolved_bg_color()
+	_draw_rounded_panel(bg, bg.darkened(0.25))
 
 
 func _refresh_visuals() -> void:
+	var fg: Color = resolved_fg_color()
 	if _label != null:
 		_label.text = text
 		_label.add_theme_font_size_override("font_size", font_size)
-		_label.add_theme_color_override("font_color", fg_color)
+		_label.add_theme_color_override("font_color", fg)
 	if _edit != null:
 		_edit.add_theme_font_size_override("font_size", font_size)
-		_edit.add_theme_color_override("font_color", fg_color)
+		_edit.add_theme_color_override("font_color", fg)
 	queue_redraw()
 
 
@@ -113,19 +133,40 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func serialize_payload() -> Dictionary:
-	return {
+	var out: Dictionary = {
 		"text": text,
 		"font_size": font_size,
-		"bg_color": [bg_color.r, bg_color.g, bg_color.b, bg_color.a],
-		"fg_color": [fg_color.r, fg_color.g, fg_color.b, fg_color.a],
+		"bg_color_custom": bg_color_custom,
+		"fg_color_custom": fg_color_custom,
 	}
+	if bg_color_custom:
+		out["bg_color"] = [bg_color.r, bg_color.g, bg_color.b, bg_color.a]
+	if fg_color_custom:
+		out["fg_color"] = [fg_color.r, fg_color.g, fg_color.b, fg_color.a]
+	return out
 
 
 func deserialize_payload(d: Dictionary) -> void:
 	text = String(d.get("text", text))
 	font_size = int(d.get("font_size", font_size))
-	bg_color = _color_from(d.get("bg_color", null), bg_color)
-	fg_color = _color_from(d.get("fg_color", null), fg_color)
+	if d.has("bg_color_custom"):
+		bg_color_custom = bool(d["bg_color_custom"])
+		if bg_color_custom and d.has("bg_color"):
+			bg_color = _color_from(d["bg_color"], bg_color)
+	elif d.has("bg_color"):
+		var stored_bg: Color = _color_from(d["bg_color"], LEGACY_DEFAULT_BG)
+		bg_color_custom = stored_bg != LEGACY_DEFAULT_BG
+		if bg_color_custom:
+			bg_color = stored_bg
+	if d.has("fg_color_custom"):
+		fg_color_custom = bool(d["fg_color_custom"])
+		if fg_color_custom and d.has("fg_color"):
+			fg_color = _color_from(d["fg_color"], fg_color)
+	elif d.has("fg_color"):
+		var stored_fg: Color = _color_from(d["fg_color"], LEGACY_DEFAULT_FG)
+		fg_color_custom = stored_fg != LEGACY_DEFAULT_FG
+		if fg_color_custom:
+			fg_color = stored_fg
 	if _label != null:
 		_refresh_visuals()
 
@@ -139,10 +180,18 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			font_size = int(value)
 			_refresh_visuals()
 		"bg_color":
-			bg_color = _color_from(value, bg_color)
+			if value == null:
+				bg_color_custom = false
+			else:
+				bg_color = _color_from(value, bg_color)
+				bg_color_custom = true
 			_refresh_visuals()
 		"fg_color":
-			fg_color = _color_from(value, fg_color)
+			if value == null:
+				fg_color_custom = false
+			else:
+				fg_color = _color_from(value, fg_color)
+				fg_color_custom = true
 			_refresh_visuals()
 
 

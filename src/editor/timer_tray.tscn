@@ -1,0 +1,68 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/editor/timer_tray.gd" id="1_tray"]
+[ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
+
+[node name="TimerTray" type="PanelContainer"]
+custom_minimum_size = Vector2(260, 0)
+script = ExtResource("1_tray")
+dock_id = "timer_tray"
+drag_handle_path = NodePath("VBox/HeaderRow/HeaderLabel")
+grip_top_path = NodePath("GripTop")
+grip_bottom_path = NodePath("GripBottom")
+grip_left_path = NodePath("GripLeft")
+grip_right_path = NodePath("GripRight")
+default_mode = "floating"
+default_floating_position = Vector2(160, 200)
+default_floating_size = Vector2(320, 280)
+default_dock_size = 260.0
+
+[node name="VBox" type="VBoxContainer" parent="."]
+theme_override_constants/separation = 6
+
+[node name="HeaderRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+
+[node name="HeaderLabel" type="Label" parent="VBox/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "Timers"
+
+[node name="CloseButton" type="Button" parent="VBox/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "×"
+
+[node name="Scroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 200)
+
+[node name="List" type="VBoxContainer" parent="VBox/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="EmptyLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 1
+text = "(no timers)"
+
+[node name="GripTop" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 1
+
+[node name="GripBottom" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 2
+
+[node name="GripLeft" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 4
+
+[node name="GripRight" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 8

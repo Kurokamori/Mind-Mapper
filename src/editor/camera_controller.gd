@@ -34,19 +34,7 @@ func _notification(what: int) -> void:
 		_panning = false
 
 
-func handle_unhandled_input(event: InputEvent) -> bool:
-	if event is InputEventMouseButton:
-		var mb: InputEventMouseButton = event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
-			_zoom_at(mb.position, ZOOM_STEP)
-			return true
-		if mb.button_index == MOUSE_BUTTON_WHEEL_DOWN and mb.pressed:
-			_zoom_at(mb.position, 1.0 / ZOOM_STEP)
-			return true
-	return false
-
-
-func _zoom_at(screen_pos: Vector2, factor: float) -> void:
+func zoom_at_screen(screen_pos: Vector2, factor: float) -> void:
 	var viewport: Viewport = get_viewport()
 	if viewport == null:
 		return

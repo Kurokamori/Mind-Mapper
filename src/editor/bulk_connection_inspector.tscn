@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/bulk_connection_inspector.gd" id="1_bulk"]
+
+[node name="BulkConnectionInspector" type="VBoxContainer"]
+script = ExtResource("1_bulk")
+theme_override_constants/separation = 6
+
+[node name="ColorRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ColorLabel" type="Label" parent="ColorRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Color"
+
+[node name="ColorPicker" type="ColorPickerButton" parent="ColorRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(100, 28)
+
+[node name="ThicknessRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ThicknessLabel" type="Label" parent="ThicknessRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Thickness"
+
+[node name="ThicknessSpin" type="SpinBox" parent="ThicknessRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 12.0
+step = 0.5
+
+[node name="StyleRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="StyleLabel" type="Label" parent="StyleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Style"
+
+[node name="StyleOpt" type="OptionButton" parent="StyleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ArrowEnd" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Arrow at end"
+
+[node name="ArrowStart" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Arrow at start"
+
+[node name="DeleteButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete connections"

@@ -12,6 +12,11 @@ const TYPE_PINBOARD: String = "pinboard"
 const TYPE_SUBPAGE: String = "subpage"
 const TYPE_TODO_LIST: String = "todo_list"
 const TYPE_BLOCK_STACK: String = "block_stack"
+const TYPE_URL: String = "url"
+const TYPE_CODE: String = "code"
+const TYPE_TABLE: String = "table"
+const TYPE_EQUATION: String = "equation"
+const TYPE_STICKY: String = "sticky"
 
 var _scenes: Dictionary = {}
 
@@ -29,6 +34,29 @@ func _ready() -> void:
 	_scenes[TYPE_SUBPAGE] = preload("res://src/nodes/subpage/subpage_node.tscn")
 	_scenes[TYPE_TODO_LIST] = preload("res://src/nodes/todo_list/todo_list_node.tscn")
 	_scenes[TYPE_BLOCK_STACK] = preload("res://src/nodes/block_stack/block_stack_node.tscn")
+	_scenes[TYPE_URL] = preload("res://src/nodes/url/url_node.tscn")
+	_scenes[TYPE_CODE] = preload("res://src/nodes/code/code_node.tscn")
+	_scenes[TYPE_TABLE] = preload("res://src/nodes/table/table_node.tscn")
+	_scenes[TYPE_EQUATION] = preload("res://src/nodes/equation/equation_node.tscn")
+	_scenes[TYPE_STICKY] = preload("res://src/nodes/sticky/sticky_node.tscn")
+
+
+func default_payload(type_id: String) -> Dictionary:
+	match type_id:
+		TYPE_TEXT: return {"text": "New text", "font_size": 18}
+		TYPE_LABEL: return {"text": "Label", "font_size": 16}
+		TYPE_RICH_TEXT: return {"bbcode_text": "[b]Rich[/b] text"}
+		TYPE_PRIMITIVE: return {"shape": 0}
+		TYPE_GROUP: return {"title": "Group"}
+		TYPE_TIMER: return {"initial_duration_sec": 600.0, "label_text": "Timer"}
+		TYPE_TODO_LIST: return {"title": "List", "cards": []}
+		TYPE_BLOCK_STACK: return {"title": "Blocks", "blocks": []}
+		TYPE_URL: return {"url": "https://example.com", "title": "Untitled link"}
+		TYPE_CODE: return {"code": "// code", "language": "plaintext"}
+		TYPE_TABLE: return {"rows": 3, "cols": 3, "cells": []}
+		TYPE_EQUATION: return {"latex": "E = mc^2"}
+		TYPE_STICKY: return {"text": "Sticky note", "color_index": 0}
+	return {}
 
 
 func has_type(type_id: String) -> bool:
@@ -54,7 +82,7 @@ func instantiate_from_dict(d: Dictionary) -> BoardItem:
 
 
 func types() -> PackedStringArray:
-	var out := PackedStringArray()
+	var out: PackedStringArray = PackedStringArray()
 	for k in _scenes.keys():
 		out.append(k)
 	return out

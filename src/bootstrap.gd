@@ -29,6 +29,7 @@ func _replace_with(new_node: Node) -> void:
 		_current = null
 	_current = new_node
 	add_child(new_node)
+	ThemeManager.call_deferred("refresh")
 
 
 func _on_project_chosen(project: Project) -> void:

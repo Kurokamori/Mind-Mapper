@@ -4,9 +4,9 @@
 [ext_resource type="Script" uid="uid://6i6swtvec7uw" path="res://src/editor/grid_background.gd" id="2_grid"]
 [ext_resource type="Script" uid="uid://d2w7rj3bi1c2b" path="res://src/editor/camera_controller.gd" id="3_camera"]
 [ext_resource type="Script" uid="uid://c30dm8lwbwb8r" path="res://src/editor/marquee.gd" id="4_marquee"]
-[ext_resource type="PackedScene" path="res://src/editor/toolbar.tscn" id="5_toolbar"]
+[ext_resource type="PackedScene" uid="uid://ddrrtk0yof547" path="res://src/editor/toolbar.tscn" id="5_toolbar"]
 [ext_resource type="PackedScene" path="res://src/editor/inspector_panel.tscn" id="6_inspector"]
-[ext_resource type="PackedScene" path="res://src/editor/breadcrumb_bar.tscn" id="7_bc"]
+[ext_resource type="PackedScene" uid="uid://byfpgmymru6pi" path="res://src/editor/breadcrumb_bar.tscn" id="7_bc"]
 [ext_resource type="PackedScene" path="res://src/editor/link_picker.tscn" id="8_lp"]
 [ext_resource type="Script" uid="uid://d4artmehmwrw3" path="res://src/editor/alignment_guides.gd" id="9_align"]
 [ext_resource type="PackedScene" path="res://src/editor/connection_layer.tscn" id="10_conn"]
@@ -37,7 +37,7 @@ camera_path = NodePath("../Camera")
 unique_name_in_owner = true
 script = ExtResource("3_camera")
 
-[node name="ConnectionLayer" parent="World" instance=ExtResource("10_conn")]
+[node name="ConnectionLayer" parent="World" unique_id=1678904901 instance=ExtResource("10_conn")]
 unique_name_in_owner = true
 
 [node name="Items" type="Control" parent="World" unique_id=1648672951]
@@ -46,48 +46,45 @@ layout_mode = 3
 anchors_preset = 0
 mouse_filter = 2
 
-[node name="Marquee" type="Node2D" parent="World" unique_id=1179195175]
-unique_name_in_owner = true
-script = ExtResource("4_marquee")
-
 [node name="AlignmentGuides" type="Node2D" parent="World" unique_id=532476146]
 unique_name_in_owner = true
 script = ExtResource("9_align")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1857419427]
 
-[node name="Toolbar" parent="CanvasLayer" unique_id=393189 instance=ExtResource("5_toolbar")]
+[node name="Marquee" type="Control" parent="CanvasLayer" unique_id=1179195175]
 unique_name_in_owner = true
-anchors_preset = 10
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_marquee")
 
-[node name="BreadcrumbBar" parent="CanvasLayer" unique_id=1273366483 instance=ExtResource("7_bc")]
-unique_name_in_owner = true
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer" unique_id=1628254969]
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 40.0
-offset_bottom = 72.0
+offset_bottom = 165.0
+grow_horizontal = 2
+theme_override_constants/separation = 4
+
+[node name="Toolbar" parent="CanvasLayer/VBoxContainer" unique_id=393189 instance=ExtResource("5_toolbar")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BreadcrumbBar" parent="CanvasLayer/VBoxContainer" unique_id=1273366483 instance=ExtResource("7_bc")]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="InspectorPanel" parent="CanvasLayer" unique_id=1705173604 instance=ExtResource("6_inspector")]
 unique_name_in_owner = true
-anchors_preset = 11
-anchor_left = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -300.0
-offset_top = 79.0
-grow_horizontal = 0
-grow_vertical = 2
 
-[node name="BoardOutliner" parent="CanvasLayer" instance=ExtResource("11_outliner")]
+[node name="BoardOutliner" parent="CanvasLayer" unique_id=235937358 instance=ExtResource("11_outliner")]
 unique_name_in_owner = true
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_top = 79.0
-offset_right = 240.0
-grow_horizontal = 1
-grow_vertical = 2
 
-[node name="Minimap" parent="CanvasLayer" instance=ExtResource("12_minimap")]
+[node name="Minimap" parent="CanvasLayer" unique_id=104751447 instance=ExtResource("12_minimap")]
 unique_name_in_owner = true
 anchors_preset = 2
 anchor_top = 1.0
@@ -98,7 +95,7 @@ offset_right = 472.0
 offset_bottom = -8.0
 grow_vertical = 0
 
-[node name="CommandPalette" parent="." instance=ExtResource("13_palette")]
+[node name="CommandPalette" parent="." unique_id=982012408 instance=ExtResource("13_palette")]
 unique_name_in_owner = true
 
 [node name="ImageDialog" type="FileDialog" parent="." unique_id=2133937868]

@@ -1,0 +1,58 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/dialogs/open_todos_dialog.gd" id="1_todos_dlg"]
+
+[node name="OpenTodosDialog" type="Window"]
+title = "Open Todos"
+size = Vector2i(720, 520)
+script = ExtResource("1_todos_dlg")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+theme_override_constants/separation = 8
+
+[node name="Help" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Double-click to jump to the containing list."
+
+[node name="Tree" type="Tree" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+columns = 4
+allow_rmb_select = true
+hide_root = true
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 8
+
+[node name="StatusLabel" type="Label" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="RefreshButton" type="Button" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Refresh"
+
+[node name="CloseButton" type="Button" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"

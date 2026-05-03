@@ -1,0 +1,78 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/dialogs/custom_node_headings_dialog.gd" id="1_cnh"]
+
+[node name="CustomNodeHeadingsDialog" type="Window"]
+title = "Custom Node Headings"
+size = Vector2i(560, 620)
+script = ExtResource("1_cnh")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+theme_override_constants/separation = 8
+
+[node name="Description" type="Label" parent="VBox"]
+layout_mode = 2
+autowrap_mode = 2
+text = "Override the heading color used by each node type while in the Custom theme. Empty rows fall back to the dark preset for that type."
+
+[node name="PresetRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PresetLabel" type="Label" parent="VBox/PresetRow"]
+layout_mode = 2
+text = "Apply preset:"
+
+[node name="DarkButton" type="Button" parent="VBox/PresetRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Dark defaults"
+
+[node name="LightButton" type="Button" parent="VBox/PresetRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Light defaults"
+
+[node name="ClearButton" type="Button" parent="VBox/PresetRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Clear all overrides"
+
+[node name="Separator" type="HSeparator" parent="VBox"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Grid" type="GridContainer" parent="VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 4
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 8
+alignment = 2
+
+[node name="CloseButton" type="Button" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"

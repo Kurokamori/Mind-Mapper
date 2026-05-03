@@ -1,10 +1,21 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://src/editor/board_outliner.gd" id="1_out"]
+[ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
 
 [node name="BoardOutliner" type="PanelContainer"]
 custom_minimum_size = Vector2(240, 0)
 script = ExtResource("1_out")
+dock_id = "outliner"
+drag_handle_path = NodePath("Margin/VBox/Header/Title")
+grip_top_path = NodePath("GripTop")
+grip_bottom_path = NodePath("GripBottom")
+grip_left_path = NodePath("GripLeft")
+grip_right_path = NodePath("GripRight")
+default_mode = "dock_left"
+default_floating_position = Vector2(120, 160)
+default_floating_size = Vector2(260, 420)
+default_dock_size = 240.0
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
@@ -23,6 +34,7 @@ layout_mode = 2
 [node name="Title" type="Label" parent="Margin/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 1
 text = "Boards"
 theme_override_font_sizes/font_size = 14
 
@@ -32,6 +44,14 @@ layout_mode = 2
 focus_mode = 0
 tooltip_text = "Create a new top-level board"
 text = "+"
+
+[node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Close outliner"
+text = "X"
 
 [node name="Tree" type="Tree" parent="Margin/VBox"]
 unique_name_in_owner = true
@@ -45,3 +65,19 @@ drop_mode_flags = 1
 [node name="ContextMenu" type="PopupMenu" parent="."]
 unique_name_in_owner = true
 size = Vector2i(160, 80)
+
+[node name="GripTop" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 1
+
+[node name="GripBottom" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 2
+
+[node name="GripLeft" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 4
+
+[node name="GripRight" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 8

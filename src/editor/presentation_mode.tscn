@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/presentation_mode.gd" id="1_present"]
+
+[node name="PresentationMode" type="Control"]
+mouse_filter = 0
+focus_mode = 2
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_present")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.05, 0.06, 0.08, 1)
+
+[node name="BoardLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 18.0
+offset_bottom = 46.0
+mouse_filter = 2
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
+text = ""
+
+[node name="StageClip" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 64.0
+offset_top = 64.0
+offset_right = -64.0
+offset_bottom = -64.0
+mouse_filter = 2
+clip_contents = true
+
+[node name="Stage" type="Control" parent="StageClip"]
+unique_name_in_owner = true
+mouse_filter = 2
+
+[node name="CloseButton" type="Button" parent="."]
+unique_name_in_owner = true
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -52.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = 44.0
+focus_mode = 0
+flat = true
+tooltip_text = "Exit presentation (Esc)"
+text = "X"
+theme_override_font_sizes/font_size = 18
+
+[node name="HintLabel" type="Label" parent="."]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -36.0
+mouse_filter = 2
+horizontal_alignment = 1
+text = ""

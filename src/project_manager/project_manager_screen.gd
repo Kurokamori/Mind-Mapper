@@ -25,7 +25,6 @@ func _ready() -> void:
 	ProjectStore.recent_changed.connect(_refresh)
 	_refresh()
 
-
 func _refresh() -> void:
 	for child in _grid_container.get_children():
 		child.queue_free()

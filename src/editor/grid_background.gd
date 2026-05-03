@@ -1,10 +1,6 @@
 class_name GridBackground
 extends Node2D
 
-const MAJOR_COLOR := Color(0.18, 0.19, 0.22, 1.0)
-const MINOR_COLOR := Color(0.13, 0.14, 0.16, 1.0)
-const BG_COLOR := Color(0.09, 0.10, 0.12, 1.0)
-
 @export var camera_path: NodePath
 
 
@@ -23,11 +19,49 @@ func _draw() -> void:
 	var world_size: Vector2 = vp_size / cam.zoom
 	var top_left: Vector2 = cam.position - world_size * 0.5
 	var pixel_per_world: float = cam.zoom.x
-	draw_grid_into(self, Rect2(top_left, world_size), SnapService.grid_size, SnapService.enabled, pixel_per_world)
+	var bg: Color = ThemeManager.background_color()
+	draw_grid_into_with_bg(self, Rect2(top_left, world_size), SnapService.grid_size, SnapService.enabled, pixel_per_world, bg)
+	_draw_board_background_image(top_left, world_size)
 
 
-static func draw_grid_into(canvas: CanvasItem, world_rect: Rect2, grid_size: int, snap_enabled: bool, pixel_per_world: float) -> void:
-	canvas.draw_rect(world_rect, BG_COLOR, true)
+func _draw_board_background_image(top_left: Vector2, world_size: Vector2) -> void:
+	if AppState.current_board == null or AppState.current_project == null:
+		return
+	var asset: String = AppState.current_board.background_image_asset
+	if asset == "":
+		return
+	var path: String = AppState.current_project.resolve_asset_path(asset)
+	if not FileAccess.file_exists(path):
+		return
+	var img: Image = Image.load_from_file(path)
+	if img == null or img.is_empty():
+		return
+	var tex: ImageTexture = ImageTexture.create_from_image(img)
+	match AppState.current_board.background_image_mode:
+		1:
+			draw_texture_rect(tex, Rect2(top_left, world_size), false)
+		2:
+			var tw: float = float(img.get_width())
+			var th: float = float(img.get_height())
+			var center: Vector2 = top_left + world_size * 0.5
+			draw_texture_rect(tex, Rect2(center - Vector2(tw, th) * 0.5, Vector2(tw, th)), false)
+		_:
+			draw_texture_rect(tex, Rect2(top_left, world_size), true)
+
+
+static func draw_grid_into_with_bg(canvas: CanvasItem, world_rect: Rect2, grid_size: int, snap_enabled: bool, pixel_per_world: float, bg_color: Color) -> void:
+	canvas.draw_rect(world_rect, bg_color, true)
+	_draw_grid_lines(canvas, world_rect, grid_size, snap_enabled, pixel_per_world, bg_color)
+
+
+static func _grid_colors(bg_color: Color) -> Array:
+	var palette_subtle: Color = ThemeManager.subtle_color()
+	var minor: Color = bg_color.lerp(palette_subtle, 0.35)
+	var major: Color = bg_color.lerp(palette_subtle, 0.65)
+	return [minor, major]
+
+
+static func _draw_grid_lines(canvas: CanvasItem, world_rect: Rect2, grid_size: int, snap_enabled: bool, pixel_per_world: float, bg_color: Color) -> void:
 	if grid_size <= 0 or pixel_per_world <= 0.0:
 		return
 	var step: int = grid_size
@@ -41,8 +75,11 @@ static func draw_grid_into(canvas: CanvasItem, world_rect: Rect2, grid_size: int
 	var end_x: float = top_left.x + size.x
 	var start_y: float = floor(top_left.y / step) * step
 	var end_y: float = top_left.y + size.y
-	var minor_color: Color = MINOR_COLOR if snap_enabled else MINOR_COLOR.darkened(0.4)
-	var major_color: Color = MAJOR_COLOR if snap_enabled else MAJOR_COLOR.darkened(0.4)
+	var grid_palette: Array = _grid_colors(bg_color)
+	var base_minor: Color = grid_palette[0]
+	var base_major: Color = grid_palette[1]
+	var minor_color: Color = base_minor if snap_enabled else base_minor.lerp(bg_color, 0.4)
+	var major_color: Color = base_major if snap_enabled else base_major.lerp(bg_color, 0.4)
 	var line_thickness: float = 1.0 / pixel_per_world
 	var x: float = start_x
 	while x <= end_x:
@@ -54,3 +91,9 @@ static func draw_grid_into(canvas: CanvasItem, world_rect: Rect2, grid_size: int
 		var color_y: Color = major_color if int(round(y / step)) % 5 == 0 else minor_color
 		canvas.draw_line(Vector2(top_left.x, y), Vector2(end_x, y), color_y, line_thickness)
 		y += step
+
+
+static func draw_grid_into(canvas: CanvasItem, world_rect: Rect2, grid_size: int, snap_enabled: bool, pixel_per_world: float) -> void:
+	var bg: Color = ThemeManager.background_color()
+	canvas.draw_rect(world_rect, bg, true)
+	_draw_grid_lines(canvas, world_rect, grid_size, snap_enabled, pixel_per_world, bg)

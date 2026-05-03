@@ -1,0 +1,70 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/dialogs/snapshots_dialog.gd" id="1_snap_dlg"]
+
+[node name="SnapshotsDialog" type="Window"]
+title = "Snapshots"
+size = Vector2i(520, 460)
+script = ExtResource("1_snap_dlg")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = 12.0
+offset_right = -12.0
+offset_bottom = -12.0
+theme_override_constants/separation = 8
+
+[node name="CreateRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LabelInput" type="LineEdit" parent="VBox/CreateRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Label (optional)"
+
+[node name="CreateButton" type="Button" parent="VBox/CreateRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Create snapshot"
+
+[node name="SnapshotList" type="ItemList" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RestoreButton" type="Button" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Restore"
+
+[node name="DeleteButton" type="Button" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Delete"
+
+[node name="StatusLabel" type="Label" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="CloseButton" type="Button" parent="VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"

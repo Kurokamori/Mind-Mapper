@@ -1,19 +1,35 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://dtitm13vry78q"]
 
-[ext_resource type="Script" path="res://src/project_manager/project_manager_screen.gd" id="1_pms"]
+[ext_resource type="Script" uid="uid://bfn1xpj1fcr8m" path="res://src/project_manager/project_manager_screen.gd" id="1_pms"]
 
-[node name="ProjectManagerScreen" type="Control"]
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_llrq2"]
+blend_mode = 3
+
+[node name="ProjectManagerScreen" type="Control" unique_id=1810215280]
+layout_mode = 3
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource("1_pms")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="Panel" parent="." unique_id=396500919]
+unique_name_in_owner = true
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0.09, 0.1, 0.12, 1)
 
-[node name="Margins" type="MarginContainer" parent="."]
+[node name="Overlay" type="ColorRect" parent="." unique_id=1650085256]
+unique_name_in_owner = true
+material = SubResource("CanvasItemMaterial_llrq2")
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.85125214, 0.7346745, 0.78196084, 1)
+
+[node name="Margins" type="MarginContainer" parent="." unique_id=1043964381]
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme_override_constants/margin_left = 36
@@ -21,89 +37,87 @@ theme_override_constants/margin_top = 28
 theme_override_constants/margin_right = 36
 theme_override_constants/margin_bottom = 28
 
-[node name="VBox" type="VBoxContainer" parent="Margins"]
+[node name="VBox" type="VBoxContainer" parent="Margins" unique_id=1413395857]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Title" type="Label" parent="Margins/VBox"]
+[node name="Title" type="Label" parent="Margins/VBox" unique_id=391425348]
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Mind Mapper"
 
-[node name="Subtitle" type="Label" parent="Margins/VBox"]
+[node name="Subtitle" type="Label" parent="Margins/VBox" unique_id=1878359120]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
 text = "Plan games, shows, movies, anything."
 
-[node name="Actions" type="HBoxContainer" parent="Margins/VBox"]
+[node name="Actions" type="HBoxContainer" parent="Margins/VBox" unique_id=2135057860]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="NewButton" type="Button" parent="Margins/VBox/Actions"]
+[node name="NewButton" type="Button" parent="Margins/VBox/Actions" unique_id=1224940368]
 unique_name_in_owner = true
 layout_mode = 2
 text = "New Project…"
 
-[node name="OpenButton" type="Button" parent="Margins/VBox/Actions"]
+[node name="OpenButton" type="Button" parent="Margins/VBox/Actions" unique_id=1825214084]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Open Project…"
 
-[node name="SectionHeader" type="Label" parent="Margins/VBox"]
+[node name="SectionHeader" type="Label" parent="Margins/VBox" unique_id=2090480832]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Recent projects"
 
-[node name="Scroll" type="ScrollContainer" parent="Margins/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="Margins/VBox" unique_id=1259681053]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="GridContainer" type="VBoxContainer" parent="Margins/VBox/Scroll"]
+[node name="GridContainer" type="VBoxContainer" parent="Margins/VBox/Scroll" unique_id=155648691]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="EmptyLabel" type="Label" parent="Margins/VBox"]
+[node name="EmptyLabel" type="Label" parent="Margins/VBox" unique_id=884455943]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.6, 0.65, 1)
 text = "No recent projects yet. Click \"New Project…\" to begin."
 
-[node name="CreateDialog" type="FileDialog" parent="."]
+[node name="CreateDialog" type="FileDialog" parent="." unique_id=1058513665]
 unique_name_in_owner = true
-title = "Choose a parent folder for the new project"
+title = "Open a Directory"
 size = Vector2i(800, 600)
 ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2
 
-[node name="OpenDialog" type="FileDialog" parent="."]
+[node name="OpenDialog" type="FileDialog" parent="." unique_id=599453921]
 unique_name_in_owner = true
-title = "Open project folder"
+title = "Open a Directory"
 size = Vector2i(800, 600)
 ok_button_text = "Select Current Folder"
 file_mode = 2
 access = 2
 
-[node name="NameDialog" type="AcceptDialog" parent="."]
+[node name="NameDialog" type="AcceptDialog" parent="." unique_id=533701079]
 unique_name_in_owner = true
 title = "Project name"
 size = Vector2i(360, 140)
 ok_button_text = "Create"
 
-[node name="NameBox" type="VBoxContainer" parent="NameDialog"]
+[node name="NameBox" type="VBoxContainer" parent="NameDialog" unique_id=276409489]
 offset_left = 8.0
 offset_top = 8.0
 offset_right = 352.0
 offset_bottom = 92.0
 
-[node name="NameLabel" type="Label" parent="NameDialog/NameBox"]
+[node name="NameLabel" type="Label" parent="NameDialog/NameBox" unique_id=930281631]
 layout_mode = 2
 text = "Name your project:"
 
-[node name="NameEdit" type="LineEdit" parent="NameDialog/NameBox"]
+[node name="NameEdit" type="LineEdit" parent="NameDialog/NameBox" unique_id=17521294]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(320, 0)
 layout_mode = 2

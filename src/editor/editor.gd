@@ -35,7 +35,7 @@ var _items_by_id: Dictionary = {}
 var _drag_batch_starts: Dictionary = {}
 var _drag_batch_capturing: bool = false
 var _drag_followers_starts: Dictionary = {}
-var _pending_export_mode: String = EditorToolbar.EXPORT_MODE_CURRENT
+var _pending_export_mode: String = EditorToolbar.EXPORT_MODE_PNG_CURRENT
 var _connect_tool_active: bool = false
 var _selected_connection_id: String = ""
 var _port_drag_active: bool = false
@@ -69,15 +69,32 @@ func _ready() -> void:
 	_link_picker.link_cleared.connect(_on_link_picker_cleared)
 	_connection_layer.bind_editor(self)
 	_connection_layer.connection_selected.connect(_on_connection_selected)
+	_connection_layer.connections_selected.connect(_on_connections_selected)
 	_connection_layer.selection_cleared.connect(_on_connection_selection_cleared)
 	SelectionBus.selection_changed.connect(_on_item_selection_changed)
 	AppState.before_navigation.connect(_perform_save)
 	AppState.current_board_changed.connect(_on_board_changed)
 	_minimap.bind_editor(self, _camera)
+	_marquee.bind_camera(_camera)
 	_command_palette.result_chosen.connect(_on_palette_result_chosen)
+	_inspector_panel.close_requested.connect(_on_inspector_close_requested)
+	_board_outliner.close_requested.connect(_on_outliner_close_requested)
+	_minimap.close_requested.connect(_on_minimap_close_requested)
 	_apply_initial_panel_visibility()
+	_refresh_template_menu()
+	Templates.templates_changed.connect(_refresh_template_menu)
+	AppState.tag_filter_changed.connect(_apply_tag_filter)
 	if AppState.current_board != null:
 		_on_board_changed(AppState.current_board)
+	_refresh_tag_filter_menu()
+	Tags.tags_changed.connect(_refresh_tag_filter_menu)
+
+
+func _refresh_tag_filter_menu() -> void:
+	if AppState.current_project == null or _toolbar == null:
+		return
+	var tags: PackedStringArray = Tags.collect_from_project(AppState.current_project)
+	_toolbar.update_tag_filter_list(tags, AppState.active_tag_filter)
 
 
 func _on_board_changed(board: Board) -> void:
@@ -95,6 +112,8 @@ func _on_board_changed(board: Board) -> void:
 	_load_connections_from_board(board)
 	if _minimap != null:
 		_minimap.notify_items_changed()
+	if AppState.active_tag_filter != "":
+		_apply_tag_filter(AppState.active_tag_filter)
 
 
 func _load_connections_from_board(board: Board) -> void:
@@ -191,6 +210,14 @@ func _on_item_port_drag_started(item: BoardItem, anchor: String) -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton:
+		var wheel_mb: InputEventMouseButton = event as InputEventMouseButton
+		if wheel_mb.pressed and (wheel_mb.button_index == MOUSE_BUTTON_WHEEL_UP or wheel_mb.button_index == MOUSE_BUTTON_WHEEL_DOWN):
+			if _is_visible_canvas_hover():
+				var factor: float = EditorCameraController.ZOOM_STEP if wheel_mb.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / EditorCameraController.ZOOM_STEP
+				_camera.zoom_at_screen(wheel_mb.position, factor)
+				get_viewport().set_input_as_handled()
+				return
 	if not _port_drag_active:
 		return
 	if event is InputEventMouseMotion:
@@ -321,6 +348,29 @@ func _end_drag_session() -> void:
 	if _drag_session_active:
 		_drag_session_active = false
 		AlignmentGuideService.end_drag()
+
+
+func _is_visible_canvas_hover() -> bool:
+	if not is_visible_in_tree():
+		return false
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return false
+	var rect: Rect2 = get_global_rect()
+	var mouse_global: Vector2 = viewport.get_mouse_position()
+	if not rect.has_point(mouse_global):
+		return false
+	var hovered: Control = viewport.gui_get_hovered_control()
+	if hovered == null or hovered == self:
+		return true
+	var node: Node = hovered
+	while node != null:
+		if node is BoardItem:
+			return true
+		if node == self:
+			return true
+		node = node.get_parent()
+	return false
 
 
 func _find_pinboard_under(world_pos: Vector2, exclude: BoardItem) -> PinboardNode:
@@ -574,10 +624,6 @@ func _finalize_drop_into_pinboard(primary: BoardItem, pin: PinboardNode) -> void
 
 
 func _gui_input(event: InputEvent) -> void:
-	var consumed: bool = _camera.handle_unhandled_input(event)
-	if consumed:
-		accept_event()
-		return
 	if event is InputEventMouseButton:
 		var mb: InputEventMouseButton = event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -590,84 +636,120 @@ func _gui_input(event: InputEvent) -> void:
 					accept_event()
 					return
 				if _connection_layer != null:
+					var wp_hit: Dictionary = _connection_layer.hit_test_waypoint(world_pos)
+					if not wp_hit.is_empty():
+						if mb.shift_pressed:
+							_connection_layer.remove_selected_waypoint(world_pos)
+						else:
+							_connection_layer.begin_waypoint_drag(String(wp_hit.connection_id), int(wp_hit.index))
+						accept_event()
+						return
 					var hit: Connection = _connection_layer.hit_test(world_pos)
 					if hit != null:
+						if mb.alt_pressed:
+							_connection_layer.add_waypoint_at(world_pos)
+							accept_event()
+							return
 						SelectionBus.clear()
-						select_connection_by_id(hit.id)
+						_connection_layer.select_connection(hit.id, mb.shift_pressed)
 						accept_event()
 						return
 				if not mb.shift_pressed:
 					SelectionBus.clear()
 					_clear_connection_selection()
-				_marquee.begin(world_pos)
+				_marquee.begin_drag()
 				accept_event()
 			else:
+				if _connection_layer != null:
+					_connection_layer.end_waypoint_drag()
 				if _marquee.active:
 					var rect: Rect2 = _marquee.finish()
 					_select_in_rect(rect, mb.shift_pressed)
 					accept_event()
 	elif event is InputEventMouseMotion:
 		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		if _connection_layer != null:
+			_connection_layer.update_waypoint_drag(_camera.screen_to_world(motion.position))
 		if _marquee.active:
-			_marquee.update_to(_camera.screen_to_world(motion.position))
+			_marquee.update_drag()
 		if _connect_tool_active and _connection_layer != null and _connection_layer.is_pending_active():
 			_connection_layer.update_pending_endpoint(_camera.screen_to_world(motion.position))
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		var k: InputEventKey = event as InputEventKey
-		var ctrl: bool = k.ctrl_pressed or k.meta_pressed
-		if ctrl and (k.keycode == KEY_K or k.keycode == KEY_P):
+	if not (event is InputEventKey) or not event.pressed or event.echo:
+		return
+	var k: InputEventKey = event as InputEventKey
+	var action: String = KeybindingService.first_match(event)
+	match action:
+		KeybindingService.ACTION_OPEN_PALETTE:
 			_open_command_palette()
-			get_viewport().set_input_as_handled()
-			return
-		if ctrl and k.keycode == KEY_Z and not k.shift_pressed:
-			History.undo()
-			get_viewport().set_input_as_handled()
-		elif ctrl and (k.keycode == KEY_Y or (k.keycode == KEY_Z and k.shift_pressed)):
-			History.redo()
-			get_viewport().set_input_as_handled()
-		elif ctrl and k.keycode == KEY_C:
-			_copy_selection()
-			get_viewport().set_input_as_handled()
-		elif ctrl and k.keycode == KEY_V:
-			_paste_at_mouse()
-			get_viewport().set_input_as_handled()
-		elif ctrl and k.keycode == KEY_X:
-			_copy_selection()
-			_delete_selection()
-			get_viewport().set_input_as_handled()
-		elif ctrl and k.keycode == KEY_D:
-			_duplicate_selection()
-			get_viewport().set_input_as_handled()
-		elif ctrl and k.keycode == KEY_S:
-			_perform_save()
-			get_viewport().set_input_as_handled()
-		elif ctrl and k.keycode == KEY_A:
-			_select_all()
-			get_viewport().set_input_as_handled()
-		elif ctrl and k.keycode == KEY_G:
-			_group_selection()
-			get_viewport().set_input_as_handled()
-		elif k.keycode == KEY_LEFT or k.keycode == KEY_RIGHT or k.keycode == KEY_UP or k.keycode == KEY_DOWN:
+			get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_UNDO:
+			History.undo(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_REDO:
+			History.redo(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_COPY:
+			_copy_selection(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_PASTE:
+			_paste_at_mouse(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_CUT:
+			_copy_selection(); _delete_selection(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_DUPLICATE:
+			_duplicate_selection(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_SAVE:
+			_perform_save(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_SELECT_ALL:
+			_select_all(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_GROUP:
+			_group_selection(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_NUDGE_LEFT, KeybindingService.ACTION_NUDGE_RIGHT, \
+		KeybindingService.ACTION_NUDGE_UP, KeybindingService.ACTION_NUDGE_DOWN:
 			if _has_selection_and_no_editing():
-				_nudge_selection(k.keycode, k.shift_pressed)
+				var keycode: int = KEY_LEFT
+				match action:
+					KeybindingService.ACTION_NUDGE_RIGHT: keycode = KEY_RIGHT
+					KeybindingService.ACTION_NUDGE_UP: keycode = KEY_UP
+					KeybindingService.ACTION_NUDGE_DOWN: keycode = KEY_DOWN
+				_nudge_selection(keycode, k.shift_pressed)
 				get_viewport().set_input_as_handled()
-		elif k.keycode == KEY_DELETE or k.keycode == KEY_BACKSPACE:
-			if _selected_connection_id != "":
+			return
+		KeybindingService.ACTION_DELETE:
+			if _connection_layer != null and not _connection_layer.selected_connections().is_empty():
 				_delete_selected_connection()
 				get_viewport().set_input_as_handled()
 			elif _has_selection_and_no_editing():
 				_delete_selection()
 				get_viewport().set_input_as_handled()
-		elif k.keycode == KEY_ESCAPE:
-			if _connect_tool_active:
-				_set_connect_tool_active(false)
-				get_viewport().set_input_as_handled()
-			elif _selected_connection_id != "":
-				_clear_connection_selection()
-				get_viewport().set_input_as_handled()
+			return
+		KeybindingService.ACTION_PRESENT:
+			_open_presentation_mode(); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_BRING_FORWARD:
+			_perform_reorder(ReorderItemsCommand.DIR_BRING_FORWARD); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_BRING_TO_FRONT:
+			_perform_reorder(ReorderItemsCommand.DIR_BRING_TO_FRONT); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_SEND_BACKWARD:
+			_perform_reorder(ReorderItemsCommand.DIR_SEND_BACKWARD); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_SEND_TO_BACK:
+			_perform_reorder(ReorderItemsCommand.DIR_SEND_TO_BACK); get_viewport().set_input_as_handled(); return
+		KeybindingService.ACTION_LOCK_TOGGLE:
+			_toggle_lock_on_selection(); get_viewport().set_input_as_handled(); return
+	if k.keycode == KEY_ESCAPE:
+		if _connect_tool_active:
+			_set_connect_tool_active(false)
+			get_viewport().set_input_as_handled()
+		elif _connection_layer != null and not _connection_layer.selected_connections().is_empty():
+			_clear_connection_selection()
+			get_viewport().set_input_as_handled()
+
+
+func _toggle_lock_on_selection() -> void:
+	var current: Array = SelectionBus.current()
+	if current.is_empty():
+		return
+	for it in current:
+		var item: BoardItem = it
+		History.push(ModifyPropertyCommand.new(self, item.item_id, "locked", item.locked, not item.locked))
 
 
 func _commit_active_edits() -> void:
@@ -699,6 +781,13 @@ func _select_in_rect(rect: Rect2, additive: bool) -> void:
 		SelectionBus.set_many(combined)
 	else:
 		SelectionBus.set_many(picks)
+	if _connection_layer != null:
+		var conns: Array = _connection_layer.hit_test_in_rect(rect)
+		if not conns.is_empty():
+			if not additive:
+				_connection_layer.clear_selection()
+			for c in conns:
+				_connection_layer.select_connection((c as Connection).id, true)
 
 
 func _select_all() -> void:
@@ -718,6 +807,25 @@ func _copy_selection() -> void:
 
 
 func _paste_at_mouse() -> void:
+	if DisplayServer.clipboard_has_image():
+		var img: Image = DisplayServer.clipboard_get_image()
+		if img != null and not img.is_empty() and AppState.current_project != null:
+			var asset_id: String = Uuid.v4()
+			if not DirAccess.dir_exists_absolute(AppState.current_project.assets_path()):
+				DirAccess.make_dir_recursive_absolute(AppState.current_project.assets_path())
+			var dest: String = AppState.current_project.assets_path().path_join(asset_id + ".png")
+			if img.save_png(dest) == OK:
+				var img_d: Dictionary = {
+					"id": Uuid.v4(),
+					"type": ItemRegistry.TYPE_IMAGE,
+					"position": [_camera.position.x - min(img.get_width(), 480) * 0.5, _camera.position.y - min(img.get_height(), 360) * 0.5],
+					"size": [min(img.get_width(), 480), min(img.get_height(), 360)],
+					"source_mode": ImageNode.SourceMode.EMBEDDED,
+					"asset_name": asset_id + ".png",
+					"source_path": "",
+				}
+				History.push(AddItemsCommand.new(self, [img_d]))
+				return
 	if Clipboard.is_empty():
 		return
 	var raw: Array = Clipboard.get_items_for_paste()
@@ -788,6 +896,8 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			var visible_minimap: bool = bool(payload)
 			_minimap.visible = visible_minimap
 			UserPrefs.set_minimap_visible(visible_minimap)
+		EditorToolbar.ACTION_TOGGLE_TIMER_TRAY:
+			_toggle_timer_tray(bool(payload))
 		EditorToolbar.ACTION_UNDO:
 			History.undo()
 		EditorToolbar.ACTION_REDO:
@@ -799,38 +909,448 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			emit_signal("back_to_projects_requested")
 		EditorToolbar.ACTION_GROUP:
 			_group_selection()
-		EditorToolbar.ACTION_EXPORT_PNG:
+		EditorToolbar.ACTION_EXPORT:
 			_open_export_dialog(String(payload))
+		EditorToolbar.ACTION_IMPORT:
+			_open_import_dialog(String(payload))
 		EditorToolbar.ACTION_TOGGLE_CONNECT:
 			_set_connect_tool_active(bool(payload))
+		EditorToolbar.ACTION_ARRANGE:
+			_handle_arrange(String(payload))
+		EditorToolbar.ACTION_SNAP_OPTION:
+			_handle_snap_option(payload as Dictionary)
+		EditorToolbar.ACTION_SET_GRID_SIZE:
+			SnapService.set_grid_size(int(payload))
+		EditorToolbar.ACTION_TAG_FILTER:
+			_apply_tag_filter(String(payload))
+		EditorToolbar.ACTION_PRESENT:
+			_open_presentation_mode()
+		EditorToolbar.ACTION_TEMPLATE:
+			_handle_template(payload as Dictionary)
+		EditorToolbar.ACTION_SETTINGS:
+			_handle_settings(String(payload))
+
+
+func _on_inspector_close_requested() -> void:
+	_inspector_panel.visible = false
+	if _toolbar != null:
+		_toolbar.set_inspector_pressed(false)
+
+
+func _on_outliner_close_requested() -> void:
+	_board_outliner.visible = false
+	UserPrefs.set_outliner_visible(false)
+	if _toolbar != null:
+		_toolbar.set_outliner_pressed(false)
+
+
+func _on_minimap_close_requested() -> void:
+	_minimap.visible = false
+	UserPrefs.set_minimap_visible(false)
+	if _toolbar != null:
+		_toolbar.set_minimap_pressed(false)
+
+
+func _toggle_timer_tray(visible_state: bool) -> void:
+	if has_node("CanvasLayer/TimerTray"):
+		(get_node("CanvasLayer/TimerTray") as Control).visible = visible_state
+	else:
+		var tray_scene: PackedScene = preload("res://src/editor/timer_tray.tscn")
+		var tray: Control = tray_scene.instantiate()
+		tray.name = "TimerTray"
+		get_node("CanvasLayer").add_child(tray)
+		tray.visible = visible_state
+
+
+func _handle_arrange(op: String) -> void:
+	match op:
+		EditorToolbar.ARRANGE_ALIGN_LEFT, EditorToolbar.ARRANGE_ALIGN_RIGHT, \
+		EditorToolbar.ARRANGE_ALIGN_TOP, EditorToolbar.ARRANGE_ALIGN_BOTTOM, \
+		EditorToolbar.ARRANGE_ALIGN_HCENTER, EditorToolbar.ARRANGE_ALIGN_VCENTER:
+			_perform_align(op)
+		EditorToolbar.ARRANGE_DISTRIBUTE_H:
+			_perform_distribute(true)
+		EditorToolbar.ARRANGE_DISTRIBUTE_V:
+			_perform_distribute(false)
+		EditorToolbar.ARRANGE_BRING_FORWARD:
+			_perform_reorder(ReorderItemsCommand.DIR_BRING_FORWARD)
+		EditorToolbar.ARRANGE_BRING_TO_FRONT:
+			_perform_reorder(ReorderItemsCommand.DIR_BRING_TO_FRONT)
+		EditorToolbar.ARRANGE_SEND_BACKWARD:
+			_perform_reorder(ReorderItemsCommand.DIR_SEND_BACKWARD)
+		EditorToolbar.ARRANGE_SEND_TO_BACK:
+			_perform_reorder(ReorderItemsCommand.DIR_SEND_TO_BACK)
+
+
+func _perform_align(op: String) -> void:
+	var current: Array = SelectionBus.current()
+	if current.size() < 2:
+		return
+	var movable: Array = []
+	var min_x: float = INF; var max_x: float = -INF
+	var min_y: float = INF; var max_y: float = -INF
+	for it in current:
+		var item: BoardItem = it
+		if item.locked:
+			continue
+		movable.append(item)
+		min_x = min(min_x, item.position.x)
+		min_y = min(min_y, item.position.y)
+		max_x = max(max_x, item.position.x + item.size.x)
+		max_y = max(max_y, item.position.y + item.size.y)
+	if movable.size() < 2:
+		return
+	var entries: Array = []
+	for item: BoardItem in movable:
+		var from_pos: Vector2 = item.position
+		var to_pos: Vector2 = from_pos
+		match op:
+			EditorToolbar.ARRANGE_ALIGN_LEFT:
+				to_pos.x = min_x
+			EditorToolbar.ARRANGE_ALIGN_RIGHT:
+				to_pos.x = max_x - item.size.x
+			EditorToolbar.ARRANGE_ALIGN_TOP:
+				to_pos.y = min_y
+			EditorToolbar.ARRANGE_ALIGN_BOTTOM:
+				to_pos.y = max_y - item.size.y
+			EditorToolbar.ARRANGE_ALIGN_HCENTER:
+				to_pos.x = (min_x + max_x) * 0.5 - item.size.x * 0.5
+			EditorToolbar.ARRANGE_ALIGN_VCENTER:
+				to_pos.y = (min_y + max_y) * 0.5 - item.size.y * 0.5
+		if from_pos != to_pos:
+			item.position = to_pos
+			entries.append({"id": item.item_id, "from": [from_pos.x, from_pos.y], "to": [to_pos.x, to_pos.y]})
+	if entries.is_empty():
+		return
+	History.push_already_done(MoveItemsCommand.new(self, entries))
+	request_save()
+
+
+func _perform_distribute(horizontal: bool) -> void:
+	var current: Array = SelectionBus.current()
+	if current.size() < 3:
+		return
+	var movable: Array = []
+	for it in current:
+		var item: BoardItem = it
+		if not item.locked:
+			movable.append(item)
+	if movable.size() < 3:
+		return
+	movable.sort_custom(func(a: BoardItem, b: BoardItem) -> bool:
+		var ax: float = a.position.x + a.size.x * 0.5 if horizontal else a.position.y + a.size.y * 0.5
+		var bx: float = b.position.x + b.size.x * 0.5 if horizontal else b.position.y + b.size.y * 0.5
+		return ax < bx
+	)
+	var first: BoardItem = movable[0]
+	var last: BoardItem = movable[movable.size() - 1]
+	var first_center: float = (first.position.x + first.size.x * 0.5) if horizontal else (first.position.y + first.size.y * 0.5)
+	var last_center: float = (last.position.x + last.size.x * 0.5) if horizontal else (last.position.y + last.size.y * 0.5)
+	var total_span: float = last_center - first_center
+	if total_span <= 0.0:
+		return
+	var step: float = total_span / float(movable.size() - 1)
+	var entries: Array = []
+	for i in range(1, movable.size() - 1):
+		var item: BoardItem = movable[i]
+		var target_center: float = first_center + step * float(i)
+		var from_pos: Vector2 = item.position
+		var to_pos: Vector2 = from_pos
+		if horizontal:
+			to_pos.x = target_center - item.size.x * 0.5
+		else:
+			to_pos.y = target_center - item.size.y * 0.5
+		if from_pos != to_pos:
+			item.position = to_pos
+			entries.append({"id": item.item_id, "from": [from_pos.x, from_pos.y], "to": [to_pos.x, to_pos.y]})
+	if entries.is_empty():
+		return
+	History.push_already_done(MoveItemsCommand.new(self, entries))
+	request_save()
+
+
+func _perform_reorder(direction: String) -> void:
+	var current: Array = SelectionBus.current()
+	if current.is_empty():
+		return
+	var ids: Array = []
+	for it in current:
+		ids.append((it as BoardItem).item_id)
+	History.push(ReorderItemsCommand.new(self, ids, direction))
+
+
+func get_z_order_snapshot() -> Array:
+	var out: Array = []
+	for child in _items_root.get_children():
+		if child is BoardItem:
+			out.append((child as BoardItem).item_id)
+	return out
+
+
+func apply_z_order_snapshot(order: Array) -> void:
+	for i in range(order.size()):
+		var id: String = String(order[i])
+		var item: BoardItem = _items_by_id.get(id, null)
+		if item != null:
+			_items_root.move_child(item, i)
+	if _connection_layer != null:
+		_connection_layer.queue_redraw()
+
+
+func apply_reorder(item_ids: Array, direction: String) -> void:
+	var children: Array = _items_root.get_children()
+	var indices: Array = []
+	for id in item_ids:
+		var it: BoardItem = _items_by_id.get(String(id), null)
+		if it != null:
+			indices.append(it.get_index())
+	if indices.is_empty():
+		return
+	indices.sort()
+	var max_idx: int = children.size() - 1
+	match direction:
+		ReorderItemsCommand.DIR_BRING_TO_FRONT:
+			for id in item_ids:
+				var it2: BoardItem = _items_by_id.get(String(id), null)
+				if it2 != null and not (it2 is GroupNode):
+					_items_root.move_child(it2, max_idx)
+		ReorderItemsCommand.DIR_SEND_TO_BACK:
+			var target_idx: int = _first_non_group_index()
+			for id in item_ids:
+				var it2: BoardItem = _items_by_id.get(String(id), null)
+				if it2 != null:
+					if it2 is GroupNode:
+						_items_root.move_child(it2, 0)
+					else:
+						_items_root.move_child(it2, target_idx)
+		ReorderItemsCommand.DIR_BRING_FORWARD:
+			for id in item_ids:
+				var it2: BoardItem = _items_by_id.get(String(id), null)
+				if it2 != null:
+					var nxt: int = min(it2.get_index() + 1, max_idx)
+					if not (it2 is GroupNode) and nxt > it2.get_index():
+						_items_root.move_child(it2, nxt)
+		ReorderItemsCommand.DIR_SEND_BACKWARD:
+			for id in item_ids:
+				var it2: BoardItem = _items_by_id.get(String(id), null)
+				if it2 != null:
+					var prv: int = max(it2.get_index() - 1, 0)
+					if it2 is GroupNode or prv < it2.get_index():
+						_items_root.move_child(it2, prv)
+	_enforce_group_invariant()
+
+
+func _first_non_group_index() -> int:
+	for child in _items_root.get_children():
+		if not (child is GroupNode):
+			return child.get_index()
+	return _items_root.get_child_count()
+
+
+func _enforce_group_invariant() -> void:
+	var groups: Array = []
+	var others: Array = []
+	for child in _items_root.get_children():
+		if child is GroupNode:
+			groups.append(child)
+		else:
+			others.append(child)
+	var idx: int = 0
+	for g in groups:
+		_items_root.move_child(g, idx)
+		idx += 1
+	for o in others:
+		_items_root.move_child(o, idx)
+		idx += 1
+
+
+func _handle_snap_option(opts: Dictionary) -> void:
+	if opts == null:
+		return
+	var key: String = String(opts.get("key", ""))
+	var value: bool = bool(opts.get("value", false))
+	match key:
+		EditorToolbar.SNAP_OPT_ENABLED:
+			SnapService.set_enabled(value)
+		EditorToolbar.SNAP_OPT_TO_GRID:
+			SnapService.set_snap_to_grid(value)
+		EditorToolbar.SNAP_OPT_TO_ITEMS:
+			SnapService.set_snap_to_items(value)
+
+
+func _apply_tag_filter(tag: String) -> void:
+	AppState.set_tag_filter(tag)
+	for it in all_items():
+		var dim: bool = false
+		if tag != "":
+			dim = not it.has_tag(tag)
+		it.set_dimmed(dim)
+
+
+func _open_presentation_mode() -> void:
+	if AppState.current_project == null or AppState.current_board == null:
+		return
+	var scene: PackedScene = preload("res://src/editor/presentation_mode.tscn")
+	var screen: Control = scene.instantiate()
+	screen.set_meta("source_editor", self)
+	add_child(screen)
+	if screen.has_method("start"):
+		screen.start(AppState.current_project, AppState.current_board, all_items(), _connection_layer.get_connections() if _connection_layer != null else [])
+
+
+func _handle_template(opts: Dictionary) -> void:
+	if opts == null:
+		return
+	var action: String = String(opts.get("action", ""))
+	match action:
+		EditorToolbar.TEMPLATE_ACTION_SAVE_SELECTION:
+			_save_selection_as_template()
+		EditorToolbar.TEMPLATE_ACTION_INSERT:
+			_insert_template(String(opts.get("name", "")))
+		EditorToolbar.TEMPLATE_ACTION_DELETE:
+			Templates.delete(String(opts.get("name", "")))
+			_refresh_template_menu()
+
+
+func _save_selection_as_template() -> void:
+	var current: Array = SelectionBus.current()
+	if current.is_empty():
+		return
+	var dlg: AcceptDialog = AcceptDialog.new()
+	dlg.title = "Save Template"
+	dlg.add_cancel_button("Cancel")
+	var v: VBoxContainer = VBoxContainer.new()
+	var lbl: Label = Label.new(); lbl.text = "Template name:"; v.add_child(lbl)
+	var le: LineEdit = LineEdit.new(); le.text = "New Template"; v.add_child(le)
+	dlg.add_child(v)
+	add_child(dlg)
+	dlg.confirmed.connect(func() -> void:
+		var item_dicts: Array = []
+		var ids: Dictionary = {}
+		for it in current:
+			item_dicts.append((it as BoardItem).to_dict())
+			ids[(it as BoardItem).item_id] = true
+		var conn_dicts: Array = []
+		if _connection_layer != null:
+			for c in _connection_layer.get_connections():
+				if ids.has(c.from_item_id) and ids.has(c.to_item_id):
+					conn_dicts.append(c.to_dict())
+		Templates.save_from_dicts(le.text.strip_edges(), item_dicts, conn_dicts)
+		_refresh_template_menu()
+		dlg.queue_free()
+	)
+	dlg.canceled.connect(func() -> void: dlg.queue_free())
+	dlg.popup_centered(Vector2i(320, 140))
+
+
+func _insert_template(name: String) -> void:
+	if name == "":
+		return
+	var instantiation: Dictionary = Templates.instantiate_at(name, _camera.position)
+	var items_arr: Array = instantiation.get("items", [])
+	if items_arr.is_empty():
+		return
+	History.push(AddItemsCommand.new(self, items_arr))
+	var conns: Array = instantiation.get("connections", [])
+	if not conns.is_empty():
+		History.push(AddConnectionsCommand.new(self, conns))
+
+
+func _refresh_template_menu() -> void:
+	var names: PackedStringArray = Templates.names()
+	var as_arr: Array = []
+	for n in names:
+		as_arr.append(n)
+	if _toolbar != null:
+		_toolbar.update_template_list(as_arr)
+
+
+func _handle_settings(action: String) -> void:
+	match action:
+		EditorToolbar.SETTINGS_ACTION_THEME:
+			_open_theme_dialog()
+		EditorToolbar.SETTINGS_ACTION_KEYBINDINGS:
+			_open_keybindings_dialog()
+		EditorToolbar.SETTINGS_ACTION_SNAPSHOTS:
+			_open_snapshots_dialog()
+		EditorToolbar.SETTINGS_ACTION_OPEN_TODOS:
+			_open_open_todos_board()
+
+
+func _open_theme_dialog() -> void:
+	var scene: PackedScene = preload("res://src/editor/dialogs/theme_dialog.tscn")
+	var dlg: Window = scene.instantiate()
+	if dlg.has_method("bind"):
+		dlg.bind(AppState.current_board)
+	add_child(dlg)
+	dlg.popup_centered()
+
+
+func _open_keybindings_dialog() -> void:
+	var scene: PackedScene = preload("res://src/editor/dialogs/keybindings_dialog.tscn")
+	var dlg: Window = scene.instantiate()
+	add_child(dlg)
+	dlg.popup_centered()
+
+
+func _open_snapshots_dialog() -> void:
+	var scene: PackedScene = preload("res://src/editor/dialogs/snapshots_dialog.tscn")
+	var dlg: Window = scene.instantiate()
+	if dlg.has_method("bind"):
+		dlg.bind(AppState.current_project)
+	add_child(dlg)
+	dlg.popup_centered()
+
+
+func _open_open_todos_board() -> void:
+	var scene: PackedScene = preload("res://src/editor/dialogs/open_todos_dialog.tscn")
+	var dlg: Window = scene.instantiate()
+	if dlg.has_method("bind"):
+		dlg.bind(self)
+	add_child(dlg)
+	dlg.popup_centered()
+
+
+func _open_import_dialog(mode: String) -> void:
+	var dlg: FileDialog = FileDialog.new()
+	dlg.access = FileDialog.ACCESS_FILESYSTEM
+	dlg.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	match mode:
+		EditorToolbar.IMPORT_MODE_MARKDOWN:
+			dlg.title = "Import Markdown Outline"
+			dlg.filters = PackedStringArray(["*.md ; Markdown", "*.txt ; Text"])
+		EditorToolbar.IMPORT_MODE_JSON:
+			dlg.title = "Import Project JSON"
+			dlg.filters = PackedStringArray(["*.json ; JSON"])
+		EditorToolbar.IMPORT_MODE_FREEMIND:
+			dlg.title = "Import FreeMind"
+			dlg.filters = PackedStringArray(["*.mm ; FreeMind"])
+		EditorToolbar.IMPORT_MODE_XMIND:
+			dlg.title = "Import XMind"
+			dlg.filters = PackedStringArray(["*.xmind ; XMind", "*.xml ; XML"])
+	add_child(dlg)
+	dlg.file_selected.connect(func(path: String) -> void:
+		var importer: BoardImporter = BoardImporter.new(self)
+		importer.import_file(path, mode)
+		dlg.queue_free()
+	)
+	dlg.canceled.connect(func() -> void: dlg.queue_free())
+	dlg.popup_centered_ratio(0.7)
 
 
 func _handle_add(type_id: String) -> void:
 	match type_id:
-		ItemRegistry.TYPE_TEXT:
-			_add_simple(ItemRegistry.TYPE_TEXT, {"text": "New text", "font_size": TextNode.DEFAULT_FONT_SIZE})
-		ItemRegistry.TYPE_LABEL:
-			_add_simple(ItemRegistry.TYPE_LABEL, {"text": "Label", "font_size": LabelNode.DEFAULT_FONT_SIZE})
-		ItemRegistry.TYPE_RICH_TEXT:
-			_add_simple(ItemRegistry.TYPE_RICH_TEXT, {"bbcode_text": RichTextNode.DEFAULT_BBCODE, "font_size": RichTextNode.DEFAULT_FONT_SIZE})
-		ItemRegistry.TYPE_PRIMITIVE:
-			_add_simple(ItemRegistry.TYPE_PRIMITIVE, {"shape": PrimitiveNode.Shape.RECT})
-		ItemRegistry.TYPE_GROUP:
-			_add_simple(ItemRegistry.TYPE_GROUP, {"title": "Group"})
-		ItemRegistry.TYPE_TIMER:
-			_add_simple(ItemRegistry.TYPE_TIMER, {"initial_duration_sec": 600.0, "label_text": "Timer"})
 		ItemRegistry.TYPE_PINBOARD:
 			_add_pinboard()
 		ItemRegistry.TYPE_SUBPAGE:
 			_add_subpage()
-		ItemRegistry.TYPE_TODO_LIST:
-			_add_simple(ItemRegistry.TYPE_TODO_LIST, {"title": "List", "cards": []})
-		ItemRegistry.TYPE_BLOCK_STACK:
-			_add_simple(ItemRegistry.TYPE_BLOCK_STACK, {"title": "Blocks", "blocks": []})
 		ItemRegistry.TYPE_IMAGE:
 			_image_dialog.popup_centered_ratio(0.7)
 		ItemRegistry.TYPE_SOUND:
 			_sound_dialog.popup_centered_ratio(0.7)
+		_:
+			if ItemRegistry.has_type(type_id):
+				_add_simple(type_id, ItemRegistry.default_payload(type_id))
 
 
 func _add_pinboard() -> void:
@@ -1060,24 +1580,52 @@ func _group_selection() -> void:
 func _open_export_dialog(mode: String) -> void:
 	if AppState.current_project == null or AppState.current_board == null:
 		return
-	_pending_export_mode = mode if mode != "" else EditorToolbar.EXPORT_MODE_CURRENT
-	var suffix: String = "_unfolded" if _pending_export_mode == EditorToolbar.EXPORT_MODE_UNFOLDED else ""
-	var default_name: String = "%s%s.png" % [AppState.current_board.name.replace(" ", "_"), suffix]
-	_export_dialog.title = "Export unfolded as PNG" if _pending_export_mode == EditorToolbar.EXPORT_MODE_UNFOLDED else "Export current board as PNG"
+	_pending_export_mode = mode if mode != "" else EditorToolbar.EXPORT_MODE_PNG_CURRENT
+	var ext: String = "png"
+	var title: String = "Export"
+	match _pending_export_mode:
+		EditorToolbar.EXPORT_MODE_PNG_CURRENT:
+			ext = "png"; title = "Export current board as PNG"
+		EditorToolbar.EXPORT_MODE_PNG_UNFOLDED:
+			ext = "png"; title = "Export unfolded as PNG"
+		EditorToolbar.EXPORT_MODE_SVG:
+			ext = "svg"; title = "Export current board as SVG"
+		EditorToolbar.EXPORT_MODE_PDF:
+			ext = "pdf"; title = "Export unfolded as PDF"
+		EditorToolbar.EXPORT_MODE_MARKDOWN:
+			ext = "md"; title = "Export board as Markdown outline"
+		EditorToolbar.EXPORT_MODE_HTML:
+			ext = "html"; title = "Export interactive HTML"
+	var default_name: String = "%s.%s" % [AppState.current_board.name.replace(" ", "_"), ext]
+	_export_dialog.title = title
 	_export_dialog.current_file = default_name
+	_export_dialog.filters = PackedStringArray(["*.%s ; %s" % [ext, ext.to_upper()]])
 	_export_dialog.popup_centered_ratio(0.7)
 
 
 func _on_export_path_chosen(path: String) -> void:
-	if not path.to_lower().ends_with(".png"):
-		path += ".png"
 	if AppState.current_board == null:
 		return
 	var exporter: BoardExporter = BoardExporter.new(self)
-	if _pending_export_mode == EditorToolbar.EXPORT_MODE_UNFOLDED:
-		await exporter.export_unfolded(AppState.current_board, AppState.current_project, path)
-	else:
-		await exporter.export_board(AppState.current_board, path)
+	match _pending_export_mode:
+		EditorToolbar.EXPORT_MODE_PNG_CURRENT:
+			if not path.to_lower().ends_with(".png"): path += ".png"
+			await exporter.export_board(AppState.current_board, path)
+		EditorToolbar.EXPORT_MODE_PNG_UNFOLDED:
+			if not path.to_lower().ends_with(".png"): path += ".png"
+			await exporter.export_unfolded(AppState.current_board, AppState.current_project, path)
+		EditorToolbar.EXPORT_MODE_SVG:
+			if not path.to_lower().ends_with(".svg"): path += ".svg"
+			exporter.export_svg(AppState.current_board, all_items(), _connection_layer.get_connections() if _connection_layer != null else [], AppState.current_project, path)
+		EditorToolbar.EXPORT_MODE_PDF:
+			if not path.to_lower().ends_with(".pdf"): path += ".pdf"
+			await exporter.export_pdf(AppState.current_board, AppState.current_project, path)
+		EditorToolbar.EXPORT_MODE_MARKDOWN:
+			if not path.to_lower().ends_with(".md"): path += ".md"
+			exporter.export_markdown(AppState.current_board, AppState.current_project, path)
+		EditorToolbar.EXPORT_MODE_HTML:
+			if not path.to_lower().ends_with(".html"): path += ".html"
+			exporter.export_html(AppState.current_project, path)
 
 
 func request_save() -> void:
@@ -1151,6 +1699,11 @@ func _on_connection_selected(c: Connection) -> void:
 	_inspector_panel.show_connection(c, self)
 
 
+func _on_connections_selected(connections: Array) -> void:
+	_selected_connection_id = ""
+	_inspector_panel.show_connections(connections, self)
+
+
 func _on_connection_selection_cleared() -> void:
 	_selected_connection_id = ""
 	_inspector_panel.show_connection(null, self)
@@ -1162,12 +1715,12 @@ func _on_item_selection_changed(_selected: Array) -> void:
 
 
 func _delete_selected_connection() -> void:
-	if _selected_connection_id == "" or _connection_layer == null:
+	if _connection_layer == null:
 		return
-	var c: Connection = _connection_layer.find_connection(_selected_connection_id)
-	if c == null:
+	var sel: Array = _connection_layer.selected_connections()
+	if sel.is_empty():
 		return
-	History.push(RemoveConnectionsCommand.new(self, [c]))
+	History.push(RemoveConnectionsCommand.new(self, sel))
 
 
 func _apply_initial_panel_visibility() -> void:
@@ -1241,7 +1794,5 @@ func _jump_to_board(board_id: String, item_id: String) -> void:
 
 func _set_connect_tool_active(active: bool) -> void:
 	_connect_tool_active = active
-	if _toolbar != null:
-		_toolbar.set_connect_pressed(active)
 	if _connection_layer != null and not active:
 		_connection_layer.cancel_pending()

@@ -27,6 +27,11 @@ History="*res://src/autoload/history.gd"
 ItemRegistry="*res://src/core/item_registry.gd"
 ProjectIndex="*res://src/autoload/project_index.gd"
 UserPrefs="*res://src/autoload/user_prefs.gd"
+Tags="*res://src/autoload/tags.gd"
+TimerRegistry="*res://src/autoload/timer_registry.gd"
+ThemeManager="*res://src/autoload/theme_manager.gd"
+Templates="*res://src/autoload/templates.gd"
+KeybindingService="*res://src/autoload/keybinding_service.gd"
 
 [display]
 
@@ -34,6 +39,10 @@ window/size/viewport_width=1280
 window/size/viewport_height=800
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[gui]
+
+theme/custom="uid://drnt12y8h0xvm"
 
 [physics]
 

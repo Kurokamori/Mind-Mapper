@@ -1,5 +1,7 @@
 class_name BoardOutliner
-extends PanelContainer
+extends DockablePanel
+
+signal close_requested
 
 const CTX_NEW_CHILD: int = 1
 const CTX_RENAME: int = 2
@@ -7,6 +9,7 @@ const CTX_DELETE: int = 3
 
 @onready var _tree: Tree = %Tree
 @onready var _new_root_button: Button = %NewRootButton
+@onready var _close_button: Button = %CloseButton
 @onready var _context_menu: PopupMenu = %ContextMenu
 
 var _items_by_board_id: Dictionary = {}
@@ -17,6 +20,9 @@ var _suppress_collapse_persist: bool = false
 
 
 func _ready() -> void:
+	super._ready()
+	ThemeManager.theme_applied.connect(_apply_translucent_panel)
+	_apply_translucent_panel()
 	_tree.item_selected.connect(_on_item_selected)
 	_tree.item_edited.connect(_on_item_edited)
 	_tree.item_mouse_selected.connect(_on_item_mouse_selected)
@@ -24,6 +30,7 @@ func _ready() -> void:
 	_tree.item_collapsed.connect(_on_item_collapsed)
 	_tree.set_drag_forwarding(_outliner_get_drag_data, _outliner_can_drop_data, _outliner_drop_data)
 	_new_root_button.pressed.connect(_on_new_root_pressed)
+	_close_button.pressed.connect(_on_close_pressed)
 	_context_menu.id_pressed.connect(_on_context_menu_id_pressed)
 	ProjectIndex.index_changed.connect(_rebuild)
 	AppState.current_board_changed.connect(_on_current_board_changed)
@@ -241,6 +248,10 @@ func _on_new_root_pressed() -> void:
 	_create_child("")
 
 
+func _on_close_pressed() -> void:
+	emit_signal("close_requested")
+
+
 func _create_child(parent_board_id: String) -> void:
 	if AppState.current_project == null:
 		return
@@ -293,7 +304,7 @@ func _outliner_get_drag_data(_at_position: Vector2) -> Variant:
 		return null
 	var preview: Label = Label.new()
 	preview.text = "  ⇆  %s" % ti.get_text(0)
-	preview.add_theme_color_override("font_color", Color(0.95, 0.97, 1.0))
+	preview.add_theme_color_override("font_color", ThemeManager.foreground_color())
 	_tree.set_drag_preview(preview)
 	return {"source": "board_outliner", "board_id": bid}
 
@@ -361,3 +372,7 @@ func _delete_board(board_id: String) -> void:
 		if fallback != "":
 			AppState.navigate_to_board(fallback)
 	AppState.emit_signal("board_modified", board_id)
+
+
+func _apply_translucent_panel() -> void:
+	ThemeManager.apply_translucent_panel(self)

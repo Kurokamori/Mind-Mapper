@@ -30,6 +30,9 @@ const PORT_HOVER_OUTLINE_COLOR: Color = Color(0.95, 0.97, 1.0, 1.0)
 const PORT_OUTLINE_WIDTH: float = 1.5
 const PORT_ANCHORS: Array[String] = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 
+const NODE_CORNER_RADIUS: int = 6
+const NODE_BORDER_WIDTH: int = 2
+
 const LINK_KIND_NONE := ""
 const LINK_KIND_ITEM := "item"
 const LINK_KIND_BOARD := "board"
@@ -39,6 +42,9 @@ var type_id: String = ""
 var board_id: String = ""
 var link_target: Dictionary = {}
 var read_only: bool = false
+var locked: bool = false
+var tags: PackedStringArray = PackedStringArray()
+var dimmed_by_filter: bool = false
 
 var _selected: bool = false
 var _drag_active: bool = false
@@ -97,14 +103,6 @@ func set_selected(value: bool) -> void:
 
 func is_editing() -> bool:
 	return _editing
-
-
-func begin_edit() -> void:
-	if _editing:
-		return
-	_editing = true
-	emit_signal("edit_begun", self)
-	_on_edit_begin()
 
 
 func end_edit() -> void:
@@ -221,17 +219,17 @@ func _gui_input(event: InputEvent) -> void:
 					emit_signal("link_followed", self)
 					accept_event()
 					return
-				if mb.double_click:
+				if mb.double_click and not locked:
 					begin_edit()
 					accept_event()
 					return
 				var local := get_local_mouse_position()
 				var port_anchor: String = port_at_local(local)
-				if port_anchor != "" and ports_currently_visible():
+				if port_anchor != "" and ports_currently_visible() and not locked:
 					emit_signal("port_drag_started", self, port_anchor)
 					accept_event()
 					return
-				if _selected and _is_in_resize_grip(local):
+				if _selected and _is_in_resize_grip(local) and not locked:
 					_resize_active = true
 					_resize_start_size = size
 					accept_event()
@@ -240,7 +238,7 @@ func _gui_input(event: InputEvent) -> void:
 				_moved_during_press = false
 				var additive := mb.shift_pressed
 				emit_signal("selection_requested", self, additive)
-				if not _editing:
+				if not _editing and not locked:
 					_drag_active = true
 					_drag_offset = get_local_mouse_position()
 					_drag_start_position = position
@@ -286,11 +284,19 @@ func _gui_input(event: InputEvent) -> void:
 
 func _draw() -> void:
 	_draw_body()
+	if dimmed_by_filter:
+		var dim_box: StyleBoxFlat = StyleBoxFlat.new()
+		dim_box.bg_color = Color(0.05, 0.05, 0.07, 0.55)
+		dim_box.set_corner_radius_all(NODE_CORNER_RADIUS)
+		draw_style_box(dim_box, Rect2(Vector2.ZERO, size))
 	if has_link():
 		_draw_link_badge()
+	if locked:
+		_draw_lock_badge()
+	if tags.size() > 0:
+		_draw_tag_strip()
 	if _selected and not read_only:
-		var rect := Rect2(Vector2.ZERO, size)
-		draw_rect(rect, SELECTION_OUTLINE_COLOR, false, SELECTION_OUTLINE_WIDTH)
+		_draw_rounded_outline(SELECTION_OUTLINE_COLOR, int(SELECTION_OUTLINE_WIDTH))
 		var grip_rect := Rect2(
 			Vector2(size.x - RESIZE_GRIP_SIZE, size.y - RESIZE_GRIP_SIZE),
 			Vector2(RESIZE_GRIP_SIZE, RESIZE_GRIP_SIZE),
@@ -334,6 +340,26 @@ func _update_port_hover(local_pos: Vector2) -> void:
 		queue_redraw()
 
 
+func _draw_lock_badge() -> void:
+	var pad: float = LINK_BADGE_PADDING
+	var off_x: float = LINK_BADGE_SIZE + pad * 2.0 if has_link() else 0.0
+	var center: Vector2 = Vector2(size.x - pad - LINK_BADGE_SIZE * 0.5 - off_x, pad + LINK_BADGE_SIZE * 0.5)
+	draw_circle(center, LINK_BADGE_SIZE * 0.5, Color(0.50, 0.50, 0.55, 1.0))
+	var body: Rect2 = Rect2(center + Vector2(-4, -1), Vector2(8, 6))
+	draw_rect(body, Color(0.10, 0.08, 0.05, 1.0), true)
+	draw_arc(center + Vector2(0, -3), 3.0, deg_to_rad(180), deg_to_rad(360), 12, Color(0.10, 0.08, 0.05, 1.0), 1.4, true)
+
+
+func _draw_tag_strip() -> void:
+	var x: float = 4.0
+	var y: float = size.y - 6.0
+	for tag: String in tags:
+		var color: Color = Tags.color_for(tag)
+		var w: float = 14.0
+		draw_rect(Rect2(Vector2(x, y - 4.0), Vector2(w, 4.0)), color, true)
+		x += w + 2.0
+
+
 func _draw_link_badge() -> void:
 	var center: Vector2 = Vector2(size.x - LINK_BADGE_PADDING - LINK_BADGE_SIZE * 0.5, LINK_BADGE_PADDING + LINK_BADGE_SIZE * 0.5)
 	draw_circle(center, LINK_BADGE_SIZE * 0.5, LINK_BADGE_COLOR)
@@ -354,6 +380,56 @@ func _draw_body() -> void:
 	pass
 
 
+func _draw_rounded_panel(
+	bg: Color,
+	border: Color,
+	header_height: float = 0.0,
+	header_bg: Color = Color(0, 0, 0, 0),
+	border_width: int = NODE_BORDER_WIDTH,
+	radius: int = NODE_CORNER_RADIUS,
+) -> void:
+	var body_fill: StyleBoxFlat = StyleBoxFlat.new()
+	body_fill.bg_color = bg
+	body_fill.set_corner_radius_all(radius)
+	body_fill.border_width_left = 0
+	body_fill.border_width_top = 0
+	body_fill.border_width_right = 0
+	body_fill.border_width_bottom = 0
+	draw_style_box(body_fill, Rect2(Vector2.ZERO, size))
+	if header_height > 0.0 and header_bg.a > 0.0:
+		var header_rect: Rect2 = Rect2(Vector2.ZERO, Vector2(size.x, header_height))
+		var header_box: StyleBoxFlat = StyleBoxFlat.new()
+		header_box.bg_color = header_bg
+		header_box.corner_radius_top_left = radius
+		header_box.corner_radius_top_right = radius
+		header_box.corner_radius_bottom_left = 0
+		header_box.corner_radius_bottom_right = 0
+		header_box.border_width_left = 0
+		header_box.border_width_top = 0
+		header_box.border_width_right = 0
+		header_box.border_width_bottom = 0
+		draw_style_box(header_box, header_rect)
+	var outline: StyleBoxFlat = StyleBoxFlat.new()
+	outline.draw_center = false
+	outline.border_color = border
+	outline.set_border_width_all(border_width)
+	outline.set_corner_radius_all(radius)
+	draw_style_box(outline, Rect2(Vector2.ZERO, size))
+
+
+func _draw_rounded_outline(
+	border: Color,
+	border_width: int = NODE_BORDER_WIDTH,
+	radius: int = NODE_CORNER_RADIUS,
+) -> void:
+	var outline: StyleBoxFlat = StyleBoxFlat.new()
+	outline.draw_center = false
+	outline.border_color = border
+	outline.set_border_width_all(border_width)
+	outline.set_corner_radius_all(radius)
+	draw_style_box(outline, Rect2(Vector2.ZERO, size))
+
+
 func to_dict() -> Dictionary:
 	var base := {
 		"id": item_id,
@@ -363,6 +439,13 @@ func to_dict() -> Dictionary:
 	}
 	if has_link():
 		base["link_target"] = link_target.duplicate(true)
+	if locked:
+		base["locked"] = true
+	if tags.size() > 0:
+		var tag_arr: Array = []
+		for t in tags:
+			tag_arr.append(String(t))
+		base["tags"] = tag_arr
 	var extra := serialize_payload()
 	for k in extra.keys():
 		base[k] = extra[k]
@@ -381,6 +464,12 @@ func apply_dict(d: Dictionary) -> void:
 	var lt: Variant = d.get("link_target", {})
 	if typeof(lt) == TYPE_DICTIONARY:
 		link_target = (lt as Dictionary).duplicate(true)
+	locked = bool(d.get("locked", false))
+	var tag_raw: Variant = d.get("tags", null)
+	tags = PackedStringArray()
+	if typeof(tag_raw) == TYPE_ARRAY:
+		for t in (tag_raw as Array):
+			tags.append(String(t))
 	deserialize_payload(d)
 
 
@@ -416,8 +505,45 @@ func apply_property(key: String, value: Variant) -> void:
 			else:
 				link_target = {}
 			queue_redraw()
+		"locked":
+			locked = bool(value)
+			queue_redraw()
+		"tags":
+			tags = PackedStringArray()
+			if typeof(value) == TYPE_ARRAY:
+				for t in (value as Array):
+					tags.append(String(t))
+			elif typeof(value) == TYPE_PACKED_STRING_ARRAY:
+				tags = (value as PackedStringArray).duplicate()
+			queue_redraw()
 		_:
 			apply_typed_property(key, value)
+
+
+func set_dimmed(dim: bool) -> void:
+	if dimmed_by_filter == dim:
+		return
+	dimmed_by_filter = dim
+	queue_redraw()
+
+
+func has_tag(tag: String) -> bool:
+	if tag == "":
+		return true
+	for t: String in tags:
+		if String(t) == tag:
+			return true
+	return false
+
+
+func begin_edit() -> void:
+	if locked:
+		return
+	if _editing:
+		return
+	_editing = true
+	emit_signal("edit_begun", self)
+	_on_edit_begin()
 
 
 func apply_typed_property(_key: String, _value: Variant) -> void:

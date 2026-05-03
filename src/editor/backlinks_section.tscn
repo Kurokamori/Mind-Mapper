@@ -20,7 +20,6 @@ layout_mode = 2
 autowrap_mode = 2
 text = "Not referenced from anywhere."
 theme_override_font_sizes/font_size = 11
-theme_override_colors/font_color = Color(0.65, 0.65, 0.7, 1)
 
 [node name="EntriesContainer" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
