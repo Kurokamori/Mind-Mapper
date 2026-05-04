@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://be2t0q0taurr5"]
+
+[ext_resource type="Script" uid="uid://c8yuw8rrw8vrf" path="res://src/nodes/image/image_node.gd" id="1_image"]
+
+[node name="ImageNode" type="Control" unique_id=257576942]
+custom_minimum_size = Vector2(120, 90)
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 1
+script = ExtResource("1_image")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=820958014]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PlaceholderLabel" type="Label" parent="." unique_id=1774104875]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "No image"
+horizontal_alignment = 1
+vertical_alignment = 1

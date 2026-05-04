@@ -1,0 +1,45 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/rich_text/rich_text_node.gd" id="1_rt"]
+[ext_resource type="PackedScene" path="res://src/nodes/rich_text/bbcode_toolbar.tscn" id="2_tb"]
+
+[node name="RichTextNode" type="Control"]
+custom_minimum_size = Vector2(160, 100)
+mouse_filter = 1
+script = ExtResource("1_rt")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 290.0
+offset_bottom = 152.0
+mouse_filter = 2
+bbcode_enabled = true
+fit_content = false
+scroll_active = true
+
+[node name="TextEdit" type="TextEdit" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = 290.0
+offset_bottom = 152.0
+wrap_mode = 1
+
+[node name="ToolbarHost" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 0.0
+offset_top = -44.0
+offset_right = 0.0
+offset_bottom = -6.0
+mouse_filter = 0
+
+[node name="FormatToolbar" parent="ToolbarHost" instance=ExtResource("2_tb")]
+unique_name_in_owner = true
+layout_mode = 2

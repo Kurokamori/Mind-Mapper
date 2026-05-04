@@ -1,0 +1,95 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/block_stack/block_row.gd" id="1_block_row"]
+
+[node name="BlockRow" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 30)
+mouse_filter = 0
+mouse_default_cursor_shape = 13
+script = ExtResource("1_block_row")
+
+[node name="HBox" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DragHandle" type="ColorRect" parent="HBox"]
+custom_minimum_size = Vector2(6, 0)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.55, 0.55, 0.62, 0.6)
+
+[node name="IndentSpacer" type="Control" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="IndentBar" type="ColorRect" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(3, 0)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.95, 0.78, 0.3, 1)
+
+[node name="TextEdit" type="LineEdit" parent="HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+flat = true
+placeholder_text = "Block text"
+
+[node name="OutdentButton" type="Button" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Outdent (Shift+Tab)"
+text = "⬅"
+
+[node name="IndentButton" type="Button" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Indent (Tab)"
+text = "➡"
+
+[node name="ImageButton" type="Button" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 24)
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Set image"
+text = "+"
+
+[node name="ImageThumb" type="TextureRect" parent="HBox/ImageButton"]
+unique_name_in_owner = true
+mouse_filter = 2
+visible = false
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+expand_mode = 1
+stretch_mode = 6
+
+[node name="LinkButton" type="Button" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Set link (Ctrl+click to follow)"
+text = "🔗"
+
+[node name="DeleteButton" type="Button" parent="HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Delete block"
+text = "×"

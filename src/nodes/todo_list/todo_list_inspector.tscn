@@ -1,0 +1,71 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/todo_list/todo_list_inspector.gd" id="1_tli"]
+
+[node name="TodoListInspector" type="VBoxContainer"]
+script = ExtResource("1_tli")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Todo List"
+theme_override_font_sizes/font_size = 16
+
+[node name="TitleSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="TitleSection"]
+layout_mode = 2
+text = "Title"
+
+[node name="TitleEdit" type="LineEdit" parent="TitleSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="BgLabel" type="Label" parent="BgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Background"
+
+[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="AccentRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="AccentLabel" type="Label" parent="AccentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Header color"
+
+[node name="AccentPicker" type="ColorPickerButton" parent="AccentRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="HeaderFgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="HeaderFgLabel" type="Label" parent="HeaderFgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Header text"
+
+[node name="HeaderFgPicker" type="ColorPickerButton" parent="HeaderFgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="CountLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ClearCompletedButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Clear completed"

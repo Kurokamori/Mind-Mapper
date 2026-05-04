@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://d0yv3tryh5kbj"]
+
+[ext_resource type="Script" uid="uid://dqawvyogaomv2" path="res://src/nodes/block_stack/block_stack_node.gd" id="1_bs"]
+
+[node name="BlockStackNode" type="Control" unique_id=1199711476]
+custom_minimum_size = Vector2(260, 200)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 363.0
+offset_bottom = 330.0
+mouse_filter = 1
+script = ExtResource("1_bs")
+
+[node name="TitleLabel" type="Label" parent="." unique_id=1686139076]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 350.0
+offset_bottom = 26.0
+theme_override_font_sizes/font_size = 14
+text = "Blocks"
+vertical_alignment = 1
+
+[node name="TitleEdit" type="LineEdit" parent="." unique_id=769277694]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 350.0
+offset_bottom = 26.0
+
+[node name="BlocksScroll" type="ScrollContainer" parent="." unique_id=443826311]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 34.0
+offset_right = 350.0
+offset_bottom = 286.0
+horizontal_scroll_mode = 0
+
+[node name="BlocksContainer" type="VBoxContainer" parent="BlocksScroll" unique_id=129657795]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="DropIndicator" type="ColorRect" parent="BlocksScroll/BlocksContainer" unique_id=1696909751]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+color = Color(0.95, 0.78, 0.3, 1)
+
+[node name="AddButton" type="Button" parent="." unique_id=704973666]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 8.0
+offset_top = 290.0
+offset_right = 350.0
+offset_bottom = 316.0
+focus_mode = 0
+text = "+ Add block"
+
+[node name="ImageDialog" type="FileDialog" parent="." unique_id=1430168114]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(800, 600)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png ; PNG", "*.jpg, *.jpeg ; JPEG", "*.webp ; WebP", "*.bmp ; BMP")
+
+[node name="EmbedChoice" type="ConfirmationDialog" parent="." unique_id=1157873496]
+unique_name_in_owner = true
+title = "Add Image"
+size = Vector2i(420, 120)
+ok_button_text = "Embed"
+dialog_text = "Embed the image into this project (copies the file) or link to its current location?"

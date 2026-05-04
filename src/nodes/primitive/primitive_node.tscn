@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/primitive/primitive_node.gd" id="1_prim"]
+
+[node name="PrimitiveNode" type="Control"]
+custom_minimum_size = Vector2(60, 40)
+mouse_filter = 1
+script = ExtResource("1_prim")
