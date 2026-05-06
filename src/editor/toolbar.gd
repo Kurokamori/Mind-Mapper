@@ -4,6 +4,9 @@ extends PanelContainer
 signal action_requested(action: String, payload: Variant)
 
 const ACTION_ADD: String = "add"
+const ACTION_NEW_MAP_PAGE: String = "new_map_page"
+const ACTION_IMPORT_TILESET: String = "import_tileset"
+const ACTION_NEW_TILESET_FROM_IMAGE: String = "new_tileset_from_image"
 const ACTION_TOGGLE_INSPECTOR: String = "toggle_inspector"
 const ACTION_TOGGLE_OUTLINER: String = "toggle_outliner"
 const ACTION_TOGGLE_MINIMAP: String = "toggle_minimap"
@@ -24,6 +27,10 @@ const ACTION_TAG_FILTER: String = "tag_filter"
 const ACTION_PRESENT: String = "present"
 const ACTION_TEMPLATE: String = "template"
 const ACTION_SETTINGS: String = "settings"
+
+const TILESETS_MENU_ID_NEW_MAP_PAGE: int = 0
+const TILESETS_MENU_ID_IMPORT_TRES: int = 1
+const TILESETS_MENU_ID_NEW_FROM_IMAGE: int = 2
 
 const EXPORT_MODE_PNG_CURRENT: String = "png_current"
 const EXPORT_MODE_PNG_UNFOLDED: String = "png_unfolded"
@@ -84,6 +91,8 @@ const SETTINGS_ACTION_OPEN_TODOS: String = "settings_open_todos"
 @onready var _import_button: MenuButton = %ImportButton
 @onready var _export_button: MenuButton = %ExportButton
 @onready var _settings_button: MenuButton = %SettingsButton
+@onready var _tilesets_button: MenuButton = %TilesetsButton
+@onready var _presence_strip: PresenceAvatarStrip = %PresenceStrip
 
 var _save_status_state: String = "saved"
 var _last_saved_unix: int = 0
@@ -112,6 +121,7 @@ func _ready() -> void:
 	_populate_settings_menu()
 	_populate_templates_menu([])
 	_populate_tag_filter_menu(PackedStringArray())
+	_populate_tilesets_menu()
 	History.changed.connect(_refresh_history_buttons)
 	SnapService.changed.connect(_refresh_snap)
 	AlignmentGuideService.changed.connect(_refresh_align)
@@ -135,51 +145,43 @@ func _ready() -> void:
 
 func _populate_add_menu() -> void:
 	var popup: PopupMenu = _add_menu_button.get_popup()
-	popup.clear()
-	var entries: Array = [
-		[ItemRegistry.TYPE_TEXT, "Text"],
-		[ItemRegistry.TYPE_LABEL, "Label"],
-		[ItemRegistry.TYPE_RICH_TEXT, "Rich Text"],
-		[ItemRegistry.TYPE_STICKY, "Sticky Note"],
-		[ItemRegistry.TYPE_CODE, "Code Block"],
-		[ItemRegistry.TYPE_TABLE, "Table"],
-		[ItemRegistry.TYPE_EQUATION, "Equation / LaTeX"],
-		["__sep__", ""],
-		[ItemRegistry.TYPE_IMAGE, "Image…"],
-		[ItemRegistry.TYPE_SOUND, "Sound…"],
-		[ItemRegistry.TYPE_URL, "URL Bookmark"],
-		["__sep__", ""],
-		[ItemRegistry.TYPE_PRIMITIVE, "Primitive Shape"],
-		[ItemRegistry.TYPE_GROUP, "Group Frame"],
-		[ItemRegistry.TYPE_TIMER, "Timer"],
-		["__sep__", ""],
-		[ItemRegistry.TYPE_PINBOARD, "Pinboard"],
-		[ItemRegistry.TYPE_SUBPAGE, "Subpage"],
-		["__sep__", ""],
-		[ItemRegistry.TYPE_TODO_LIST, "Todo List"],
-		[ItemRegistry.TYPE_BLOCK_STACK, "Block Stack"],
-	]
-	var id_counter: int = 0
-	for e in entries:
-		var type_id: String = String(e[0])
-		var label: String = String(e[1])
-		if type_id == "__sep__":
-			popup.add_separator()
-		else:
-			popup.add_item(label, id_counter)
-			popup.set_item_metadata(popup.get_item_index(id_counter), type_id)
-			id_counter += 1
+	AddNodePopup.populate_into(popup)
 	if not popup.id_pressed.is_connected(_on_add_menu_id_pressed):
 		popup.id_pressed.connect(_on_add_menu_id_pressed)
 
 
 func _on_add_menu_id_pressed(id: int) -> void:
 	var popup: PopupMenu = _add_menu_button.get_popup()
-	var idx: int = popup.get_item_index(id)
-	if idx < 0:
+	var token: String = AddNodePopup.type_for_id(popup, id)
+	if token == "":
 		return
-	var type_id: String = String(popup.get_item_metadata(idx))
-	emit_signal("action_requested", ACTION_ADD, type_id)
+	if token == AddNodePopup.MAP_PAGE_TOKEN:
+		emit_signal("action_requested", ACTION_NEW_MAP_PAGE, null)
+		return
+	emit_signal("action_requested", ACTION_ADD, token)
+
+
+func _populate_tilesets_menu() -> void:
+	if _tilesets_button == null:
+		return
+	var popup: PopupMenu = _tilesets_button.get_popup()
+	popup.clear()
+	popup.add_item("New Map Page…", TILESETS_MENU_ID_NEW_MAP_PAGE)
+	popup.add_separator()
+	popup.add_item("Import Tileset (.tres)…", TILESETS_MENU_ID_IMPORT_TRES)
+	popup.add_item("New Tileset from Image…", TILESETS_MENU_ID_NEW_FROM_IMAGE)
+	if not popup.id_pressed.is_connected(_on_tilesets_menu_id_pressed):
+		popup.id_pressed.connect(_on_tilesets_menu_id_pressed)
+
+
+func _on_tilesets_menu_id_pressed(id: int) -> void:
+	match id:
+		TILESETS_MENU_ID_NEW_MAP_PAGE:
+			emit_signal("action_requested", ACTION_NEW_MAP_PAGE, null)
+		TILESETS_MENU_ID_IMPORT_TRES:
+			emit_signal("action_requested", ACTION_IMPORT_TILESET, null)
+		TILESETS_MENU_ID_NEW_FROM_IMAGE:
+			emit_signal("action_requested", ACTION_NEW_TILESET_FROM_IMAGE, null)
 
 
 func _populate_export_menu() -> void:
@@ -532,6 +534,10 @@ func _refresh_save_status() -> void:
 			_save_status.add_theme_color_override("font_color", ThemeManager.dim_foreground_color())
 		_:
 			_save_status.text = ""
+
+
+func presence_strip() -> PresenceAvatarStrip:
+	return _presence_strip
 
 
 func _format_delta(seconds: int) -> String:

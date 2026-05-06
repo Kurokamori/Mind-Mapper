@@ -14,15 +14,20 @@ const LEGACY_DEFAULT_FG: Color = Color(0.97, 0.98, 0.99, 1.0)
 @export var fg_color_custom: bool = false
 @export var bold: bool = true
 @export var italic: bool = false
+@export var auto_width: bool = true
+@export var auto_height: bool = true
 
 @onready var _label: Label = %Label
 @onready var _edit: LineEdit = %LineEdit
 
 var _pre_edit_text: String = ""
+var _in_auto_fit: bool = false
+var _auto_fit_pending: bool = false
 
 
 func _ready() -> void:
 	super._ready()
+	_label.clip_contents = true
 	_edit.focus_exited.connect(_on_edit_focus_exited)
 	_edit.text_submitted.connect(_on_edit_submitted)
 	SelectionBus.selection_changed.connect(_on_selection_changed)
@@ -30,6 +35,7 @@ func _ready() -> void:
 	ThemeManager.node_palette_changed.connect(_on_node_palette_changed)
 	_layout()
 	_refresh_visuals()
+	_request_auto_fit()
 
 
 func resolved_bg_color() -> Color:
@@ -68,6 +74,7 @@ func _refresh_visuals() -> void:
 		_edit.add_theme_font_size_override("font_size", font_size)
 		_edit.add_theme_color_override("font_color", fg)
 	queue_redraw()
+	_request_auto_fit()
 
 
 func _apply_font_style(target: Control) -> void:
@@ -90,6 +97,51 @@ func _layout() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_layout()
+		if not _in_auto_fit:
+			_request_auto_fit()
+
+
+func _request_auto_fit() -> void:
+	if _auto_fit_pending:
+		return
+	if _label == null:
+		return
+	if not auto_width and not auto_height:
+		return
+	_auto_fit_pending = true
+	call_deferred("_apply_auto_fit")
+
+
+func _apply_auto_fit() -> void:
+	_auto_fit_pending = false
+	if _in_auto_fit:
+		return
+	if _label == null:
+		return
+	if not auto_width and not auto_height:
+		return
+	if not is_inside_tree():
+		return
+	_in_auto_fit = true
+	var prior_autowrap: int = _label.autowrap_mode
+	var prior_clip: bool = _label.clip_text
+	_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_label.clip_text = false
+	var natural: Vector2 = _label.get_minimum_size()
+	_label.autowrap_mode = prior_autowrap
+	_label.clip_text = prior_clip
+	var pad: Vector2 = PADDING * 2.0
+	var min_size: Vector2 = minimum_item_size()
+	var new_size: Vector2 = size
+	if auto_width:
+		new_size.x = max(min_size.x, ceil(natural.x + pad.x))
+	if auto_height:
+		new_size.y = max(min_size.y, ceil(natural.y + pad.y))
+	_label.clip_text = not auto_width
+	if new_size != size:
+		size = new_size
+	_layout()
+	_in_auto_fit = false
 
 
 func _on_edit_begin() -> void:
@@ -155,6 +207,8 @@ func serialize_payload() -> Dictionary:
 		"fg_color_custom": fg_color_custom,
 		"bold": bold,
 		"italic": italic,
+		"auto_width": auto_width,
+		"auto_height": auto_height,
 	}
 	if bg_color_custom:
 		out["bg_color"] = [bg_color.r, bg_color.g, bg_color.b, bg_color.a]
@@ -186,6 +240,8 @@ func deserialize_payload(d: Dictionary) -> void:
 			fg_color = stored_fg
 	bold = bool(d.get("bold", bold))
 	italic = bool(d.get("italic", italic))
+	auto_width = bool(d.get("auto_width", false))
+	auto_height = bool(d.get("auto_height", false))
 	if _label != null:
 		_refresh_visuals()
 
@@ -212,6 +268,10 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			bold = bool(value)
 		"italic":
 			italic = bool(value)
+		"auto_width":
+			auto_width = bool(value)
+		"auto_height":
+			auto_height = bool(value)
 	_refresh_visuals()
 
 
@@ -220,3 +280,15 @@ func build_inspector() -> Control:
 	var inst: LabelInspector = scene.instantiate()
 	inst.bind(self)
 	return inst
+
+
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "bg_color", "label": "Background", "kind": "color_with_reset"},
+		{"key": "fg_color", "label": "Text color", "kind": "color_with_reset"},
+		{"key": "font_size", "label": "Font size", "kind": "int_range", "min": 6, "max": 96},
+		{"key": "bold", "label": "Bold", "kind": "bool"},
+		{"key": "italic", "label": "Italic", "kind": "bool"},
+		{"key": "auto_width", "label": "Auto width", "kind": "bool"},
+		{"key": "auto_height", "label": "Auto height", "kind": "bool"},
+	]

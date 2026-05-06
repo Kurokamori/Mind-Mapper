@@ -1,0 +1,142 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8mppartmgr0001"]
+
+[ext_resource type="Script" path="res://src/multiplayer/dialogs/participant_manager_dialog.gd" id="1_pm"]
+
+[node name="ParticipantManagerDialog" type="AcceptDialog"]
+title = "Participants"
+size = Vector2i(640, 500)
+script = ExtResource("1_pm")
+
+[node name="Margin" type="MarginContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 632.0
+offset_bottom = 452.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderLabel" type="Label" parent="Margin/VBox/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Owner-only operations: add/remove co-authors, transfer ownership."
+
+[node name="ParticipantList" type="ItemList" parent="Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AddButton" type="Button" parent="Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Add co-author by public key…"
+
+[node name="RemoveButton" type="Button" parent="Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Remove selected"
+
+[node name="TransferButton" type="Button" parent="Margin/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Transfer ownership"
+
+[node name="HSep1" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="GuestPolicyRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GuestPolicyLabel" type="Label" parent="Margin/VBox/GuestPolicyRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Default guest policy"
+
+[node name="GuestPolicyOption" type="OptionButton" parent="Margin/VBox/GuestPolicyRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSep2" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="LocalIdRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LocalIdHeader" type="Label" parent="Margin/VBox/LocalIdRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Your stable id"
+
+[node name="LocalIdLabel" type="Label" parent="Margin/VBox/LocalIdRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LocalFingerprintRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LocalFingerprintHeader" type="Label" parent="Margin/VBox/LocalFingerprintRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Public key fingerprint"
+
+[node name="LocalFingerprintLabel" type="Label" parent="Margin/VBox/LocalFingerprintRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ImportPublicKeyDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = "Add co-author"
+size = Vector2i(560, 420)
+ok_button_text = "Add"
+
+[node name="ImportMargin" type="MarginContainer" parent="ImportPublicKeyDialog"]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 552.0
+offset_bottom = 372.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="ImportVBox" type="VBoxContainer" parent="ImportPublicKeyDialog/ImportMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ImportNameLabel" type="Label" parent="ImportPublicKeyDialog/ImportMargin/ImportVBox"]
+layout_mode = 2
+text = "Display name"
+
+[node name="ImportNameField" type="LineEdit" parent="ImportPublicKeyDialog/ImportMargin/ImportVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ImportPubkeyLabel" type="Label" parent="ImportPublicKeyDialog/ImportMargin/ImportVBox"]
+layout_mode = 2
+text = "Co-author public key (PEM)"
+
+[node name="ImportPublicKeyField" type="TextEdit" parent="ImportPublicKeyDialog/ImportMargin/ImportVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"

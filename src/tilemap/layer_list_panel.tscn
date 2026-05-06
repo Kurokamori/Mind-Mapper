@@ -1,0 +1,79 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/tilemap/layer_list_panel.gd" id="1_panel"]
+[ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
+
+[node name="LayerListPanel" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 0)
+script = ExtResource("1_panel")
+dock_id = "layer_list"
+drag_handle_path = NodePath("Margin/VBox/Header/Title")
+grip_top_path = NodePath("GripTop")
+grip_bottom_path = NodePath("GripBottom")
+grip_left_path = NodePath("GripLeft")
+grip_right_path = NodePath("GripRight")
+default_mode = "dock_right"
+default_floating_position = Vector2(960, 360)
+default_floating_size = Vector2(320, 320)
+default_dock_size = 300.0
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+text = "Layers"
+theme_override_font_sizes/font_size = 14
+
+[node name="AddButton" type="Button" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Add a new tile layer"
+text = "+"
+
+[node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+text = "X"
+
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ListRoot" type="VBoxContainer" parent="Margin/VBox/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="GripTop" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 1
+
+[node name="GripBottom" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 2
+
+[node name="GripLeft" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 4
+
+[node name="GripRight" parent="." instance=ExtResource("2_grip")]
+top_level = true
+directions = 8

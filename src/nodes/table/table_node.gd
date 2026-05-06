@@ -117,6 +117,10 @@ func _on_cell_text_set(r: int, c: int, value: String) -> void:
 	_push_cells_history(before)
 
 
+func commit_dimensions(new_rows: int, new_cols: int) -> void:
+	_commit_dimensions(new_rows, new_cols)
+
+
 func _commit_dimensions(new_rows: int, new_cols: int) -> void:
 	if new_rows == rows and new_cols == cols:
 		return
@@ -188,6 +192,7 @@ func apply_typed_property(key: String, value: Variant) -> void:
 
 
 func build_inspector() -> Control:
-	var v: VBoxContainer = VBoxContainer.new()
-	var lbl: Label = Label.new(); lbl.text = "%d × %d" % [rows, cols]; v.add_child(lbl)
-	return v
+	var scene: PackedScene = preload("res://src/nodes/table/table_inspector.tscn")
+	var inst: TableInspector = scene.instantiate()
+	inst.bind(self)
+	return inst

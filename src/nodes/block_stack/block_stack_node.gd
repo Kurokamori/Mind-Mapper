@@ -599,3 +599,11 @@ func build_inspector() -> Control:
 	var inst: BlockStackInspector = scene.instantiate()
 	inst.bind(self)
 	return inst
+
+
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "bg_color", "label": "Background", "kind": "color_with_reset"},
+		{"key": "accent_color", "label": "Header color", "kind": "color_with_reset"},
+		{"key": "header_fg_color", "label": "Header text", "kind": "color_with_reset"},
+	]

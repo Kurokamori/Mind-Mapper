@@ -2,6 +2,13 @@ extends Node
 
 const FONT_MANIFEST_PATH: String = "res://assets/fonts/font_manifest.tres"
 const CUSTOM_FONT_PRESET_ID: String = "__custom__"
+const RICH_TEXT_VARIANT_SLOTS: Dictionary = {
+	FontPreset.VARIANT_REGULAR: "normal_font",
+	FontPreset.VARIANT_BOLD: "bold_font",
+	FontPreset.VARIANT_ITALIC: "italics_font",
+	FontPreset.VARIANT_BOLD_ITALIC: "bold_italics_font",
+	FontPreset.VARIANT_MONO: "mono_font",
+}
 const DARK_THEME: Theme = preload("res://assets/ui/resources/dark_theme.tres")
 const LIGHT_THEME: Theme = preload("res://assets/ui/resources/light_theme.tres")
 const PANEL_ALPHA: float = 0.5
@@ -95,6 +102,13 @@ static var NODE_TYPE_HEADINGS: Dictionary = {
 		"light_bg": Color(0.62, 0.78, 0.95, 1.0),
 		"dark_fg": Color(0.95, 0.96, 0.99, 1.0),
 		"light_fg": Color(0.06, 0.13, 0.22, 1.0),
+	},
+	"map_page": {
+		"label": "Map Page",
+		"dark_bg": Color(0.18, 0.32, 0.26, 1.0),
+		"light_bg": Color(0.62, 0.86, 0.74, 1.0),
+		"dark_fg": Color(0.95, 0.99, 0.96, 1.0),
+		"light_fg": Color(0.06, 0.18, 0.13, 1.0),
 	},
 	"code": {
 		"label": "Code",
@@ -261,9 +275,12 @@ func _force_font_overrides(node: Node, font: Font) -> void:
 
 func _apply_font_override_to_control(ctrl: Control, font: Font) -> void:
 	if ctrl is RichTextLabel:
-		for slot: String in ["normal_font", "bold_font", "italics_font", "bold_italics_font", "mono_font"]:
-			if font != null:
-				ctrl.add_theme_font_override(slot, font)
+		for variant_v: Variant in RICH_TEXT_VARIANT_SLOTS.keys():
+			var variant: String = String(variant_v)
+			var slot: String = String(RICH_TEXT_VARIANT_SLOTS[variant_v])
+			var f: Font = active_font_for_variant(variant)
+			if f != null:
+				ctrl.add_theme_font_override(slot, f)
 			else:
 				ctrl.remove_theme_font_override(slot)
 		return
@@ -330,6 +347,13 @@ func selection_highlight_color() -> Color:
 
 
 func build_theme(mode: String, accent: Color) -> Theme:
+	if mode == UserPrefs.THEME_IMPORTED:
+		var imported: Theme = _load_imported_theme()
+		if imported != null:
+			var base_imported: Theme = DARK_THEME.duplicate(true) as Theme
+			base_imported.merge_with(imported)
+			return base_imported
+		push_warning("ThemeManager: imported theme unavailable; falling back to dark.")
 	var src: Theme = DARK_THEME
 	var src_accent: Color = DARK_ACCENT
 	if mode == UserPrefs.THEME_LIGHT:
@@ -344,6 +368,33 @@ func build_theme(mode: String, accent: Color) -> Theme:
 	elif accent != src_accent:
 		_remap_theme(theme, _accent_remap(src_accent, accent))
 	return theme
+
+
+func _load_imported_theme() -> Theme:
+	var path: String = UserPrefs.imported_theme_path
+	if path == "":
+		return null
+	if not FileAccess.file_exists(path):
+		return null
+	var res: Resource = ResourceLoader.load(path, "Theme", ResourceLoader.CACHE_MODE_IGNORE)
+	if res is Theme:
+		return res as Theme
+	return null
+
+
+func import_theme_file(source_path: String) -> Dictionary:
+	var result: Dictionary = ThemeImporter.import_file(source_path)
+	if bool(result.get("ok", false)):
+		UserPrefs.set_imported_theme(String(result.get("path", "")), String(result.get("label", "")))
+		UserPrefs.set_theme_mode(UserPrefs.THEME_IMPORTED)
+	return result
+
+
+func clear_imported_theme() -> void:
+	ThemeImporter.clear_active_theme()
+	UserPrefs.clear_imported_theme()
+	if UserPrefs.theme_mode == UserPrefs.THEME_IMPORTED:
+		UserPrefs.set_theme_mode(UserPrefs.THEME_DARK)
 
 
 func _accent_remap(src_accent: Color, dst_accent: Color) -> Dictionary:
@@ -483,20 +534,33 @@ func _apply_font_to_theme(theme: Theme) -> void:
 			theme.set_font("font", cls, font)
 		theme.set_font("title_font", "Window", font)
 		for cls: String in PackedStringArray(["RichTextLabel"]):
-			theme.set_font("normal_font", cls, font)
-			theme.set_font("bold_font", cls, font)
-			theme.set_font("italics_font", cls, font)
-			theme.set_font("bold_italics_font", cls, font)
-			theme.set_font("mono_font", cls, font)
+			for variant_v: Variant in RICH_TEXT_VARIANT_SLOTS.keys():
+				var variant: String = String(variant_v)
+				var slot: String = String(RICH_TEXT_VARIANT_SLOTS[variant_v])
+				var variant_font: Font = active_font_for_variant(variant)
+				if variant_font == null:
+					variant_font = font
+				theme.set_font(slot, cls, variant_font)
 	else:
 		ThemeDB.fallback_font = _engine_fallback_font
 
 
 func active_font() -> Font:
-	if UserPrefs.custom_font_path != "":
-		var loaded: Font = _load_custom_font(UserPrefs.custom_font_path)
+	return active_font_for_variant(FontPreset.VARIANT_REGULAR)
+
+
+func active_font_for_variant(variant: String) -> Font:
+	var custom_path: String = UserPrefs.get_custom_font_path_for_variant(variant)
+	if custom_path != "":
+		var loaded: Font = _load_custom_font(custom_path)
 		if loaded != null:
 			return loaded
+	if variant != FontPreset.VARIANT_REGULAR:
+		var regular_custom: String = UserPrefs.custom_font_path
+		if regular_custom != "" and not _preset_has_variant(variant):
+			var regular_loaded: Font = _load_custom_font(regular_custom)
+			if regular_loaded != null:
+				return regular_loaded
 	var manifest: FontManifest = font_manifest()
 	if manifest == null:
 		return null
@@ -505,7 +569,24 @@ func active_font() -> Font:
 		preset = manifest.default_preset()
 	if preset == null:
 		return null
-	return preset.font
+	var preset_font: Font = preset.font_for_variant(variant)
+	if preset_font != null:
+		return preset_font
+	if variant != FontPreset.VARIANT_REGULAR:
+		return preset.font
+	return null
+
+
+func _preset_has_variant(variant: String) -> bool:
+	var manifest: FontManifest = font_manifest()
+	if manifest == null:
+		return false
+	var preset: FontPreset = manifest.find_by_id(UserPrefs.font_preset_id)
+	if preset == null:
+		preset = manifest.default_preset()
+	if preset == null:
+		return false
+	return preset.has_variant(variant)
 
 
 func _load_custom_font(path: String) -> Font:
@@ -586,7 +667,7 @@ func subtle_color() -> Color:
 func node_palette() -> Dictionary:
 	if UserPrefs.theme_mode == UserPrefs.THEME_LIGHT:
 		return NODE_LIGHT.duplicate(true)
-	if UserPrefs.theme_mode == UserPrefs.THEME_CUSTOM:
+	if UserPrefs.theme_mode == UserPrefs.THEME_CUSTOM or UserPrefs.theme_mode == UserPrefs.THEME_IMPORTED:
 		return {
 			"node_bg": UserPrefs.custom_node_bg,
 			"node_fg": UserPrefs.custom_node_fg,
@@ -644,7 +725,7 @@ func _resolve_heading(type_id: String, slot: String) -> Color:
 	var info: Dictionary = NODE_TYPE_HEADINGS.get(type_id, {})
 	var dark: Color = info.get("dark_" + slot, Color(0.3, 0.3, 0.3, 1.0))
 	var light: Color = info.get("light_" + slot, Color(0.7, 0.7, 0.7, 1.0))
-	if UserPrefs.theme_mode == UserPrefs.THEME_CUSTOM:
+	if UserPrefs.theme_mode == UserPrefs.THEME_CUSTOM or UserPrefs.theme_mode == UserPrefs.THEME_IMPORTED:
 		var key: String = type_id + "_" + slot
 		if UserPrefs.custom_node_headings.has(key):
 			var raw: Variant = UserPrefs.custom_node_headings[key]

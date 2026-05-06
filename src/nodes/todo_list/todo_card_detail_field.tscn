@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://evtqkcn7pgvd"]
+
+[ext_resource type="Script" uid="uid://bdhb8m7yw1iad" path="res://src/nodes/todo_list/todo_card_detail_field.gd" id="1_field"]
+
+[node name="TodoCardDetailField" type="PanelContainer" unique_id=330752516]
+script = ExtResource("1_field")
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=1348678502]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TopRow" type="HBoxContainer" parent="VBox" unique_id=1384444828]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderEdit" type="LineEdit" parent="VBox/TopRow" unique_id=1777774350]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Field name"
+
+[node name="MoveUpButton" type="Button" parent="VBox/TopRow" unique_id=1119395725]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+focus_mode = 0
+text = "▲"
+flat = true
+
+[node name="MoveDownButton" type="Button" parent="VBox/TopRow" unique_id=1383620399]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+focus_mode = 0
+text = "▼"
+flat = true
+
+[node name="DeleteButton" type="Button" parent="VBox/TopRow" unique_id=1676606626]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+focus_mode = 0
+text = "×"
+flat = true
+
+[node name="ContentEdit" type="TextEdit" parent="VBox" unique_id=708101629]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Content"
+wrap_mode = 1

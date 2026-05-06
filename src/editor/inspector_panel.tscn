@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://dijqmka664urx"]
 
-[ext_resource type="Script" path="res://src/editor/inspector_panel.gd" id="1_inspect"]
+[ext_resource type="Script" uid="uid://bfjie7if1dumy" path="res://src/editor/inspector_panel.gd" id="1_inspect"]
 [ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
 
-[node name="InspectorPanel" type="PanelContainer"]
+[node name="InspectorPanel" type="PanelContainer" unique_id=293825941]
 custom_minimum_size = Vector2(280, 0)
 script = ExtResource("1_inspect")
 dock_id = "inspector"
@@ -12,70 +12,73 @@ grip_top_path = NodePath("GripTop")
 grip_bottom_path = NodePath("GripBottom")
 grip_left_path = NodePath("GripLeft")
 grip_right_path = NodePath("GripRight")
-default_mode = "dock_right"
 default_floating_position = Vector2(900, 160)
 default_floating_size = Vector2(320, 420)
 default_dock_size = 300.0
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="." unique_id=1203733885]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 10
 
-[node name="VBox" type="VBoxContainer" parent="Margin"]
+[node name="VBox" type="VBoxContainer" parent="Margin" unique_id=1579832676]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+[node name="Header" type="HBoxContainer" parent="Margin/VBox" unique_id=292548087]
 layout_mode = 2
 
-[node name="TitleLabel" type="Label" parent="Margin/VBox/Header"]
+[node name="TitleLabel" type="Label" parent="Margin/VBox/Header" unique_id=1869049411]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-text = "Inspector"
 theme_override_font_sizes/font_size = 18
+text = "Inspector"
 
-[node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
+[node name="CloseButton" type="Button" parent="Margin/VBox/Header" unique_id=1451182330]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
-flat = true
 tooltip_text = "Close inspector"
+focus_mode = 0
 text = "X"
+flat = true
 
-[node name="EmptyLabel" type="Label" parent="Margin/VBox"]
+[node name="EmptyLabel" type="Label" parent="Margin/VBox" unique_id=292572808]
 unique_name_in_owner = true
 layout_mode = 2
 text = "No selection"
 
-[node name="Scroll" type="ScrollContainer" parent="Margin/VBox"]
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox" unique_id=1245497619]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Content" type="VBoxContainer" parent="Margin/VBox/Scroll"]
+[node name="Content" type="VBoxContainer" parent="Margin/VBox/Scroll" unique_id=574934686]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="GripTop" parent="." instance=ExtResource("2_grip")]
+[node name="GripTop" parent="." unique_id=1385131046 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 1
 
-[node name="GripBottom" parent="." instance=ExtResource("2_grip")]
+[node name="GripBottom" parent="." unique_id=568827863 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 2
 
-[node name="GripLeft" parent="." instance=ExtResource("2_grip")]
+[node name="GripLeft" parent="." unique_id=1810182645 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 4
 
-[node name="GripRight" parent="." instance=ExtResource("2_grip")]
+[node name="GripRight" parent="." unique_id=2044067343 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 8

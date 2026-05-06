@@ -10,6 +10,7 @@ const TYPE_SOUND: String = "sound"
 const TYPE_TIMER: String = "timer"
 const TYPE_PINBOARD: String = "pinboard"
 const TYPE_SUBPAGE: String = "subpage"
+const TYPE_MAP_PAGE: String = "map_page"
 const TYPE_TODO_LIST: String = "todo_list"
 const TYPE_BLOCK_STACK: String = "block_stack"
 const TYPE_URL: String = "url"
@@ -32,6 +33,7 @@ func _ready() -> void:
 	_scenes[TYPE_TIMER] = preload("res://src/nodes/timer/timer_node.tscn")
 	_scenes[TYPE_PINBOARD] = preload("res://src/nodes/pinboard/pinboard_node.tscn")
 	_scenes[TYPE_SUBPAGE] = preload("res://src/nodes/subpage/subpage_node.tscn")
+	_scenes[TYPE_MAP_PAGE] = preload("res://src/nodes/map_page/map_page_node.tscn")
 	_scenes[TYPE_TODO_LIST] = preload("res://src/nodes/todo_list/todo_list_node.tscn")
 	_scenes[TYPE_BLOCK_STACK] = preload("res://src/nodes/block_stack/block_stack_node.tscn")
 	_scenes[TYPE_URL] = preload("res://src/nodes/url/url_node.tscn")

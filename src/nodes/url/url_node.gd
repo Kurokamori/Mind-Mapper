@@ -97,32 +97,10 @@ func apply_typed_property(key: String, value: Variant) -> void:
 
 
 func build_inspector() -> Control:
-	var v: VBoxContainer = VBoxContainer.new()
-	var t_label: Label = Label.new(); t_label.text = "Title"; v.add_child(t_label)
-	var t_edit: LineEdit = LineEdit.new(); t_edit.text = title; v.add_child(t_edit)
-	var u_label: Label = Label.new(); u_label.text = "URL"; v.add_child(u_label)
-	var u_edit: LineEdit = LineEdit.new(); u_edit.text = url; v.add_child(u_edit)
-	var d_label: Label = Label.new(); d_label.text = "Description"; v.add_child(d_label)
-	var d_edit: TextEdit = TextEdit.new(); d_edit.text = description; d_edit.custom_minimum_size = Vector2(0, 80); v.add_child(d_edit)
-	var editor: Node = _find_editor()
-	t_edit.focus_exited.connect(func() -> void: _commit_property(editor, "title", t_edit.text))
-	u_edit.focus_exited.connect(func() -> void: _commit_property(editor, "url", u_edit.text))
-	d_edit.focus_exited.connect(func() -> void: _commit_property(editor, "description", d_edit.text))
-	return v
-
-
-func _commit_property(editor: Node, key: String, new_value: Variant) -> void:
-	if editor == null:
-		apply_property(key, new_value)
-		return
-	var current_value: Variant = ""
-	match key:
-		"title": current_value = title
-		"url": current_value = url
-		"description": current_value = description
-	if str(current_value) == str(new_value):
-		return
-	History.push(ModifyPropertyCommand.new(editor, item_id, key, current_value, new_value))
+	var scene: PackedScene = preload("res://src/nodes/url/url_inspector.tscn")
+	var inst: UrlInspector = scene.instantiate()
+	inst.bind(self)
+	return inst
 
 
 func _find_editor() -> Node:

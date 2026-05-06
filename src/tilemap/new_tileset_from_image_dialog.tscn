@@ -1,0 +1,131 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/tilemap/new_tileset_from_image_dialog.gd" id="1_dialog"]
+
+[node name="NewTilesetFromImageDialog" type="ConfirmationDialog"]
+title = "New Tileset from Image"
+ok_button_text = "Create"
+size = Vector2i(520, 360)
+script = ExtResource("1_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -56.0
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Name"
+
+[node name="NameEdit" type="LineEdit" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ImageLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Image"
+
+[node name="PathRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PathEdit" type="LineEdit" parent="VBox/PathRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Path to a PNG / JPG / WEBP atlas"
+
+[node name="BrowseButton" type="Button" parent="VBox/PathRow"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Browse…"
+
+[node name="TileSizeLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Tile size (px)"
+
+[node name="TileSizeRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TileWSpin" type="SpinBox" parent="VBox/TileSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 1024.0
+value = 16.0
+
+[node name="X" type="Label" parent="VBox/TileSizeRow"]
+layout_mode = 2
+text = "x"
+
+[node name="TileHSpin" type="SpinBox" parent="VBox/TileSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 1024.0
+value = 16.0
+
+[node name="MarginsLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Margins (px) — pixels of empty space at the top-left of the atlas"
+
+[node name="MarginsRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MarginXSpin" type="SpinBox" parent="VBox/MarginsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="MarginXLabel" type="Label" parent="VBox/MarginsRow"]
+layout_mode = 2
+text = "x"
+
+[node name="MarginYSpin" type="SpinBox" parent="VBox/MarginsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="SepLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Separation (px) — gutter between tiles"
+
+[node name="SepRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SepXSpin" type="SpinBox" parent="VBox/SepRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="SepXLabel" type="Label" parent="VBox/SepRow"]
+layout_mode = 2
+text = "x"
+
+[node name="SepYSpin" type="SpinBox" parent="VBox/SepRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="FileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Pick an image"
+size = Vector2i(640, 400)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png ; PNG", "*.jpg, *.jpeg ; JPEG", "*.webp ; WebP", "*.bmp ; BMP")

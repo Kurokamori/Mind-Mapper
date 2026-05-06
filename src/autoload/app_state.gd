@@ -3,9 +3,12 @@ extends Node
 signal project_opened(project: Project)
 signal project_closed()
 signal current_board_changed(board: Board)
+signal current_map_page_changed(page: MapPage)
+signal current_page_kind_changed(kind: String)
 signal navigation_changed()
 signal before_navigation()
 signal board_modified(board_id: String)
+signal map_page_modified(map_id: String)
 signal save_state_changed(state: String, unix_time: int)
 signal tag_filter_changed(tag: String)
 signal templates_changed()
@@ -14,9 +17,14 @@ const SAVE_STATE_DIRTY: String = "dirty"
 const SAVE_STATE_SAVING: String = "saving"
 const SAVE_STATE_SAVED: String = "saved"
 
+const PAGE_KIND_BOARD: String = "board"
+const PAGE_KIND_MAP: String = "map"
+
 var current_project: Project = null
 var current_board: Board = null
-var nav_history: Array[String] = []
+var current_map_page: MapPage = null
+var current_page_kind: String = PAGE_KIND_BOARD
+var nav_history: Array = []
 var save_state: String = SAVE_STATE_SAVED
 var last_save_unix: int = 0
 var active_tag_filter: String = ""
@@ -25,20 +33,25 @@ var active_tag_filter: String = ""
 func open_project(project: Project) -> void:
 	current_project = project
 	nav_history.clear()
+	current_map_page = null
+	current_page_kind = PAGE_KIND_BOARD
 	History.set_project(project)
 	if project != null and project.root_board_id != "":
 		current_board = project.read_board(project.root_board_id)
 	_set_save_state(SAVE_STATE_SAVED, int(Time.get_unix_time_from_system()))
 	emit_signal("project_opened", project)
 	if current_board != null:
-		History.bind_board(current_board.id)
+		History.bind_page(current_board.id)
 		emit_signal("current_board_changed", current_board)
+		emit_signal("current_page_kind_changed", current_page_kind)
 		emit_signal("navigation_changed")
 
 
 func close_project() -> void:
 	current_project = null
 	current_board = null
+	current_map_page = null
+	current_page_kind = PAGE_KIND_BOARD
 	nav_history.clear()
 	active_tag_filter = ""
 	History.set_project(null)
@@ -50,17 +63,43 @@ func close_project() -> void:
 func navigate_to_board(board_id: String) -> bool:
 	if current_project == null or board_id == "":
 		return false
-	if current_board != null and current_board.id == board_id:
+	if current_page_kind == PAGE_KIND_BOARD and current_board != null and current_board.id == board_id:
 		return false
 	var b: Board = current_project.read_board(board_id)
 	if b == null:
 		return false
 	emit_signal("before_navigation")
-	if current_board != null:
-		nav_history.append(current_board.id)
+	_push_current_to_history()
 	current_board = b
-	History.bind_board(board_id)
+	current_map_page = null
+	var prev_kind: String = current_page_kind
+	current_page_kind = PAGE_KIND_BOARD
+	History.bind_page(board_id)
 	emit_signal("current_board_changed", current_board)
+	if prev_kind != current_page_kind:
+		emit_signal("current_page_kind_changed", current_page_kind)
+	emit_signal("navigation_changed")
+	return true
+
+
+func navigate_to_map_page(map_id: String) -> bool:
+	if current_project == null or map_id == "":
+		return false
+	if current_page_kind == PAGE_KIND_MAP and current_map_page != null and current_map_page.id == map_id:
+		return false
+	var p: MapPage = current_project.read_map_page(map_id)
+	if p == null:
+		return false
+	emit_signal("before_navigation")
+	_push_current_to_history()
+	current_map_page = p
+	current_board = null
+	var prev_kind: String = current_page_kind
+	current_page_kind = PAGE_KIND_MAP
+	History.bind_page(map_id)
+	emit_signal("current_map_page_changed", current_map_page)
+	if prev_kind != current_page_kind:
+		emit_signal("current_page_kind_changed", current_page_kind)
 	emit_signal("navigation_changed")
 	return true
 
@@ -69,20 +108,54 @@ func navigate_back() -> bool:
 	if current_project == null:
 		return false
 	while not nav_history.is_empty():
-		var prev_id: String = nav_history.pop_back()
-		var prev: Board = current_project.read_board(prev_id)
-		if prev != null:
-			emit_signal("before_navigation")
-			current_board = prev
-			History.bind_board(prev_id)
-			emit_signal("current_board_changed", current_board)
-			emit_signal("navigation_changed")
-			return true
+		var prev_entry_v: Variant = nav_history.pop_back()
+		if typeof(prev_entry_v) != TYPE_DICTIONARY:
+			continue
+		var prev_entry: Dictionary = prev_entry_v
+		var kind: String = String(prev_entry.get("kind", PAGE_KIND_BOARD))
+		var prev_id: String = String(prev_entry.get("id", ""))
+		if prev_id == "":
+			continue
+		if kind == PAGE_KIND_MAP:
+			var page: MapPage = current_project.read_map_page(prev_id)
+			if page != null:
+				emit_signal("before_navigation")
+				current_map_page = page
+				current_board = null
+				var prev_kind: String = current_page_kind
+				current_page_kind = PAGE_KIND_MAP
+				History.bind_page(prev_id)
+				emit_signal("current_map_page_changed", current_map_page)
+				if prev_kind != current_page_kind:
+					emit_signal("current_page_kind_changed", current_page_kind)
+				emit_signal("navigation_changed")
+				return true
+		else:
+			var prev: Board = current_project.read_board(prev_id)
+			if prev != null:
+				emit_signal("before_navigation")
+				current_board = prev
+				current_map_page = null
+				var prev_kind_b: String = current_page_kind
+				current_page_kind = PAGE_KIND_BOARD
+				History.bind_page(prev_id)
+				emit_signal("current_board_changed", current_board)
+				if prev_kind_b != current_page_kind:
+					emit_signal("current_page_kind_changed", current_page_kind)
+				emit_signal("navigation_changed")
+				return true
 	return false
 
 
 func switch_board(board_id: String) -> void:
 	navigate_to_board(board_id)
+
+
+func _push_current_to_history() -> void:
+	if current_page_kind == PAGE_KIND_BOARD and current_board != null:
+		nav_history.append({"kind": PAGE_KIND_BOARD, "id": current_board.id})
+	elif current_page_kind == PAGE_KIND_MAP and current_map_page != null:
+		nav_history.append({"kind": PAGE_KIND_MAP, "id": current_map_page.id})
 
 
 func breadcrumb_path() -> Array:
@@ -155,4 +228,51 @@ func write_board(board: Board) -> Error:
 	var err: Error = current_project.write_board(board)
 	if err == OK:
 		emit_signal("board_modified", board.id)
+	return err
+
+
+func apply_remote_board_snapshot(board: Board) -> void:
+	if current_project == null or board == null:
+		return
+	if current_page_kind == PAGE_KIND_BOARD and current_board != null and current_board.id == board.id:
+		current_board = board
+		History.bind_page(board.id)
+		emit_signal("current_board_changed", current_board)
+		emit_signal("board_modified", board.id)
+		emit_signal("navigation_changed")
+		return
+	if current_board == null and current_project.root_board_id == board.id:
+		current_board = board
+		current_map_page = null
+		var prev_kind: String = current_page_kind
+		current_page_kind = PAGE_KIND_BOARD
+		History.bind_page(board.id)
+		emit_signal("current_board_changed", current_board)
+		if prev_kind != current_page_kind:
+			emit_signal("current_page_kind_changed", current_page_kind)
+		emit_signal("board_modified", board.id)
+		emit_signal("navigation_changed")
+		return
+	emit_signal("board_modified", board.id)
+
+
+func save_current_map_page() -> Error:
+	if current_project == null or current_map_page == null:
+		return ERR_UNCONFIGURED
+	mark_saving()
+	var err: Error = current_project.write_map_page(current_map_page)
+	if err == OK:
+		mark_saved()
+		emit_signal("map_page_modified", current_map_page.id)
+	else:
+		mark_dirty()
+	return err
+
+
+func write_map_page(page: MapPage) -> Error:
+	if current_project == null or page == null:
+		return ERR_UNCONFIGURED
+	var err: Error = current_project.write_map_page(page)
+	if err == OK:
+		emit_signal("map_page_modified", page.id)
 	return err

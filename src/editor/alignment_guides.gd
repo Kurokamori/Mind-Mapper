@@ -7,6 +7,10 @@ const GUIDE_WIDTH: float = 1.0
 const GAP_COLOR: Color = Color(0.40, 0.85, 1.00, 0.95)
 const GAP_WIDTH: float = 1.5
 const GAP_TICK_HALF: float = 6.0
+const DIM_COLOR: Color = Color(0.55, 1.00, 0.55, 0.95)
+const DIM_WIDTH: float = 1.5
+const DIM_OFFSET: float = 8.0
+const DIM_TICK_HALF: float = 5.0
 
 var _guides: Array = []
 
@@ -27,6 +31,8 @@ func _draw() -> void:
 			_draw_edge_guide(g)
 		elif t == "gap":
 			_draw_gap_guide(g)
+		elif t == "dim":
+			_draw_dim_guide(g)
 
 
 func _draw_edge_guide(g: Dictionary) -> void:
@@ -51,3 +57,33 @@ func _draw_gap_guide(g: Dictionary) -> void:
 		draw_line(Vector2(perp, from_v), Vector2(perp, to_v), GAP_COLOR, GAP_WIDTH)
 		draw_line(Vector2(perp - GAP_TICK_HALF, from_v), Vector2(perp + GAP_TICK_HALF, from_v), GAP_COLOR, GAP_WIDTH)
 		draw_line(Vector2(perp - GAP_TICK_HALF, to_v), Vector2(perp + GAP_TICK_HALF, to_v), GAP_COLOR, GAP_WIDTH)
+
+
+func _draw_dim_guide(g: Dictionary) -> void:
+	var axis: String = String(g.get("axis", ""))
+	var active_rect: Rect2 = g.get("active_rect", Rect2())
+	var source_rect: Rect2 = g.get("source_rect", Rect2())
+	if axis == "x":
+		_draw_horizontal_dim_ruler(active_rect)
+		_draw_horizontal_dim_ruler(source_rect)
+	elif axis == "y":
+		_draw_vertical_dim_ruler(active_rect)
+		_draw_vertical_dim_ruler(source_rect)
+
+
+func _draw_horizontal_dim_ruler(rect: Rect2) -> void:
+	var y: float = rect.position.y - DIM_OFFSET
+	var x0: float = rect.position.x
+	var x1: float = rect.position.x + rect.size.x
+	draw_line(Vector2(x0, y), Vector2(x1, y), DIM_COLOR, DIM_WIDTH)
+	draw_line(Vector2(x0, y - DIM_TICK_HALF), Vector2(x0, y + DIM_TICK_HALF), DIM_COLOR, DIM_WIDTH)
+	draw_line(Vector2(x1, y - DIM_TICK_HALF), Vector2(x1, y + DIM_TICK_HALF), DIM_COLOR, DIM_WIDTH)
+
+
+func _draw_vertical_dim_ruler(rect: Rect2) -> void:
+	var x: float = rect.position.x - DIM_OFFSET
+	var y0: float = rect.position.y
+	var y1: float = rect.position.y + rect.size.y
+	draw_line(Vector2(x, y0), Vector2(x, y1), DIM_COLOR, DIM_WIDTH)
+	draw_line(Vector2(x - DIM_TICK_HALF, y0), Vector2(x + DIM_TICK_HALF, y0), DIM_COLOR, DIM_WIDTH)
+	draw_line(Vector2(x - DIM_TICK_HALF, y1), Vector2(x + DIM_TICK_HALF, y1), DIM_COLOR, DIM_WIDTH)

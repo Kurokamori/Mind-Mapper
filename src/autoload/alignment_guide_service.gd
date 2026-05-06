@@ -7,12 +7,19 @@ const SNAP_THRESHOLD: float = 6.0
 const DISTANCE_REPEAT_THRESHOLD: float = 8.0
 const MIN_GAP: float = 1.0
 const GAP_DEDUP_TOLERANCE: float = 0.5
+const RESIZE_EDGE_THRESHOLD: float = 6.0
+const DIMENSION_MATCH_THRESHOLD: float = 6.0
+
+const MODE_NONE: int = 0
+const MODE_DRAG: int = 1
+const MODE_RESIZE: int = 2
 
 var enabled: bool = true
 var _active_item: BoardItem = null
 var _other_rects: Array = []
 var _x_gaps: Array = []
 var _y_gaps: Array = []
+var _mode: int = MODE_NONE
 
 
 func set_enabled(value: bool) -> void:
@@ -27,6 +34,7 @@ func set_enabled(value: bool) -> void:
 func begin_drag(active: BoardItem, other_rects: Array) -> void:
 	_active_item = active
 	_other_rects = other_rects.duplicate()
+	_mode = MODE_DRAG
 	_recompute_gap_catalog()
 
 
@@ -35,11 +43,25 @@ func end_drag() -> void:
 	_other_rects.clear()
 	_x_gaps.clear()
 	_y_gaps.clear()
+	_mode = MODE_NONE
+	emit_signal("guides_changed", [])
+
+
+func begin_resize(active: BoardItem, other_rects: Array) -> void:
+	_active_item = active
+	_other_rects = other_rects.duplicate()
+	_mode = MODE_RESIZE
+
+
+func end_resize() -> void:
+	_active_item = null
+	_other_rects.clear()
+	_mode = MODE_NONE
 	emit_signal("guides_changed", [])
 
 
 func maybe_align(item: BoardItem, intended_pos: Vector2) -> Vector2:
-	if not enabled or item != _active_item or _other_rects.is_empty():
+	if not enabled or _mode != MODE_DRAG or item != _active_item or _other_rects.is_empty():
 		return intended_pos
 	var size: Vector2 = item.size
 	var adjusted: Vector2 = intended_pos
@@ -219,3 +241,90 @@ func _make_gap_guide(axis: String, snap: Dictionary, adjusted_pos: Vector2, size
 		"perp": perp_center,
 		"gap": gap,
 	}
+
+
+func maybe_align_resize(item: BoardItem, intended_size: Vector2) -> Vector2:
+	if not enabled or _mode != MODE_RESIZE or item != _active_item or _other_rects.is_empty():
+		return intended_size
+	var pos: Vector2 = item.position
+	var min_s: Vector2 = item.minimum_item_size()
+	var x_result: Dictionary = _resolve_resize_axis(pos.x, intended_size.x, min_s.x, true)
+	var y_result: Dictionary = _resolve_resize_axis(pos.y, intended_size.y, min_s.y, false)
+	var adjusted: Vector2 = Vector2(float(x_result.get("size", intended_size.x)), float(y_result.get("size", intended_size.y)))
+	var guides: Array = []
+	if x_result.has("guide"):
+		guides.append(_finalize_resize_guide(x_result["guide"], pos, adjusted))
+	if y_result.has("guide"):
+		guides.append(_finalize_resize_guide(y_result["guide"], pos, adjusted))
+	emit_signal("guides_changed", guides)
+	return adjusted
+
+
+func _resolve_resize_axis(start: float, intended: float, min_size: float, is_x: bool) -> Dictionary:
+	var moving_edge: float = start + intended
+	var edge_snap: Dictionary = _find_best_resize_edge(moving_edge, is_x)
+	if edge_snap.has("delta"):
+		var snapped_size: float = maxf(min_size, intended + float(edge_snap["delta"]))
+		var axis_label: String = "x" if is_x else "y"
+		return {
+			"size": snapped_size,
+			"guide": {"type": "edge", "axis": axis_label, "value": float(edge_snap["value"])},
+		}
+	var dim_snap: Dictionary = _find_best_dim_match(intended, is_x)
+	if dim_snap.has("delta"):
+		var snapped_size_dim: float = maxf(min_size, intended + float(dim_snap["delta"]))
+		var axis_label_dim: String = "x" if is_x else "y"
+		return {
+			"size": snapped_size_dim,
+			"guide": {
+				"type": "dim",
+				"axis": axis_label_dim,
+				"source_rect": dim_snap["source_rect"],
+			},
+		}
+	return {"size": intended}
+
+
+func _find_best_resize_edge(moving_edge: float, is_x: bool) -> Dictionary:
+	var best_delta: float = INF
+	var best_value: float = 0.0
+	for r in _other_rects:
+		var rect: Rect2 = r
+		var candidates: Array
+		if is_x:
+			candidates = [rect.position.x, rect.position.x + rect.size.x * 0.5, rect.position.x + rect.size.x]
+		else:
+			candidates = [rect.position.y, rect.position.y + rect.size.y * 0.5, rect.position.y + rect.size.y]
+		for c in candidates:
+			var cv: float = float(c)
+			var d: float = cv - moving_edge
+			if absf(d) < absf(best_delta):
+				best_delta = d
+				best_value = cv
+	if absf(best_delta) <= RESIZE_EDGE_THRESHOLD:
+		return {"delta": best_delta, "value": best_value}
+	return {}
+
+
+func _find_best_dim_match(intended: float, is_x: bool) -> Dictionary:
+	var best_delta: float = INF
+	var best_rect: Rect2 = Rect2()
+	var found: bool = false
+	for r in _other_rects:
+		var rect: Rect2 = r
+		var candidate: float = rect.size.x if is_x else rect.size.y
+		var d: float = candidate - intended
+		if absf(d) < absf(best_delta):
+			best_delta = d
+			best_rect = rect
+			found = true
+	if found and absf(best_delta) <= DIMENSION_MATCH_THRESHOLD:
+		return {"delta": best_delta, "source_rect": best_rect}
+	return {}
+
+
+func _finalize_resize_guide(guide: Dictionary, pos: Vector2, size: Vector2) -> Dictionary:
+	if String(guide.get("type", "")) != "dim":
+		return guide
+	guide["active_rect"] = Rect2(pos, size)
+	return guide

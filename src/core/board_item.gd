@@ -8,6 +8,9 @@ signal edit_begun(item: BoardItem)
 signal link_followed(item: BoardItem)
 signal navigate_requested(target_kind: String, target_id: String)
 signal dragging(item: BoardItem, world_center: Vector2)
+signal resize_started(item: BoardItem)
+signal resizing(item: BoardItem, current_size: Vector2)
+signal resize_ended(item: BoardItem)
 signal port_drag_started(item: BoardItem, anchor: String)
 
 const SELECTION_OUTLINE_COLOR := Color(0.35, 0.7, 1.0, 1.0)
@@ -36,6 +39,7 @@ const NODE_BORDER_WIDTH: int = 2
 const LINK_KIND_NONE := ""
 const LINK_KIND_ITEM := "item"
 const LINK_KIND_BOARD := "board"
+const LINK_KIND_MAP_PAGE := "map_page"
 
 var item_id: String = ""
 var type_id: String = ""
@@ -98,7 +102,25 @@ func set_selected(value: bool) -> void:
 	if _selected == value:
 		return
 	_selected = value
+	if not value:
+		_release_input_focus_in_subtree(self)
 	queue_redraw()
+
+
+func _release_input_focus_in_subtree(node: Node) -> void:
+	for child in node.get_children():
+		if child is LineEdit:
+			var le: LineEdit = child
+			if le.has_focus():
+				le.release_focus()
+			le.deselect()
+		elif child is TextEdit:
+			var te: TextEdit = child
+			if te.has_focus():
+				te.release_focus()
+			te.deselect()
+		if child.get_child_count() > 0:
+			_release_input_focus_in_subtree(child)
 
 
 func is_editing() -> bool:
@@ -109,7 +131,29 @@ func end_edit() -> void:
 	if not _editing:
 		return
 	_editing = false
+	if Engine.has_singleton("MultiplayerService") or _global_has_multiplayer_service():
+		MultiplayerService.release_editing_lock(item_id)
 	_on_edit_end()
+
+
+func _global_has_multiplayer_service() -> bool:
+	var root: Node = Engine.get_main_loop().root if Engine.get_main_loop() != null else null
+	return root != null and root.has_node("MultiplayerService")
+
+
+func remote_editing_lock_holder() -> String:
+	if not _global_has_multiplayer_service():
+		return ""
+	return MultiplayerService.editing_lock_holder(item_id)
+
+
+func is_editing_remotely_locked() -> bool:
+	if not _global_has_multiplayer_service():
+		return false
+	var holder: String = MultiplayerService.editing_lock_holder(item_id)
+	if holder == "":
+		return false
+	return holder != KeypairService.stable_id()
 
 
 func _on_edit_begin() -> void:
@@ -232,6 +276,7 @@ func _gui_input(event: InputEvent) -> void:
 				if _selected and _is_in_resize_grip(local) and not locked:
 					_resize_active = true
 					_resize_start_size = size
+					emit_signal("resize_started", self)
 					accept_event()
 					return
 				_press_screen_position = mb.global_position
@@ -246,6 +291,7 @@ func _gui_input(event: InputEvent) -> void:
 			else:
 				if _resize_active:
 					_resize_active = false
+					emit_signal("resize_ended", self)
 					if size != _resize_start_size:
 						emit_signal("resized_by_user", self, _resize_start_size, size)
 					accept_event()
@@ -258,11 +304,12 @@ func _gui_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion:
 		_update_port_hover(get_local_mouse_position())
 		if _resize_active:
-			var local := get_local_mouse_position()
-			var min_s := minimum_item_size()
-			var new_w = max(min_s.x, local.x)
-			var new_h = max(min_s.y, local.y)
-			size = Vector2(new_w, new_h)
+			var local: Vector2 = get_local_mouse_position()
+			var min_s: Vector2 = minimum_item_size()
+			var intended_size: Vector2 = Vector2(max(min_s.x, local.x), max(min_s.y, local.y))
+			var aligned_size: Vector2 = AlignmentGuideService.maybe_align_resize(self, intended_size)
+			size = aligned_size
+			emit_signal("resizing", self, size)
 			accept_event()
 			return
 		if _drag_active:
@@ -541,6 +588,12 @@ func begin_edit() -> void:
 		return
 	if _editing:
 		return
+	if is_editing_remotely_locked():
+		return
+	if _global_has_multiplayer_service() and MultiplayerService.is_in_session():
+		var acquired: bool = MultiplayerService.acquire_editing_lock(item_id)
+		if not acquired:
+			return
 	_editing = true
 	emit_signal("edit_begun", self)
 	_on_edit_begin()
@@ -556,3 +609,7 @@ func build_inspector() -> Control:
 
 func display_name() -> String:
 	return type_id.capitalize() if type_id != "" else "Item"
+
+
+func bulk_shareable_properties() -> Array:
+	return []

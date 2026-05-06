@@ -1,6 +1,8 @@
-[gd_scene format=3 uid="uid://dtitm13vry78q"]
+[gd_scene load_steps=4 format=3 uid="uid://dtitm13vry78q"]
 
 [ext_resource type="Script" uid="uid://bfn1xpj1fcr8m" path="res://src/project_manager/project_manager_screen.gd" id="1_pms"]
+[ext_resource type="PackedScene" uid="uid://b8mphost0001" path="res://src/multiplayer/dialogs/host_session_dialog.tscn" id="2_pms_host"]
+[ext_resource type="PackedScene" uid="uid://b8mpjoin0001" path="res://src/multiplayer/dialogs/join_session_dialog.tscn" id="3_pms_join"]
 
 [sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_llrq2"]
 blend_mode = 3
@@ -64,6 +66,16 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Open Project…"
 
+[node name="ActionSpacer" type="Control" parent="Margins/VBox/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="JoinSessionButton" type="Button" parent="Margins/VBox/Actions"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Join session…"
+
 [node name="SectionHeader" type="Label" parent="Margins/VBox" unique_id=2090480832]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
@@ -122,3 +134,9 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 placeholder_text = "My Project"
+
+[node name="HostSessionDialog" parent="." instance=ExtResource("2_pms_host")]
+unique_name_in_owner = true
+
+[node name="JoinSessionDialog" parent="." instance=ExtResource("3_pms_join")]
+unique_name_in_owner = true

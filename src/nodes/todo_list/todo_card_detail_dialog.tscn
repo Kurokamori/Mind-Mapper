@@ -1,0 +1,134 @@
+[gd_scene format=3 uid="uid://fmobwmx1itl6"]
+
+[ext_resource type="Script" uid="uid://fqpyur1j8kr0" path="res://src/nodes/todo_list/todo_card_detail_dialog.gd" id="1_dlg"]
+
+[node name="TodoCardDetailDialog" type="Window" unique_id=1741900247]
+oversampling_override = 1.0
+title = "Card Details"
+initial_position = 2
+size = Vector2i(560, 640)
+script = ExtResource("1_dlg")
+
+[node name="Panel" type="Panel" parent="." unique_id=2137820849]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1708506431]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Root" type="VBoxContainer" parent="Margin" unique_id=820002369]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Root" unique_id=1348548252]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CompletedCheck" type="CheckBox" parent="Margin/Root/TitleRow" unique_id=352805809]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TitleEdit" type="LineEdit" parent="Margin/Root/TitleRow" unique_id=178587507]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Card title"
+
+[node name="MetaRow" type="HBoxContainer" parent="Margin/Root" unique_id=151235636]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PriorityLabel" type="Label" parent="Margin/Root/MetaRow" unique_id=1638302494]
+layout_mode = 2
+text = "Priority:"
+
+[node name="PriorityButton" type="MenuButton" parent="Margin/Root/MetaRow" unique_id=1018350512]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "None"
+
+[node name="DueLabel" type="Label" parent="Margin/Root/MetaRow" unique_id=1175450871]
+layout_mode = 2
+text = "Due (YYYY-MM-DD):"
+
+[node name="DueEdit" type="LineEdit" parent="Margin/Root/MetaRow" unique_id=587550460]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+
+[node name="DueClearButton" type="Button" parent="Margin/Root/MetaRow" unique_id=99795471]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Clear"
+
+[node name="DescriptionLabel" type="Label" parent="Margin/Root" unique_id=65810038]
+layout_mode = 2
+text = "Description"
+
+[node name="DescriptionEdit" type="TextEdit" parent="Margin/Root" unique_id=188764266]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Long-form notes for this card"
+wrap_mode = 1
+
+[node name="FieldsHeader" type="HBoxContainer" parent="Margin/Root" unique_id=1995106981]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="FieldsLabel" type="Label" parent="Margin/Root/FieldsHeader" unique_id=1472391717]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Custom fields"
+
+[node name="AddFieldButton" type="Button" parent="Margin/Root/FieldsHeader" unique_id=1804530639]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "+ Add field"
+
+[node name="FieldsScroll" type="ScrollContainer" parent="Margin/Root" unique_id=2138503538]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="FieldsContainer" type="VBoxContainer" parent="Margin/Root/FieldsScroll" unique_id=1862379715]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="StatsLabel" type="Label" parent="Margin/Root" unique_id=939671591]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sub-items: 0 / 0 completed"
+
+[node name="ButtonRow" type="HBoxContainer" parent="Margin/Root" unique_id=216103568]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 2
+
+[node name="CancelButton" type="Button" parent="Margin/Root/ButtonRow" unique_id=901050223]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"
+
+[node name="OkButton" type="Button" parent="Margin/Root/ButtonRow" unique_id=1677411889]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Apply"

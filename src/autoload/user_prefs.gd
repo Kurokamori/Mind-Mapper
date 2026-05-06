@@ -6,6 +6,7 @@ const FORMAT_VERSION: int = 2
 const THEME_DARK: String = "dark"
 const THEME_LIGHT: String = "light"
 const THEME_CUSTOM: String = "custom"
+const THEME_IMPORTED: String = "imported"
 
 signal changed()
 signal theme_changed()
@@ -30,8 +31,14 @@ var custom_node_fg: Color = Color(0.95, 0.96, 0.98, 1.0)
 var custom_node_heading_bg: Color = Color(0.32, 0.18, 0.42, 1.0)
 var custom_node_heading_fg: Color = Color(0.97, 0.97, 0.99, 1.0)
 var custom_node_headings: Dictionary = {}
+var imported_theme_path: String = ""
+var imported_theme_label: String = ""
 var font_preset_id: String = "default"
 var custom_font_path: String = ""
+var custom_font_bold_path: String = ""
+var custom_font_italic_path: String = ""
+var custom_font_bold_italic_path: String = ""
+var custom_font_mono_path: String = ""
 var font_size: int = 14
 var keybindings: Dictionary = {}
 var _outliner_collapsed_by_project: Dictionary = {}
@@ -228,6 +235,29 @@ func apply_node_heading_preset(presets: Dictionary) -> void:
 	emit_signal("theme_changed")
 
 
+func set_imported_theme(path: String, label: String) -> void:
+	var changed: bool = false
+	if imported_theme_path != path:
+		imported_theme_path = path
+		changed = true
+	if imported_theme_label != label:
+		imported_theme_label = label
+		changed = true
+	if not changed:
+		return
+	_save()
+	emit_signal("theme_changed")
+
+
+func clear_imported_theme() -> void:
+	if imported_theme_path == "" and imported_theme_label == "":
+		return
+	imported_theme_path = ""
+	imported_theme_label = ""
+	_save()
+	emit_signal("theme_changed")
+
+
 func set_font_preset_id(value: String) -> void:
 	if font_preset_id == value:
 		return
@@ -242,6 +272,66 @@ func set_custom_font_path(value: String) -> void:
 	custom_font_path = value
 	_save()
 	emit_signal("theme_changed")
+
+
+func set_custom_font_bold_path(value: String) -> void:
+	if custom_font_bold_path == value:
+		return
+	custom_font_bold_path = value
+	_save()
+	emit_signal("theme_changed")
+
+
+func set_custom_font_italic_path(value: String) -> void:
+	if custom_font_italic_path == value:
+		return
+	custom_font_italic_path = value
+	_save()
+	emit_signal("theme_changed")
+
+
+func set_custom_font_bold_italic_path(value: String) -> void:
+	if custom_font_bold_italic_path == value:
+		return
+	custom_font_bold_italic_path = value
+	_save()
+	emit_signal("theme_changed")
+
+
+func set_custom_font_mono_path(value: String) -> void:
+	if custom_font_mono_path == value:
+		return
+	custom_font_mono_path = value
+	_save()
+	emit_signal("theme_changed")
+
+
+func get_custom_font_path_for_variant(variant: String) -> String:
+	match variant:
+		FontPreset.VARIANT_BOLD:
+			return custom_font_bold_path
+		FontPreset.VARIANT_ITALIC:
+			return custom_font_italic_path
+		FontPreset.VARIANT_BOLD_ITALIC:
+			return custom_font_bold_italic_path
+		FontPreset.VARIANT_MONO:
+			return custom_font_mono_path
+		_:
+			return custom_font_path
+
+
+func set_custom_font_path_for_variant(variant: String, value: String) -> void:
+	match variant:
+		FontPreset.VARIANT_BOLD:
+			set_custom_font_bold_path(value)
+		FontPreset.VARIANT_ITALIC:
+			set_custom_font_italic_path(value)
+		FontPreset.VARIANT_BOLD_ITALIC:
+			set_custom_font_bold_italic_path(value)
+		FontPreset.VARIANT_MONO:
+			set_custom_font_mono_path(value)
+		_:
+			set_custom_font_path(value)
 
 
 func set_font_size(value: int) -> void:
@@ -338,8 +428,14 @@ func _load() -> void:
 			var arr_v: Variant = (headings_raw as Dictionary)[key_v]
 			if typeof(arr_v) == TYPE_ARRAY and (arr_v as Array).size() >= 3:
 				custom_node_headings[String(key_v)] = _read_color(arr_v, Color())
+	imported_theme_path = String(data.get("imported_theme_path", imported_theme_path))
+	imported_theme_label = String(data.get("imported_theme_label", imported_theme_label))
 	font_preset_id = String(data.get("font_preset_id", font_preset_id))
 	custom_font_path = String(data.get("custom_font_path", custom_font_path))
+	custom_font_bold_path = String(data.get("custom_font_bold_path", custom_font_bold_path))
+	custom_font_italic_path = String(data.get("custom_font_italic_path", custom_font_italic_path))
+	custom_font_bold_italic_path = String(data.get("custom_font_bold_italic_path", custom_font_bold_italic_path))
+	custom_font_mono_path = String(data.get("custom_font_mono_path", custom_font_mono_path))
 	font_size = int(data.get("font_size", font_size))
 	var kb_raw: Variant = data.get("keybindings", {})
 	if typeof(kb_raw) == TYPE_DICTIONARY:
@@ -391,8 +487,14 @@ func _save() -> void:
 		"custom_node_heading_bg": _color_to_array(custom_node_heading_bg),
 		"custom_node_heading_fg": _color_to_array(custom_node_heading_fg),
 		"custom_node_headings": _serialize_node_headings(),
+		"imported_theme_path": imported_theme_path,
+		"imported_theme_label": imported_theme_label,
 		"font_preset_id": font_preset_id,
 		"custom_font_path": custom_font_path,
+		"custom_font_bold_path": custom_font_bold_path,
+		"custom_font_italic_path": custom_font_italic_path,
+		"custom_font_bold_italic_path": custom_font_bold_italic_path,
+		"custom_font_mono_path": custom_font_mono_path,
 		"font_size": font_size,
 		"keybindings": keybindings,
 		"outliner_collapsed_by_project": _outliner_collapsed_by_project,

@@ -26,9 +26,25 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 
+[node name="LiveStatusLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
 [node name="Buttons" type="HBoxContainer" parent="VBox" unique_id=1862069045]
 layout_mode = 2
 alignment = 2
+
+[node name="JoinLiveButton" type="Button" parent="VBox/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+text = "Join live session"
+
+[node name="HostButton" type="Button" parent="VBox/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Host…"
 
 [node name="OpenButton" type="Button" parent="VBox/Buttons" unique_id=1095980922]
 unique_name_in_owner = true

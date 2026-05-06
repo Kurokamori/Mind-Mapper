@@ -1,0 +1,86 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/tilemap/import_tileset_dialog.gd" id="1_dialog"]
+
+[node name="ImportTilesetDialog" type="ConfirmationDialog"]
+title = "Import Godot TileSet (.tres)"
+ok_button_text = "Import"
+size = Vector2i(560, 320)
+script = ExtResource("1_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -56.0
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Name (display only — does not modify the .tres)"
+
+[node name="NameEdit" type="LineEdit" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TresLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Tileset .tres file"
+
+[node name="TresRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TresPathEdit" type="LineEdit" parent="VBox/TresRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TresBrowse" type="Button" parent="VBox/TresRow"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Browse…"
+
+[node name="ProjectRootLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Godot project root (folder containing project.godot)"
+
+[node name="ProjectRootRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ProjectRootEdit" type="LineEdit" parent="VBox/ProjectRootRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ProjectRootBrowse" type="Button" parent="VBox/ProjectRootRow"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Browse…"
+
+[node name="InfoLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 12
+text = "Pick a Godot TileSet (.tres)."
+
+[node name="TresDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Pick a Godot TileSet"
+size = Vector2i(640, 400)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.tres ; Godot resources")
+
+[node name="RootDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Pick the Godot project root"
+size = Vector2i(640, 400)
+ok_button_text = "Use"
+file_mode = 2
+access = 2

@@ -1,0 +1,53 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/table/table_inspector.gd" id="1_tbli"]
+
+[node name="TableInspector" type="VBoxContainer"]
+script = ExtResource("1_tbli")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Table"
+theme_override_font_sizes/font_size = 16
+
+[node name="DimensionsLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "3 × 3"
+
+[node name="RowsRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="RowsLabel" type="Label" parent="RowsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rows"
+
+[node name="RowsSpin" type="SpinBox" parent="RowsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 100.0
+value = 3.0
+
+[node name="ColsRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ColsLabel" type="Label" parent="ColsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Columns"
+
+[node name="ColsSpin" type="SpinBox" parent="ColsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 100.0
+value = 3.0
+
+[node name="HintLabel" type="Label" parent="."]
+layout_mode = 2
+autowrap_mode = 3
+text = "Edit cell text directly inside the table on the canvas."
+modulate = Color(1, 1, 1, 0.6)

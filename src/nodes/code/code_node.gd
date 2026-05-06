@@ -145,38 +145,13 @@ func apply_typed_property(key: String, value: Variant) -> void:
 
 
 func build_inspector() -> Control:
-	var v: VBoxContainer = VBoxContainer.new()
-	var lang_row: HBoxContainer = HBoxContainer.new()
-	var lang_label: Label = Label.new(); lang_label.text = "Language"; lang_row.add_child(lang_label)
-	var lang_opt: OptionButton = OptionButton.new()
-	for i in range(LANGUAGES.size()):
-		lang_opt.add_item(LANGUAGES[i], i)
-		if LANGUAGES[i] == language:
-			lang_opt.select(i)
-	lang_row.add_child(lang_opt)
-	v.add_child(lang_row)
-	var size_row: HBoxContainer = HBoxContainer.new()
-	var size_label: Label = Label.new(); size_label.text = "Font size"; size_row.add_child(size_label)
-	var spin: SpinBox = SpinBox.new(); spin.min_value = 8; spin.max_value = 48; spin.value = font_size
-	size_row.add_child(spin)
-	v.add_child(size_row)
-	var editor: Node = _find_editor()
-	lang_opt.item_selected.connect(func(i: int) -> void:
-		var new_lang: String = LANGUAGES[i]
-		if new_lang == language: return
-		if editor == null:
-			language = new_lang
-			_refresh_visuals()
-			return
-		History.push(ModifyPropertyCommand.new(editor, item_id, "language", language, new_lang))
-	)
-	spin.value_changed.connect(func(val: float) -> void:
-		var v_int: int = int(val)
-		if v_int == font_size: return
-		if editor == null:
-			font_size = v_int
-			_refresh_visuals()
-			return
-		History.push(ModifyPropertyCommand.new(editor, item_id, "font_size", font_size, v_int))
-	)
-	return v
+	var scene: PackedScene = preload("res://src/nodes/code/code_inspector.tscn")
+	var inst: CodeInspector = scene.instantiate()
+	inst.bind(self)
+	return inst
+
+
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "font_size", "label": "Font size", "kind": "int_range", "min": 8, "max": 48},
+	]

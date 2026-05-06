@@ -61,6 +61,58 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 
+[node name="CardBgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="CardBgLabel" type="Label" parent="CardBgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Card background"
+
+[node name="CardBgPicker" type="ColorPickerButton" parent="CardBgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="CardFgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="CardFgLabel" type="Label" parent="CardFgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Card text"
+
+[node name="CardFgPicker" type="ColorPickerButton" parent="CardFgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="CompletedBgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="CompletedBgLabel" type="Label" parent="CompletedBgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Completed background"
+
+[node name="CompletedBgPicker" type="ColorPickerButton" parent="CompletedBgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="CompletedFgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="CompletedFgLabel" type="Label" parent="CompletedFgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Completed text"
+
+[node name="CompletedFgPicker" type="ColorPickerButton" parent="CompletedFgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
 [node name="CountLabel" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
@@ -69,3 +121,13 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear completed"
+
+[node name="CompletedToBottomButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Completed to bottom"
+
+[node name="PlainTextEditButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Edit as plain text..."

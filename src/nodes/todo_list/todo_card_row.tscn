@@ -3,41 +3,70 @@
 [ext_resource type="Script" path="res://src/nodes/todo_list/todo_card_row.gd" id="1_card"]
 
 [node name="TodoCardRow" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 36)
 mouse_filter = 0
 mouse_default_cursor_shape = 13
 script = ExtResource("1_card")
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="DragHandle" type="ColorRect" parent="HBox"]
+[node name="MainRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="DragHandle" type="ColorRect" parent="VBox/MainRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 mouse_filter = 2
 color = Color(0.55, 0.55, 0.62, 0.6)
 
-[node name="Check" type="CheckBox" parent="HBox"]
+[node name="ExpandButton" type="Button" parent="VBox/MainRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 28)
+layout_mode = 2
+focus_mode = 0
+flat = true
+text = "▶"
+
+[node name="Check" type="CheckBox" parent="VBox/MainRow"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="TextEdit" type="LineEdit" parent="HBox"]
+[node name="TextEdit" type="LineEdit" parent="VBox/MainRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 flat = true
 placeholder_text = "Card text"
 
-[node name="PriorityButton" type="MenuButton" parent="HBox"]
+[node name="DetailsButton" type="Button" parent="VBox/MainRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Open detail view"
+text = "📝"
+
+[node name="AddChildButton" type="Button" parent="VBox/MainRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+focus_mode = 0
+flat = true
+tooltip_text = "Add sub-item"
+text = "＋"
+
+[node name="PriorityButton" type="MenuButton" parent="VBox/MainRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 focus_mode = 0
 text = "—"
 
-[node name="DueButton" type="Button" parent="HBox"]
+[node name="DueButton" type="Button" parent="VBox/MainRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
@@ -45,10 +74,45 @@ focus_mode = 0
 flat = true
 text = "📅"
 
-[node name="DeleteButton" type="Button" parent="HBox"]
+[node name="DeleteButton" type="Button" parent="VBox/MainRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(26, 28)
 layout_mode = 2
 focus_mode = 0
 flat = true
 text = "×"
+
+[node name="SubRow" type="HBoxContainer" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Indent" type="Control" parent="VBox/SubRow"]
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+
+[node name="ChildArea" type="VBoxContainer" parent="VBox/SubRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ChildContainer" type="VBoxContainer" parent="VBox/SubRow/ChildArea"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="ChildDropIndicator" type="ColorRect" parent="VBox/SubRow/ChildArea/ChildContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 3)
+layout_mode = 2
+color = Color(0.95, 0.78, 0.3, 1)
+
+[node name="AddChildRowButton" type="Button" parent="VBox/SubRow/ChildArea"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+text = "+ sub-item"

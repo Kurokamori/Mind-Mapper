@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://bu8ja2r6wgbfm"]
+
+[ext_resource type="Script" uid="uid://phjyu3hhr360" path="res://src/editor/auxilary/splash.gd" id="1_dmlnu"]
+[ext_resource type="Texture2D" uid="uid://cggd8cij7jn6h" path="res://assets/ui/splash.png" id="2_bc7cy"]
+
+[sub_resource type="Animation" id="Animation_dmlnu"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Splash:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="Animation" id="Animation_bc7cy"]
+resource_name = "intro"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Splash:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 0), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_outro"]
+resource_name = "outro"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Splash:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_76kuf"]
+_data = {
+&"RESET": SubResource("Animation_dmlnu"),
+&"intro": SubResource("Animation_bc7cy"),
+&"outro": SubResource("Animation_outro")
+}
+
+[node name="Splash" type="Control" unique_id=45714126]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dmlnu")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=144975619]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="Splash" type="TextureRect" parent="." unique_id=1276552861]
+unique_name_in_owner = true
+modulate = Color(1, 1, 1, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bc7cy")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Animation" type="AnimationPlayer" parent="." unique_id=1070539073]
+unique_name_in_owner = true
+libraries/ = SubResource("AnimationLibrary_76kuf")

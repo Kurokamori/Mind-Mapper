@@ -24,6 +24,7 @@ func do() -> void:
 		return
 	_previous_order = _editor.get_z_order_snapshot()
 	_editor.apply_reorder(_item_ids, _direction)
+	_record_op()
 	_editor.request_save()
 
 
@@ -31,7 +32,16 @@ func undo() -> void:
 	if _editor == null or not _editor.has_method("apply_z_order_snapshot"):
 		return
 	_editor.apply_z_order_snapshot(_previous_order)
+	_record_op()
 	_editor.request_save()
+
+
+func _record_op() -> void:
+	if _editor == null or not _editor.has_method("get_z_order_snapshot"):
+		return
+	var board_id: String = AppState.current_board.id if AppState.current_board != null else ""
+	var current_order: Array = _editor.get_z_order_snapshot()
+	OpBus.record_local_change(OpKinds.REORDER_ITEMS, {"order": current_order}, board_id)
 
 
 func description() -> String:

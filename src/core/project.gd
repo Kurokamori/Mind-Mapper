@@ -5,7 +5,10 @@ const MANIFEST_FILENAME := "project.json"
 const BOARDS_DIR := "boards"
 const ASSETS_DIR := "assets"
 const SNAPSHOTS_DIR := "snapshots"
-const FORMAT_VERSION := 2
+const MAP_PAGES_DIR := "map_pages"
+const TILESETS_DIR := "tilesets"
+const TILESET_MANIFEST_FILENAME := "manifest.json"
+const FORMAT_VERSION := 3
 
 var id: String = ""
 var name: String = "Untitled Project"
@@ -14,6 +17,8 @@ var created_unix: int = 0
 var modified_unix: int = 0
 var root_board_id: String = ""
 var board_index: Dictionary = {}
+var map_page_index: Dictionary = {}
+var tileset_index: Dictionary = {}
 
 
 static func create_new(folder_path_: String, project_name: String) -> Project:
@@ -34,6 +39,26 @@ static func create_new(folder_path_: String, project_name: String) -> Project:
 	if p.write_manifest() != OK:
 		return null
 	if p.write_board(root) != OK:
+		return null
+	return p
+
+
+static func create_shell(folder_path_: String, project_id_: String, project_name: String, root_board_id_: String) -> Project:
+	if project_id_ == "":
+		return null
+	var p := Project.new()
+	p.id = project_id_
+	p.name = project_name if project_name.strip_edges() != "" else "Shared Project"
+	p.folder_path = folder_path_
+	p.created_unix = int(Time.get_unix_time_from_system())
+	p.modified_unix = p.created_unix
+	p.root_board_id = root_board_id_
+	if root_board_id_ != "":
+		p.board_index[root_board_id_] = "Main"
+	var err := p._ensure_directories()
+	if err != OK:
+		return null
+	if p.write_manifest() != OK:
 		return null
 	return p
 
@@ -60,6 +85,12 @@ static func load_from_folder(folder_path_: String) -> Project:
 	var index_raw: Variant = parsed.get("board_index", {})
 	if typeof(index_raw) == TYPE_DICTIONARY:
 		p.board_index = index_raw.duplicate()
+	var map_index_raw: Variant = parsed.get("map_page_index", {})
+	if typeof(map_index_raw) == TYPE_DICTIONARY:
+		p.map_page_index = map_index_raw.duplicate()
+	var tileset_index_raw: Variant = parsed.get("tileset_index", {})
+	if typeof(tileset_index_raw) == TYPE_DICTIONARY:
+		p.tileset_index = tileset_index_raw.duplicate()
 	return p
 
 
@@ -74,6 +105,10 @@ func _ensure_directories() -> Error:
 		DirAccess.make_dir_recursive_absolute(folder_path.path_join(ASSETS_DIR))
 	if not DirAccess.dir_exists_absolute(folder_path.path_join(SNAPSHOTS_DIR)):
 		DirAccess.make_dir_recursive_absolute(folder_path.path_join(SNAPSHOTS_DIR))
+	if not DirAccess.dir_exists_absolute(folder_path.path_join(MAP_PAGES_DIR)):
+		DirAccess.make_dir_recursive_absolute(folder_path.path_join(MAP_PAGES_DIR))
+	if not DirAccess.dir_exists_absolute(folder_path.path_join(TILESETS_DIR)):
+		DirAccess.make_dir_recursive_absolute(folder_path.path_join(TILESETS_DIR))
 	return OK
 
 
@@ -233,6 +268,8 @@ func write_manifest() -> Error:
 		"modified_unix": modified_unix,
 		"root_board_id": root_board_id,
 		"board_index": board_index,
+		"map_page_index": map_page_index,
+		"tileset_index": tileset_index,
 	}
 	var path := folder_path.path_join(MANIFEST_FILENAME)
 	var f := FileAccess.open(path, FileAccess.WRITE)
@@ -376,3 +413,191 @@ func list_boards() -> Array:
 		out.append({"id": ids, "name": String(board_index[ids])})
 	out.sort_custom(func(a, b): return String(a.name).naturalnocasecmp_to(String(b.name)) < 0)
 	return out
+
+
+func map_pages_path() -> String:
+	return folder_path.path_join(MAP_PAGES_DIR)
+
+
+func map_page_path(map_id: String) -> String:
+	return map_pages_path().path_join(map_id + ".json")
+
+
+func tilesets_path() -> String:
+	return folder_path.path_join(TILESETS_DIR)
+
+
+func tileset_dir(tileset_id: String) -> String:
+	return tilesets_path().path_join(tileset_id)
+
+
+func tileset_manifest_path(tileset_id: String) -> String:
+	return tileset_dir(tileset_id).path_join(TILESET_MANIFEST_FILENAME)
+
+
+func read_map_page(map_id: String) -> MapPage:
+	var path: String = map_page_path(map_id)
+	if not FileAccess.file_exists(path):
+		return null
+	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
+	if f == null:
+		return null
+	var raw: String = f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return null
+	return MapPage.from_dict(parsed)
+
+
+func write_map_page(page: MapPage) -> Error:
+	if page == null or page.id == "":
+		return ERR_INVALID_PARAMETER
+	_ensure_directories()
+	var path: String = map_page_path(page.id)
+	var f: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return FileAccess.get_open_error()
+	f.store_string(JSON.stringify(page.to_dict(), "\t"))
+	f.close()
+	map_page_index[page.id] = page.name
+	return write_manifest()
+
+
+func create_map_page(map_name: String, tile_size: Vector2i) -> MapPage:
+	var safe_name: String = map_name.strip_edges()
+	if safe_name == "":
+		safe_name = "New Map"
+	var page: MapPage = MapPage.make_new(Uuid.v4(), safe_name, tile_size)
+	if write_map_page(page) != OK:
+		return null
+	return page
+
+
+func delete_map_page(map_id: String) -> bool:
+	if map_id == "":
+		return false
+	var path: String = map_page_path(map_id)
+	if FileAccess.file_exists(path):
+		var err: Error = DirAccess.remove_absolute(path)
+		if err != OK:
+			return false
+	map_page_index.erase(map_id)
+	write_manifest()
+	return true
+
+
+func rename_map_page(map_id: String, new_name: String) -> bool:
+	var page: MapPage = read_map_page(map_id)
+	if page == null:
+		return false
+	page.name = new_name
+	return write_map_page(page) == OK
+
+
+func list_map_pages() -> Array:
+	var out: Array = []
+	for ids in map_page_index.keys():
+		out.append({"id": ids, "name": String(map_page_index[ids])})
+	out.sort_custom(func(a, b): return String(a.name).naturalnocasecmp_to(String(b.name)) < 0)
+	return out
+
+
+func read_tileset(tileset_id: String) -> TileSetResource:
+	if tileset_id == "":
+		return null
+	var manifest_path: String = tileset_manifest_path(tileset_id)
+	if not FileAccess.file_exists(manifest_path):
+		return null
+	var f: FileAccess = FileAccess.open(manifest_path, FileAccess.READ)
+	if f == null:
+		return null
+	var raw: String = f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return null
+	return TileSetResource.from_dict(parsed)
+
+
+func write_tileset(ts: TileSetResource) -> Error:
+	if ts == null or ts.id == "":
+		return ERR_INVALID_PARAMETER
+	_ensure_directories()
+	var dir_path: String = tileset_dir(ts.id)
+	if not DirAccess.dir_exists_absolute(dir_path):
+		var err: Error = DirAccess.make_dir_recursive_absolute(dir_path)
+		if err != OK:
+			return err
+	var path: String = tileset_manifest_path(ts.id)
+	var f: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return FileAccess.get_open_error()
+	f.store_string(JSON.stringify(ts.to_dict(), "\t"))
+	f.close()
+	tileset_index[ts.id] = ts.name
+	return write_manifest()
+
+
+func delete_tileset(tileset_id: String) -> bool:
+	if tileset_id == "":
+		return false
+	var dir_path: String = tileset_dir(tileset_id)
+	if DirAccess.dir_exists_absolute(dir_path):
+		_recursively_delete_dir(dir_path)
+	tileset_index.erase(tileset_id)
+	write_manifest()
+	return true
+
+
+func list_tilesets() -> Array:
+	var out: Array = []
+	for ids in tileset_index.keys():
+		out.append({"id": ids, "name": String(tileset_index[ids])})
+	out.sort_custom(func(a, b): return String(a.name).naturalnocasecmp_to(String(b.name)) < 0)
+	return out
+
+
+func copy_image_into_tileset(tileset_id: String, source_path: String) -> String:
+	var dir_path: String = tileset_dir(tileset_id)
+	if not DirAccess.dir_exists_absolute(dir_path):
+		DirAccess.make_dir_recursive_absolute(dir_path)
+	var ext: String = source_path.get_extension()
+	var dest_name: String = "source." + ext if ext != "" else "source.png"
+	var dest_path: String = dir_path.path_join(dest_name)
+	var src: FileAccess = FileAccess.open(source_path, FileAccess.READ)
+	if src == null:
+		return ""
+	var bytes: PackedByteArray = src.get_buffer(src.get_length())
+	src.close()
+	var f: FileAccess = FileAccess.open(dest_path, FileAccess.WRITE)
+	if f == null:
+		return ""
+	f.store_buffer(bytes)
+	f.close()
+	return dest_name
+
+
+func resolve_tileset_image_path(tileset_id: String, asset_name: String) -> String:
+	if asset_name == "":
+		return ""
+	return tileset_dir(tileset_id).path_join(asset_name)
+
+
+func _recursively_delete_dir(target: String) -> void:
+	var d: DirAccess = DirAccess.open(target)
+	if d == null:
+		return
+	d.list_dir_begin()
+	var entry: String = d.get_next()
+	while entry != "":
+		if entry != "." and entry != "..":
+			var full: String = target.path_join(entry)
+			if d.current_is_dir():
+				_recursively_delete_dir(full)
+				DirAccess.remove_absolute(full)
+			else:
+				DirAccess.remove_absolute(full)
+		entry = d.get_next()
+	d.list_dir_end()
+	DirAccess.remove_absolute(target)

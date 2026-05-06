@@ -214,3 +214,11 @@ func build_inspector() -> Control:
 	var inst: PrimitiveInspector = scene.instantiate()
 	inst.bind(self)
 	return inst
+
+
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "fill_enabled", "label": "Fill enabled", "kind": "bool"},
+		{"key": "fill_color", "label": "Fill color", "kind": "color"},
+		{"key": "outline_color", "label": "Outline color", "kind": "color"},
+	]

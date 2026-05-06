@@ -3,6 +3,7 @@ extends BoardItem
 
 const TITLE_HEIGHT: float = 28.0
 const TITLE_PADDING: Vector2 = Vector2(10, 4)
+const ENVELOPE_PADDING: float = 12.0
 const LEGACY_DEFAULT_BG: Color = Color(0.32, 0.18, 0.42, 0.55)
 const LEGACY_DEFAULT_TITLE_BG: Color = Color(0.32, 0.18, 0.42, 1.0)
 const LEGACY_DEFAULT_TITLE_FG: Color = Color(0.97, 0.97, 0.99, 1.0)
@@ -63,6 +64,36 @@ func display_name() -> String:
 
 func minimum_item_size() -> Vector2:
 	return Vector2(120.0, TITLE_HEIGHT + 32.0)
+
+
+func body_world_rect() -> Rect2:
+	var body_height: float = max(size.y - TITLE_HEIGHT, 0.0)
+	return Rect2(position + Vector2(0.0, TITLE_HEIGHT), Vector2(size.x, body_height))
+
+
+func contains_item_center(other_position: Vector2, other_size: Vector2) -> bool:
+	var center: Vector2 = other_position + other_size * 0.5
+	return Rect2(position, size).has_point(center)
+
+
+func compute_envelope(child_rects: Array) -> Dictionary:
+	var min_x: float = position.x
+	var min_body_y: float = position.y + TITLE_HEIGHT
+	var max_x: float = position.x + size.x
+	var max_y: float = position.y + size.y
+	for r: Rect2 in child_rects:
+		var lt: Vector2 = r.position
+		var rb: Vector2 = r.position + r.size
+		min_x = min(min_x, lt.x - ENVELOPE_PADDING)
+		min_body_y = min(min_body_y, lt.y - ENVELOPE_PADDING)
+		max_x = max(max_x, rb.x + ENVELOPE_PADDING)
+		max_y = max(max_y, rb.y + ENVELOPE_PADDING)
+	var new_pos: Vector2 = Vector2(min_x, min_body_y - TITLE_HEIGHT)
+	var new_size: Vector2 = Vector2(max(max_x - min_x, 0.0), max(max_y - new_pos.y, 0.0))
+	var min_s: Vector2 = minimum_item_size()
+	new_size.x = max(new_size.x, min_s.x)
+	new_size.y = max(new_size.y, min_s.y)
+	return {"position": new_pos, "size": new_size}
 
 
 func _draw_body() -> void:
@@ -241,3 +272,11 @@ func build_inspector() -> Control:
 	var inst: GroupInspector = scene.instantiate()
 	inst.bind(self)
 	return inst
+
+
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "bg_color", "label": "Background", "kind": "color_with_reset"},
+		{"key": "title_bg_color", "label": "Title background", "kind": "color_with_reset"},
+		{"key": "title_fg_color", "label": "Title text", "kind": "color_with_reset"},
+	]

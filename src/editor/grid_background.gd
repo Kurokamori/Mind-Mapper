@@ -19,7 +19,11 @@ func _draw() -> void:
 	var world_size: Vector2 = vp_size / cam.zoom
 	var top_left: Vector2 = cam.position - world_size * 0.5
 	var pixel_per_world: float = cam.zoom.x
-	var bg: Color = ThemeManager.background_color()
+	var bg: Color
+	if AppState.current_board != null and AppState.current_board.has_background_color_override():
+		bg = AppState.current_board.get_background_color()
+	else:
+		bg = ThemeManager.background_color()
 	draw_grid_into_with_bg(self, Rect2(top_left, world_size), SnapService.grid_size, SnapService.enabled, pixel_per_world, bg)
 	_draw_board_background_image(top_left, world_size)
 

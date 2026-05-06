@@ -211,16 +211,13 @@ static func _convert_chars(s: String, table: Array) -> String:
 
 
 func build_inspector() -> Control:
-	var v: VBoxContainer = VBoxContainer.new()
-	var lbl: Label = Label.new(); lbl.text = "LaTeX source"; v.add_child(lbl)
-	var ed: TextEdit = TextEdit.new(); ed.text = latex; ed.custom_minimum_size = Vector2(0, 80); v.add_child(ed)
-	var editor: Node = _find_editor()
-	ed.focus_exited.connect(func() -> void:
-		if ed.text == latex: return
-		if editor == null:
-			latex = ed.text
-			_refresh_visuals()
-			return
-		History.push(ModifyPropertyCommand.new(editor, item_id, "latex", latex, ed.text))
-	)
-	return v
+	var scene: PackedScene = preload("res://src/nodes/equation/equation_inspector.tscn")
+	var inst: EquationInspector = scene.instantiate()
+	inst.bind(self)
+	return inst
+
+
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "font_size", "label": "Font size", "kind": "int_range", "min": 8, "max": 96},
+	]

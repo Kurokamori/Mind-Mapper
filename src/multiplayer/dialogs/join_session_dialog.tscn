@@ -1,0 +1,118 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8mpjoin0001"]
+
+[ext_resource type="Script" path="res://src/multiplayer/dialogs/join_session_dialog.gd" id="1_join"]
+
+[node name="JoinSessionDialog" type="AcceptDialog"]
+title = "Join multiplayer session"
+size = Vector2i(680, 520)
+script = ExtResource("1_join")
+
+[node name="Margin" type="MarginContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 672.0
+offset_bottom = 472.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="AdapterRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AdapterLabel" type="Label" parent="Margin/VBox/AdapterRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Backend"
+
+[node name="AdapterOption" type="OptionButton" parent="Margin/VBox/AdapterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AdapterStatusLabel" type="Label" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="HSep1" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="LobbyHeader" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LobbyHeaderLabel" type="Label" parent="Margin/VBox/LobbyHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Available lobbies"
+
+[node name="RefreshButton" type="Button" parent="Margin/VBox/LobbyHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Refresh"
+
+[node name="LobbyList" type="ItemList" parent="Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_vertical = 3
+allow_search = true
+
+[node name="HSep2" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="DirectRow" type="HBoxContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="DirectAddressLabel" type="Label" parent="Margin/VBox/DirectRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Host address"
+
+[node name="DirectAddressField" type="LineEdit" parent="Margin/VBox/DirectRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "192.168.x.y or hostname"
+
+[node name="DirectPortRow" type="HBoxContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="DirectPortLabel" type="Label" parent="Margin/VBox/DirectPortRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Port"
+
+[node name="DirectPortField" type="SpinBox" parent="Margin/VBox/DirectPortRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSep3" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+
+[node name="DisplayNameRow" type="HBoxContainer" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="DisplayNameLabel" type="Label" parent="Margin/VBox/DisplayNameRow"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Your display name"
+
+[node name="DisplayNameField" type="LineEdit" parent="Margin/VBox/DisplayNameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3

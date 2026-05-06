@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://b8mpstrip0001"]
+
+[ext_resource type="Script" uid="uid://cuyauoyovo6st" path="res://src/multiplayer/presence/presence_avatar_strip.gd" id="1_strip"]
+
+[node name="PresenceAvatarStrip" type="HBoxContainer" unique_id=409266719]
+size_flags_vertical = 4
+theme_override_constants/separation = 6
+alignment = 1
+script = ExtResource("1_strip")
+
+[node name="StateLabel" type="Label" parent="." unique_id=1965446221]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Solo"
+
+[node name="BackendLabel" type="Label" parent="." unique_id=2038627977]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+
+[node name="ParticipantCountLabel" type="Label" parent="." unique_id=1592757795]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+
+[node name="AvatarRow" type="HBoxContainer" parent="." unique_id=1954827512]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 4
+
+[node name="MenuButton" type="MenuButton" parent="." unique_id=1979963825]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Live ▾"
+flat = false

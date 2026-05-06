@@ -1,0 +1,91 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/tilemap/export_map_dialog.gd" id="1_dialog"]
+
+[node name="ExportMapDialog" type="ConfirmationDialog"]
+title = "Export Map to Godot scene"
+ok_button_text = "Export"
+size = Vector2i(620, 360)
+script = ExtResource("1_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -56.0
+theme_override_constants/separation = 8
+
+[node name="OutputLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Output folder (where the .tscn will be written)"
+
+[node name="OutputRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="OutputEdit" type="LineEdit" parent="VBox/OutputRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OutputBrowse" type="Button" parent="VBox/OutputRow"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Browse…"
+
+[node name="RootLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Godot project root (only required for reference mode)"
+
+[node name="RootRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RootEdit" type="LineEdit" parent="VBox/RootRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RootBrowse" type="Button" parent="VBox/RootRow"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Browse…"
+
+[node name="ModeLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Mode"
+
+[node name="ModeReference" type="CheckBox" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+button_pressed = true
+text = "Reference (cleaner — references existing .tres files in your Godot project, zero duplication)"
+
+[node name="ModeBundle" type="CheckBox" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Bundle (self-contained — copies tilesets and textures next to the exported scene)"
+
+[node name="InfoLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="OutputDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Pick output folder"
+size = Vector2i(640, 400)
+ok_button_text = "Use"
+file_mode = 2
+access = 2
+
+[node name="RootDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Pick the Godot project root"
+size = Vector2i(640, 400)
+ok_button_text = "Use"
+file_mode = 2
+access = 2

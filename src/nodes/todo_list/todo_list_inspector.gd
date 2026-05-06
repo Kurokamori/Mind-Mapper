@@ -5,8 +5,14 @@ extends VBoxContainer
 @onready var _bg_picker: ColorPickerButton = %BgPicker
 @onready var _accent_picker: ColorPickerButton = %AccentPicker
 @onready var _header_fg_picker: ColorPickerButton = %HeaderFgPicker
+@onready var _card_bg_picker: ColorPickerButton = %CardBgPicker
+@onready var _card_fg_picker: ColorPickerButton = %CardFgPicker
+@onready var _completed_bg_picker: ColorPickerButton = %CompletedBgPicker
+@onready var _completed_fg_picker: ColorPickerButton = %CompletedFgPicker
 @onready var _count_label: Label = %CountLabel
 @onready var _clear_completed_button: Button = %ClearCompletedButton
+@onready var _completed_to_bottom_button: Button = %CompletedToBottomButton
+@onready var _plain_text_edit_button: Button = %PlainTextEditButton
 
 var _item: TodoListNode
 var _editor: Node
@@ -27,19 +33,33 @@ func _ready() -> void:
 	_bg_picker.color = _item.resolved_bg_color()
 	_accent_picker.color = _item.resolved_accent_color()
 	_header_fg_picker.color = _item.resolved_header_fg_color()
+	_card_bg_picker.color = _item.resolved_card_bg_color()
+	_card_fg_picker.color = _item.resolved_card_fg_color()
+	_completed_bg_picker.color = _item.resolved_completed_bg_color()
+	_completed_fg_picker.color = _item.resolved_completed_fg_color()
 	_refresh_count()
 	_suppress_signals = false
 	_binders["title"] = PropertyBinder.new(_editor, _item, "title", _item.title)
 	_binders["bg_color"] = PropertyBinder.new(_editor, _item, "bg_color", ColorUtil.to_array(_item.resolved_bg_color()))
 	_binders["accent_color"] = PropertyBinder.new(_editor, _item, "accent_color", ColorUtil.to_array(_item.resolved_accent_color()))
 	_binders["header_fg_color"] = PropertyBinder.new(_editor, _item, "header_fg_color", ColorUtil.to_array(_item.resolved_header_fg_color()))
+	_binders["card_bg_color"] = PropertyBinder.new(_editor, _item, "card_bg_color", ColorUtil.to_array(_item.resolved_card_bg_color()))
+	_binders["card_fg_color"] = PropertyBinder.new(_editor, _item, "card_fg_color", ColorUtil.to_array(_item.resolved_card_fg_color()))
+	_binders["completed_bg_color"] = PropertyBinder.new(_editor, _item, "completed_bg_color", ColorUtil.to_array(_item.resolved_completed_bg_color()))
+	_binders["completed_fg_color"] = PropertyBinder.new(_editor, _item, "completed_fg_color", ColorUtil.to_array(_item.resolved_completed_fg_color()))
 	_title_edit.text_changed.connect(func(t: String) -> void: _binders["title"].live(t))
 	_title_edit.focus_exited.connect(func() -> void: _binders["title"].commit(_title_edit.text))
 	_title_edit.text_submitted.connect(func(t: String) -> void: _binders["title"].commit(t))
 	_install_color_picker(_bg_picker, "bg_color", _item.resolved_bg_color)
 	_install_color_picker(_accent_picker, "accent_color", _item.resolved_accent_color)
 	_install_color_picker(_header_fg_picker, "header_fg_color", _item.resolved_header_fg_color)
+	_install_color_picker(_card_bg_picker, "card_bg_color", _item.resolved_card_bg_color)
+	_install_color_picker(_card_fg_picker, "card_fg_color", _item.resolved_card_fg_color)
+	_install_color_picker(_completed_bg_picker, "completed_bg_color", _item.resolved_completed_bg_color)
+	_install_color_picker(_completed_fg_picker, "completed_fg_color", _item.resolved_completed_fg_color)
 	_clear_completed_button.pressed.connect(_on_clear_completed)
+	_completed_to_bottom_button.pressed.connect(_on_completed_to_bottom)
+	_plain_text_edit_button.pressed.connect(_on_plain_text_edit_pressed)
 	ThemeManager.theme_applied.connect(_on_theme_applied)
 	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _on_theme_applied())
 
@@ -77,6 +97,14 @@ func _on_theme_applied() -> void:
 		_accent_picker.color = _item.resolved_accent_color()
 	if not _item.header_fg_color_custom:
 		_header_fg_picker.color = _item.resolved_header_fg_color()
+	if not _item.card_bg_color_custom:
+		_card_bg_picker.color = _item.resolved_card_bg_color()
+	if not _item.card_fg_color_custom:
+		_card_fg_picker.color = _item.resolved_card_fg_color()
+	if not _item.completed_bg_color_custom:
+		_completed_bg_picker.color = _item.resolved_completed_bg_color()
+	if not _item.completed_fg_color_custom:
+		_completed_fg_picker.color = _item.resolved_completed_fg_color()
 	_suppress_signals = false
 
 
@@ -92,24 +120,90 @@ func _find_editor() -> Node:
 func _refresh_count() -> void:
 	if _item == null:
 		return
-	var done: int = 0
-	for c in _item.cards:
-		if bool(c.get("completed", false)):
-			done += 1
-	_count_label.text = "%d / %d completed" % [done, _item.cards.size()]
+	var v: Vector2i = TodoCardData.count_completed(_item.cards)
+	_count_label.text = "%d / %d completed (incl. sub-items)" % [v.x, v.y]
 
 
 func _on_clear_completed() -> void:
 	if _item == null:
 		return
 	var before: Array = _item.cards.duplicate(true)
-	var keep: Array = []
-	for c in _item.cards:
-		if not bool(c.get("completed", false)):
-			keep.append(c)
-	if keep.size() == _item.cards.size():
+	var keep: Array = _strip_completed(_item.cards)
+	if _serialize_for_compare(keep) == _serialize_for_compare(_item.cards):
 		return
 	var binder: PropertyBinder = PropertyBinder.new(_editor, _item, "cards", before)
 	binder.live(keep)
 	binder.commit(keep)
+	_refresh_count()
+
+
+func _on_completed_to_bottom() -> void:
+	if _item == null:
+		return
+	var before: Array = _item.cards.duplicate(true)
+	var sorted: Array = _sort_completed_to_bottom(before)
+	if _serialize_for_compare(sorted) == _serialize_for_compare(_item.cards):
+		return
+	var binder: PropertyBinder = PropertyBinder.new(_editor, _item, "cards", before)
+	binder.live(sorted)
+	binder.commit(sorted)
+	_refresh_count()
+
+
+func _sort_completed_to_bottom(arr: Array) -> Array:
+	var pending: Array = []
+	var done: Array = []
+	for c in arr:
+		if typeof(c) != TYPE_DICTIONARY:
+			continue
+		var copy: Dictionary = (c as Dictionary).duplicate(true)
+		copy["subcards"] = _sort_completed_to_bottom(copy.get("subcards", []) as Array)
+		if bool(copy.get("completed", false)):
+			done.append(copy)
+		else:
+			pending.append(copy)
+	var out: Array = []
+	out.append_array(pending)
+	out.append_array(done)
+	return out
+
+
+func _strip_completed(arr: Array) -> Array:
+	var out: Array = []
+	for c in arr:
+		if bool(c.get("completed", false)):
+			continue
+		var copy: Dictionary = c.duplicate(true)
+		copy["subcards"] = _strip_completed(copy.get("subcards", []) as Array)
+		out.append(copy)
+	return out
+
+
+func _serialize_for_compare(arr: Array) -> String:
+	return JSON.stringify(arr)
+
+
+func _on_plain_text_edit_pressed() -> void:
+	if _item == null:
+		return
+	var dlg_scene: PackedScene = preload("res://src/editor/dialogs/plain_text_outline_dialog.tscn")
+	var dlg: PlainTextOutlineDialog = dlg_scene.instantiate()
+	var initial: String = PlainTextOutline.encode_todos(_item.cards)
+	dlg.bind("Edit %s as plain text" % _item.title, initial)
+	get_tree().root.add_child(dlg)
+	dlg.applied.connect(_on_plain_text_applied)
+	dlg.popup_centered()
+
+
+func _on_plain_text_applied(text: String) -> void:
+	if _item == null:
+		return
+	var before: Array = _item.cards.duplicate(true)
+	var parsed: Array = PlainTextOutline.decode_todos(text, before)
+	var normalized: Array = TodoCardData.normalize_array(parsed)
+	if _serialize_for_compare(normalized) == _serialize_for_compare(_item.cards):
+		return
+	var binder: PropertyBinder = PropertyBinder.new(_editor, _item, "cards", before)
+	binder.live(normalized)
+	binder.commit(normalized)
 	_refresh_count()

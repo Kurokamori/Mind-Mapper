@@ -2,10 +2,18 @@ class_name BoardOutliner
 extends DockablePanel
 
 signal close_requested
+signal new_map_page_requested()
 
 const CTX_NEW_CHILD: int = 1
 const CTX_RENAME: int = 2
 const CTX_DELETE: int = 3
+const CTX_NEW_MAP: int = 4
+const CTX_RENAME_MAP: int = 5
+const CTX_DELETE_MAP: int = 6
+
+const META_KIND_BOARD: String = "board"
+const META_KIND_MAP: String = "map"
+const META_KIND_MAPS_HEADER: String = "maps_header"
 
 @onready var _tree: Tree = %Tree
 @onready var _new_root_button: Button = %NewRootButton
@@ -13,10 +21,15 @@ const CTX_DELETE: int = 3
 @onready var _context_menu: PopupMenu = %ContextMenu
 
 var _items_by_board_id: Dictionary = {}
+var _items_by_map_id: Dictionary = {}
+var _maps_root_item: TreeItem = null
 var _suppress_select_navigation: bool = false
 var _context_target_board_id: String = ""
+var _context_target_map_id: String = ""
 var _editing_board_id: String = ""
+var _editing_map_id: String = ""
 var _suppress_collapse_persist: bool = false
+var _rebuild_pending: bool = false
 
 
 func _ready() -> void:
@@ -32,18 +45,34 @@ func _ready() -> void:
 	_new_root_button.pressed.connect(_on_new_root_pressed)
 	_close_button.pressed.connect(_on_close_pressed)
 	_context_menu.id_pressed.connect(_on_context_menu_id_pressed)
-	ProjectIndex.index_changed.connect(_rebuild)
+	ProjectIndex.index_changed.connect(_request_rebuild)
 	AppState.current_board_changed.connect(_on_current_board_changed)
+	AppState.current_map_page_changed.connect(_on_current_map_page_changed)
+	AppState.map_page_modified.connect(_on_map_page_modified)
 	AppState.project_opened.connect(_on_project_opened)
 	AppState.project_closed.connect(_on_project_closed)
 	_rebuild()
 
 
 func _on_project_opened(_p: Project) -> void:
-	_rebuild()
+	_request_rebuild()
 
 
 func _on_project_closed() -> void:
+	_request_rebuild()
+
+
+func _request_rebuild() -> void:
+	if _rebuild_pending:
+		return
+	_rebuild_pending = true
+	call_deferred("_run_pending_rebuild")
+
+
+func _run_pending_rebuild() -> void:
+	_rebuild_pending = false
+	if not is_inside_tree():
+		return
 	_rebuild()
 
 
@@ -56,6 +85,8 @@ func _rebuild() -> void:
 		return
 	_suppress_collapse_persist = true
 	_items_by_board_id.clear()
+	_items_by_map_id.clear()
+	_maps_root_item = null
 	_tree.clear()
 	if AppState.current_project == null:
 		_suppress_collapse_persist = false
@@ -95,8 +126,29 @@ func _rebuild() -> void:
 		if not _items_by_board_id.has(parent_id):
 			for orphan_v: Variant in (by_parent[parent_id] as Array):
 				_insert_board(orphan_v, root, by_parent, root_board_id)
+	_insert_maps_section(root)
 	_highlight_current()
 	_suppress_collapse_persist = false
+
+
+func _insert_maps_section(root: TreeItem) -> void:
+	if AppState.current_project == null:
+		return
+	_maps_root_item = _tree.create_item(root)
+	_maps_root_item.set_text(0, "Maps")
+	_maps_root_item.set_metadata(0, META_KIND_MAPS_HEADER)
+	_maps_root_item.set_selectable(0, false)
+	var maps: Array = AppState.current_project.list_map_pages()
+	for entry_v: Variant in maps:
+		var entry: Dictionary = entry_v
+		var mid: String = String(entry.get("id", ""))
+		if mid == "":
+			continue
+		var ti: TreeItem = _tree.create_item(_maps_root_item)
+		ti.set_text(0, String(entry.get("name", "Map")))
+		ti.set_metadata(0, {"kind": META_KIND_MAP, "id": mid})
+		ti.set_editable(0, false)
+		_items_by_map_id[mid] = ti
 
 
 func _insert_board(entry_v: Variant, parent_item: TreeItem, by_parent: Dictionary, root_board_id: String) -> void:
@@ -111,7 +163,7 @@ func _insert_board(entry_v: Variant, parent_item: TreeItem, by_parent: Dictionar
 	if bid == root_board_id:
 		label = "%s  (root)" % label
 	ti.set_text(0, label)
-	ti.set_metadata(0, bid)
+	ti.set_metadata(0, {"kind": META_KIND_BOARD, "id": bid})
 	ti.set_editable(0, false)
 	_items_by_board_id[bid] = ti
 	var children: Array = by_parent.get(bid, [])
@@ -122,6 +174,14 @@ func _insert_board(entry_v: Variant, parent_item: TreeItem, by_parent: Dictionar
 
 
 func _highlight_current() -> void:
+	if AppState.current_page_kind == AppState.PAGE_KIND_MAP and AppState.current_map_page != null:
+		var ti_map: TreeItem = _items_by_map_id.get(AppState.current_map_page.id, null) as TreeItem
+		if ti_map != null:
+			_suppress_select_navigation = true
+			ti_map.select(0)
+			_tree.scroll_to_item(ti_map)
+			_suppress_select_navigation = false
+		return
 	if AppState.current_board == null:
 		return
 	var ti: TreeItem = _items_by_board_id.get(AppState.current_board.id, null) as TreeItem
@@ -133,27 +193,56 @@ func _highlight_current() -> void:
 	_suppress_select_navigation = false
 
 
-func _selected_board_id() -> String:
+func _selected_meta() -> Dictionary:
 	var sel: TreeItem = _tree.get_selected()
 	if sel == null:
-		return ""
+		return {}
 	var meta: Variant = sel.get_metadata(0)
-	if typeof(meta) != TYPE_STRING:
+	if typeof(meta) != TYPE_DICTIONARY:
+		return {}
+	return meta
+
+
+func _selected_board_id() -> String:
+	var meta: Dictionary = _selected_meta()
+	if String(meta.get("kind", "")) != META_KIND_BOARD:
 		return ""
-	return String(meta)
+	return String(meta.get("id", ""))
+
+
+func _selected_map_id() -> String:
+	var meta: Dictionary = _selected_meta()
+	if String(meta.get("kind", "")) != META_KIND_MAP:
+		return ""
+	return String(meta.get("id", ""))
 
 
 func _on_item_selected() -> void:
 	if _suppress_select_navigation:
 		return
-	if _editing_board_id != "":
+	if _editing_board_id != "" or _editing_map_id != "":
 		return
-	var bid: String = _selected_board_id()
-	if bid == "" or AppState.current_board == null:
+	var meta: Dictionary = _selected_meta()
+	var kind: String = String(meta.get("kind", ""))
+	var id: String = String(meta.get("id", ""))
+	if id == "":
 		return
-	if AppState.current_board.id == bid:
-		return
-	AppState.navigate_to_board(bid)
+	if kind == META_KIND_BOARD:
+		if AppState.current_page_kind == AppState.PAGE_KIND_BOARD and AppState.current_board != null and AppState.current_board.id == id:
+			return
+		AppState.navigate_to_board(id)
+	elif kind == META_KIND_MAP:
+		if AppState.current_page_kind == AppState.PAGE_KIND_MAP and AppState.current_map_page != null and AppState.current_map_page.id == id:
+			return
+		AppState.navigate_to_map_page(id)
+
+
+func _on_current_map_page_changed(_p: MapPage) -> void:
+	_highlight_current()
+
+
+func _on_map_page_modified(_id: String) -> void:
+	_request_rebuild()
 
 
 func _find_entry(board_id: String) -> Dictionary:
@@ -173,49 +262,77 @@ func _find_entry(board_id: String) -> Dictionary:
 
 
 func _on_item_edited() -> void:
-	var bid: String = _editing_board_id
-	_editing_board_id = ""
-	if bid == "":
+	if _editing_board_id != "":
+		var bid: String = _editing_board_id
+		_editing_board_id = ""
+		var ti: TreeItem = _items_by_board_id.get(bid, null) as TreeItem
+		if ti == null:
+			return
+		ti.set_editable(0, false)
+		var new_name: String = ti.get_text(0).strip_edges()
+		if new_name == "":
+			_rebuild()
+			return
+		if AppState.current_project == null:
+			return
+		if AppState.current_project.rename_board(bid, new_name):
+			AppState.emit_signal("board_modified", bid)
+			if AppState.current_board != null and AppState.current_board.id == bid:
+				AppState.current_board.name = new_name
+				AppState.emit_signal("navigation_changed")
+		else:
+			_rebuild()
 		return
-	var ti: TreeItem = _items_by_board_id.get(bid, null) as TreeItem
-	if ti == null:
-		return
-	ti.set_editable(0, false)
-	var new_name: String = ti.get_text(0).strip_edges()
-	if new_name == "":
-		_rebuild()
-		return
-	if AppState.current_project == null:
-		return
-	if AppState.current_project.rename_board(bid, new_name):
-		AppState.emit_signal("board_modified", bid)
-		if AppState.current_board != null and AppState.current_board.id == bid:
-			AppState.current_board.name = new_name
-			AppState.emit_signal("navigation_changed")
-	else:
-		_rebuild()
+	if _editing_map_id != "":
+		var mid: String = _editing_map_id
+		_editing_map_id = ""
+		var ti_m: TreeItem = _items_by_map_id.get(mid, null) as TreeItem
+		if ti_m == null:
+			return
+		ti_m.set_editable(0, false)
+		var new_name_m: String = ti_m.get_text(0).strip_edges()
+		if new_name_m == "":
+			_rebuild()
+			return
+		if AppState.current_project == null:
+			return
+		if AppState.current_project.rename_map_page(mid, new_name_m):
+			AppState.emit_signal("map_page_modified", mid)
+			if AppState.current_map_page != null and AppState.current_map_page.id == mid:
+				AppState.current_map_page.name = new_name_m
+				AppState.emit_signal("navigation_changed")
+		else:
+			_rebuild()
 
 
 func _on_item_mouse_selected(_pos: Vector2, mouse_button_index: int) -> void:
 	if mouse_button_index != MOUSE_BUTTON_RIGHT:
 		return
-	var bid: String = _selected_board_id()
-	if bid == "":
+	var meta: Dictionary = _selected_meta()
+	var kind: String = String(meta.get("kind", ""))
+	if kind == META_KIND_MAPS_HEADER:
+		_open_maps_header_menu()
 		return
-	_open_context_menu(bid)
+	if kind == META_KIND_BOARD:
+		_open_context_menu(String(meta.get("id", "")))
+	elif kind == META_KIND_MAP:
+		_open_map_context_menu(String(meta.get("id", "")))
 
 
 func _on_empty_clicked(_pos: Vector2, mouse_button_index: int) -> void:
 	if mouse_button_index != MOUSE_BUTTON_RIGHT:
 		return
 	_context_target_board_id = ""
+	_context_target_map_id = ""
 	_context_menu.clear()
 	_context_menu.add_item("New top-level board", CTX_NEW_CHILD)
+	_context_menu.add_item("New map page", CTX_NEW_MAP)
 	_show_context_menu_at_mouse()
 
 
 func _open_context_menu(board_id: String) -> void:
 	_context_target_board_id = board_id
+	_context_target_map_id = ""
 	_context_menu.clear()
 	_context_menu.add_item("New child board", CTX_NEW_CHILD)
 	_context_menu.add_item("Rename", CTX_RENAME)
@@ -225,6 +342,24 @@ func _open_context_menu(board_id: String) -> void:
 		var idx: int = _context_menu.get_item_index(CTX_DELETE)
 		if idx >= 0:
 			_context_menu.set_item_disabled(idx, true)
+	_show_context_menu_at_mouse()
+
+
+func _open_maps_header_menu() -> void:
+	_context_target_board_id = ""
+	_context_target_map_id = ""
+	_context_menu.clear()
+	_context_menu.add_item("New map page", CTX_NEW_MAP)
+	_show_context_menu_at_mouse()
+
+
+func _open_map_context_menu(map_id: String) -> void:
+	_context_target_board_id = ""
+	_context_target_map_id = map_id
+	_context_menu.clear()
+	_context_menu.add_item("Rename", CTX_RENAME_MAP)
+	_context_menu.add_separator()
+	_context_menu.add_item("Delete", CTX_DELETE_MAP)
 	_show_context_menu_at_mouse()
 
 
@@ -242,10 +377,48 @@ func _on_context_menu_id_pressed(id: int) -> void:
 			_begin_rename(_context_target_board_id)
 		CTX_DELETE:
 			_delete_board(_context_target_board_id)
+		CTX_NEW_MAP:
+			_request_new_map_page()
+		CTX_RENAME_MAP:
+			_begin_rename_map(_context_target_map_id)
+		CTX_DELETE_MAP:
+			_delete_map_page(_context_target_map_id)
 
 
 func _on_new_root_pressed() -> void:
 	_create_child("")
+
+
+func _request_new_map_page() -> void:
+	if AppState.current_project == null:
+		return
+	emit_signal("new_map_page_requested")
+
+
+func _begin_rename_map(map_id: String) -> void:
+	var ti: TreeItem = _items_by_map_id.get(map_id, null) as TreeItem
+	if ti == null:
+		return
+	_editing_map_id = map_id
+	_suppress_select_navigation = true
+	ti.select(0)
+	_suppress_select_navigation = false
+	if AppState.current_project != null and AppState.current_project.map_page_index.has(map_id):
+		ti.set_text(0, String(AppState.current_project.map_page_index[map_id]))
+	ti.set_editable(0, true)
+	_tree.edit_selected()
+
+
+func _delete_map_page(map_id: String) -> void:
+	if AppState.current_project == null or map_id == "":
+		return
+	if not AppState.current_project.delete_map_page(map_id):
+		return
+	if AppState.current_map_page != null and AppState.current_map_page.id == map_id:
+		AppState.current_map_page = null
+		AppState.navigate_to_board(AppState.current_project.root_board_id)
+	AppState.emit_signal("map_page_modified", map_id)
+	_rebuild()
 
 
 func _on_close_pressed() -> void:
@@ -282,9 +455,12 @@ func _on_item_collapsed(item: TreeItem) -> void:
 	if AppState.current_project == null:
 		return
 	var meta: Variant = item.get_metadata(0)
-	if typeof(meta) != TYPE_STRING:
+	if typeof(meta) != TYPE_DICTIONARY:
 		return
-	var bid: String = String(meta)
+	var meta_d: Dictionary = meta
+	if String(meta_d.get("kind", "")) != META_KIND_BOARD:
+		return
+	var bid: String = String(meta_d.get("id", ""))
 	if bid == "":
 		return
 	UserPrefs.set_board_collapsed(AppState.current_project.id, bid, item.collapsed)
@@ -297,9 +473,12 @@ func _outliner_get_drag_data(_at_position: Vector2) -> Variant:
 	if ti == null:
 		return null
 	var meta: Variant = ti.get_metadata(0)
-	if typeof(meta) != TYPE_STRING:
+	if typeof(meta) != TYPE_DICTIONARY:
 		return null
-	var bid: String = String(meta)
+	var meta_d: Dictionary = meta
+	if String(meta_d.get("kind", "")) != META_KIND_BOARD:
+		return null
+	var bid: String = String(meta_d.get("id", ""))
 	if bid == "" or bid == AppState.current_project.root_board_id:
 		return null
 	var preview: Label = Label.new()
@@ -351,9 +530,12 @@ func _drop_target_board_id(at_position: Vector2) -> String:
 	if ti == null:
 		return ""
 	var meta: Variant = ti.get_metadata(0)
-	if typeof(meta) != TYPE_STRING:
+	if typeof(meta) != TYPE_DICTIONARY:
 		return ""
-	return String(meta)
+	var meta_d: Dictionary = meta
+	if String(meta_d.get("kind", "")) != META_KIND_BOARD:
+		return ""
+	return String(meta_d.get("id", ""))
 
 
 func _delete_board(board_id: String) -> void:

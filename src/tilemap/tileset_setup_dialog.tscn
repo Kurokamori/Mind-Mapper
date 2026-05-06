@@ -1,0 +1,120 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/tilemap/tileset_setup_dialog.gd" id="1_dialog"]
+
+[node name="TilesetSetupDialog" type="ConfirmationDialog"]
+title = "Tileset Setup"
+ok_button_text = "Apply"
+size = Vector2i(640, 520)
+script = ExtResource("1_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -56.0
+theme_override_constants/separation = 8
+
+[node name="InfoLabel" type="Label" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 12
+
+[node name="NameLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Name"
+
+[node name="NameEdit" type="LineEdit" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="GridFields" type="GridContainer" parent="VBox"]
+layout_mode = 2
+columns = 4
+
+[node name="TileWLabel" type="Label" parent="VBox/GridFields"]
+layout_mode = 2
+text = "Tile W"
+
+[node name="TileWSpin" type="SpinBox" parent="VBox/GridFields"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 1024.0
+value = 16.0
+
+[node name="TileHLabel" type="Label" parent="VBox/GridFields"]
+layout_mode = 2
+text = "Tile H"
+
+[node name="TileHSpin" type="SpinBox" parent="VBox/GridFields"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 1024.0
+value = 16.0
+
+[node name="MarginXLabel" type="Label" parent="VBox/GridFields"]
+layout_mode = 2
+text = "Margin X"
+
+[node name="MarginXSpin" type="SpinBox" parent="VBox/GridFields"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="MarginYLabel" type="Label" parent="VBox/GridFields"]
+layout_mode = 2
+text = "Margin Y"
+
+[node name="MarginYSpin" type="SpinBox" parent="VBox/GridFields"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="SepXLabel" type="Label" parent="VBox/GridFields"]
+layout_mode = 2
+text = "Separation X"
+
+[node name="SepXSpin" type="SpinBox" parent="VBox/GridFields"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="SepYLabel" type="Label" parent="VBox/GridFields"]
+layout_mode = 2
+text = "Separation Y"
+
+[node name="SepYSpin" type="SpinBox" parent="VBox/GridFields"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1024.0
+value = 0.0
+
+[node name="TerrainsLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Terrains"
+theme_override_font_sizes/font_size = 14
+
+[node name="AddTerrainButton" type="Button" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Add terrain"
+
+[node name="TerrainsScroll" type="ScrollContainer" parent="VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TerrainsRoot" type="VBoxContainer" parent="VBox/TerrainsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4

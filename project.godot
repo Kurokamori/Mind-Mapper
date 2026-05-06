@@ -32,6 +32,9 @@ TimerRegistry="*res://src/autoload/timer_registry.gd"
 ThemeManager="*res://src/autoload/theme_manager.gd"
 Templates="*res://src/autoload/templates.gd"
 KeybindingService="*res://src/autoload/keybinding_service.gd"
+KeypairService="*res://src/multiplayer/ops/keypair_service.gd"
+OpBus="*res://src/multiplayer/ops/op_bus.gd"
+MultiplayerService="*res://src/multiplayer/multiplayer_service.gd"
 
 [display]
 

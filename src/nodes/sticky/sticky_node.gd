@@ -155,53 +155,13 @@ func apply_typed_property(key: String, value: Variant) -> void:
 
 
 func build_inspector() -> Control:
-	var inspector: VBoxContainer = VBoxContainer.new()
-	var color_label: Label = Label.new()
-	color_label.text = "Color"
-	inspector.add_child(color_label)
-	var color_row: HBoxContainer = HBoxContainer.new()
-	for i in range(COLOR_PALETTE.size()):
-		var btn: Button = Button.new()
-		btn.custom_minimum_size = Vector2(28, 28)
-		var sb: StyleBoxFlat = StyleBoxFlat.new()
-		sb.bg_color = COLOR_PALETTE[i]
-		sb.set_corner_radius_all(3)
-		btn.add_theme_stylebox_override("normal", sb)
-		btn.add_theme_stylebox_override("hover", sb)
-		btn.add_theme_stylebox_override("pressed", sb)
-		var idx: int = i
-		btn.pressed.connect(func() -> void: _on_color_picked(idx))
-		color_row.add_child(btn)
-	inspector.add_child(color_row)
-	var font_label: Label = Label.new()
-	font_label.text = "Font size"
-	inspector.add_child(font_label)
-	var spin: SpinBox = SpinBox.new()
-	spin.min_value = 8
-	spin.max_value = 96
-	spin.value = font_size
-	spin.value_changed.connect(func(v: float) -> void: _on_font_size_changed(int(v)))
-	inspector.add_child(spin)
-	return inspector
+	var scene: PackedScene = preload("res://src/nodes/sticky/sticky_inspector.tscn")
+	var inst: StickyInspector = scene.instantiate()
+	inst.bind(self)
+	return inst
 
 
-func _on_color_picked(idx: int) -> void:
-	var editor: Node = _find_editor()
-	if editor == null:
-		color_index = idx
-		_refresh_visuals()
-		return
-	History.push(ModifyPropertyCommand.new(editor, item_id, "color_index", color_index, idx))
-
-
-func _on_font_size_changed(v: int) -> void:
-	if v == font_size:
-		return
-	var editor: Node = _find_editor()
-	if editor == null:
-		font_size = v
-		_refresh_visuals()
-		return
-	History.push_already_done(ModifyPropertyCommand.new(editor, item_id, "font_size", font_size, v))
-	font_size = v
-	_refresh_visuals()
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "font_size", "label": "Font size", "kind": "int_range", "min": 6, "max": 96},
+	]

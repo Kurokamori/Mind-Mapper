@@ -14,6 +14,8 @@ const DEFAULT_BBCODE: String = "[b]Heading[/b]\nDouble-click to edit. Use [color
 @export var fg_color: Color = Color(1, 1, 1, 1)
 @export var bg_color_custom: bool = false
 @export var fg_color_custom: bool = false
+@export var auto_width: bool = true
+@export var auto_height: bool = true
 
 @onready var _rich: RichTextLabel = %RichTextLabel
 @onready var _edit: TextEdit = %TextEdit
@@ -21,6 +23,8 @@ const DEFAULT_BBCODE: String = "[b]Heading[/b]\nDouble-click to edit. Use [color
 @onready var _toolbar: BBCodeToolbar = %FormatToolbar
 
 var _pre_edit_text: String = ""
+var _in_auto_fit: bool = false
+var _auto_fit_pending: bool = false
 
 
 func _ready() -> void:
@@ -35,6 +39,7 @@ func _ready() -> void:
 	ThemeManager.node_palette_changed.connect(_on_node_palette_changed)
 	_layout()
 	_refresh_visuals()
+	_request_auto_fit()
 
 
 func resolved_bg_color() -> Color:
@@ -99,6 +104,7 @@ func _refresh_visuals() -> void:
 		_edit.add_theme_font_size_override("font_size", font_size)
 		_edit.add_theme_color_override("font_color", fg)
 	queue_redraw()
+	_request_auto_fit()
 
 
 func _layout() -> void:
@@ -126,6 +132,57 @@ func _position_toolbar() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_layout()
+		if not _in_auto_fit:
+			_request_auto_fit()
+
+
+func _request_auto_fit() -> void:
+	if _auto_fit_pending:
+		return
+	if _rich == null:
+		return
+	if not auto_width and not auto_height:
+		return
+	_auto_fit_pending = true
+	_apply_auto_fit_async()
+
+
+func _apply_auto_fit_async() -> void:
+	await get_tree().process_frame
+	_apply_auto_fit()
+
+
+func _apply_auto_fit() -> void:
+	_auto_fit_pending = false
+	if _in_auto_fit:
+		return
+	if _rich == null:
+		return
+	if not auto_width and not auto_height:
+		return
+	if not is_inside_tree():
+		return
+	_in_auto_fit = true
+	var pad: Vector2 = PADDING * 2.0
+	var min_size: Vector2 = minimum_item_size()
+	var new_size: Vector2 = size
+	if auto_width:
+		_rich.autowrap_mode = TextServer.AUTOWRAP_OFF
+		_rich.size = Vector2(4096.0, max(_rich.size.y, 1.0))
+		await get_tree().process_frame
+		var content_w: float = float(_rich.get_content_width())
+		new_size.x = max(min_size.x, ceil(content_w + pad.x))
+	else:
+		_rich.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_rich.size = Vector2(max(1.0, new_size.x - pad.x), max(_rich.size.y, 1.0))
+	await get_tree().process_frame
+	if auto_height:
+		var content_h: float = float(_rich.get_content_height())
+		new_size.y = max(min_size.y, ceil(content_h + pad.y))
+	if new_size != size:
+		size = new_size
+	_layout()
+	_in_auto_fit = false
 
 
 func _on_edit_begin() -> void:
@@ -232,6 +289,8 @@ func serialize_payload() -> Dictionary:
 		"font_size": font_size,
 		"bg_color_custom": bg_color_custom,
 		"fg_color_custom": fg_color_custom,
+		"auto_width": auto_width,
+		"auto_height": auto_height,
 	}
 	if bg_color_custom:
 		out["bg_color"] = ColorUtil.to_array(bg_color)
@@ -261,6 +320,8 @@ func deserialize_payload(d: Dictionary) -> void:
 		fg_color_custom = stored_fg != LEGACY_DEFAULT_FG
 		if fg_color_custom:
 			fg_color = stored_fg
+	auto_width = bool(d.get("auto_width", false))
+	auto_height = bool(d.get("auto_height", false))
 	if _rich != null:
 		_refresh_visuals()
 
@@ -283,6 +344,10 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			else:
 				fg_color = ColorUtil.from_array(value, fg_color)
 				fg_color_custom = true
+		"auto_width":
+			auto_width = bool(value)
+		"auto_height":
+			auto_height = bool(value)
 	_refresh_visuals()
 
 
@@ -291,3 +356,13 @@ func build_inspector() -> Control:
 	var inst: RichTextInspector = scene.instantiate()
 	inst.bind(self)
 	return inst
+
+
+func bulk_shareable_properties() -> Array:
+	return [
+		{"key": "bg_color", "label": "Background", "kind": "color_with_reset"},
+		{"key": "fg_color", "label": "Text color", "kind": "color_with_reset"},
+		{"key": "font_size", "label": "Font size", "kind": "int_range", "min": 6, "max": 96},
+		{"key": "auto_width", "label": "Auto width", "kind": "bool"},
+		{"key": "auto_height", "label": "Auto height", "kind": "bool"},
+	]

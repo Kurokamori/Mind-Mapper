@@ -1,0 +1,133 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://src/tilemap/tilemap_editor.gd" id="1_editor"]
+[ext_resource type="Script" uid="uid://d2w7rj3bi1c2b" path="res://src/editor/camera_controller.gd" id="2_camera"]
+[ext_resource type="Script" path="res://src/tilemap/tile_grid_overlay.gd" id="3_grid"]
+[ext_resource type="PackedScene" path="res://src/tilemap/tilemap_toolbar.tscn" id="4_toolbar"]
+[ext_resource type="PackedScene" uid="uid://byfpgmymru6pi" path="res://src/editor/breadcrumb_bar.tscn" id="5_bc"]
+[ext_resource type="PackedScene" path="res://src/editor/board_outliner.tscn" id="6_outliner"]
+[ext_resource type="PackedScene" path="res://src/tilemap/tileset_palette.tscn" id="7_palette"]
+[ext_resource type="PackedScene" path="res://src/tilemap/layer_list_panel.tscn" id="8_layers"]
+[ext_resource type="PackedScene" path="res://src/editor/inspector_panel.tscn" id="9_inspector"]
+[ext_resource type="PackedScene" path="res://src/tilemap/new_map_dialog.tscn" id="10_newmap"]
+[ext_resource type="PackedScene" path="res://src/tilemap/import_tileset_dialog.tscn" id="11_import"]
+[ext_resource type="PackedScene" path="res://src/tilemap/new_tileset_from_image_dialog.tscn" id="12_newts"]
+[ext_resource type="PackedScene" path="res://src/tilemap/tileset_setup_dialog.tscn" id="13_tssetup"]
+[ext_resource type="PackedScene" path="res://src/tilemap/export_map_dialog.tscn" id="14_export"]
+
+[node name="TilemapEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_editor")
+
+[node name="Background" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.085, 0.08, 0.105, 1)
+
+[node name="World" type="Node2D" parent="."]
+unique_name_in_owner = true
+position = Vector2(643, 402)
+
+[node name="Camera" type="Camera2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("2_camera")
+
+[node name="LayersRoot" type="Node2D" parent="World"]
+unique_name_in_owner = true
+
+[node name="GridOverlay" type="Node2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("3_grid")
+camera_path = NodePath("../Camera")
+
+[node name="ObjectsRoot" type="Control" parent="World"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+mouse_filter = 2
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer"]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 165.0
+grow_horizontal = 2
+theme_override_constants/separation = 4
+
+[node name="Toolbar" parent="CanvasLayer/VBoxContainer" instance=ExtResource("4_toolbar")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BreadcrumbBar" parent="CanvasLayer/VBoxContainer" instance=ExtResource("5_bc")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BoardOutliner" parent="CanvasLayer" instance=ExtResource("6_outliner")]
+unique_name_in_owner = true
+
+[node name="TilesetPalette" parent="CanvasLayer" instance=ExtResource("7_palette")]
+unique_name_in_owner = true
+
+[node name="LayerListPanel" parent="CanvasLayer" instance=ExtResource("8_layers")]
+unique_name_in_owner = true
+
+[node name="InspectorPanel" parent="CanvasLayer" instance=ExtResource("9_inspector")]
+unique_name_in_owner = true
+
+[node name="PopupsLayer" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="NewMapDialog" parent="PopupsLayer" instance=ExtResource("10_newmap")]
+unique_name_in_owner = true
+
+[node name="ImportTilesetDialog" parent="PopupsLayer" instance=ExtResource("11_import")]
+unique_name_in_owner = true
+
+[node name="NewTilesetFromImageDialog" parent="PopupsLayer" instance=ExtResource("12_newts")]
+unique_name_in_owner = true
+
+[node name="TilesetSetupDialog" parent="PopupsLayer" instance=ExtResource("13_tssetup")]
+unique_name_in_owner = true
+
+[node name="ExportMapDialog" parent="PopupsLayer" instance=ExtResource("14_export")]
+unique_name_in_owner = true
+
+[node name="ConfirmDialog" type="ConfirmationDialog" parent="PopupsLayer"]
+unique_name_in_owner = true
+title = "Confirm"
+size = Vector2i(380, 140)
+ok_button_text = "OK"
+
+[node name="InfoDialog" type="AcceptDialog" parent="PopupsLayer"]
+unique_name_in_owner = true
+title = "Tilemap"
+size = Vector2i(380, 140)
+
+[node name="ImageDialog" type="FileDialog" parent="PopupsLayer"]
+unique_name_in_owner = true
+title = "Pick image"
+size = Vector2i(640, 400)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png ; PNG", "*.jpg, *.jpeg ; JPEG", "*.webp ; WebP", "*.bmp ; BMP")
+
+[node name="SoundDialog" type="FileDialog" parent="PopupsLayer"]
+unique_name_in_owner = true
+title = "Pick sound"
+size = Vector2i(640, 400)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.ogg ; OGG", "*.wav ; WAV", "*.mp3 ; MP3")

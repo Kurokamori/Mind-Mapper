@@ -1,0 +1,51 @@
+[gd_scene load_steps=2 format=3 uid="uid://b8mpavatar0001"]
+
+[ext_resource type="Script" path="res://src/multiplayer/presence/presence_avatar.gd" id="1_avatar"]
+
+[node name="PresenceAvatar" type="PanelContainer"]
+custom_minimum_size = Vector2(28, 28)
+mouse_filter = 0
+script = ExtResource("1_avatar")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 2
+
+[node name="InitialLabel" type="Label" parent="CenterContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RoleBadge" type="Label" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 10
+text = "✎"
+
+[node name="HostingDot" type="ColorRect" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+color = Color(0.4, 0.95, 0.5, 1)
+visible = false
+
+[node name="NameTooltipLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="SelfMarker" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 9
+text = "you"

@@ -92,7 +92,7 @@ func _render_for(selected: Array) -> void:
 		return
 	var item: BoardItem = selected[0]
 	_current_item = item
-	_title_label.text = item.display_name()
+	_title_label.text = "Inspector"
 	_empty_label.visible = false
 	_scroll.visible = true
 	var inspector: Control = item.build_inspector()
@@ -150,6 +150,31 @@ func _attach_multi_selection_section(selected: Array) -> void:
 		Tags.notify_changed()
 	)
 	_content.add_child(v)
+	_attach_shared_property_groups(selected, editor)
+
+
+func _attach_shared_property_groups(selected: Array, editor: Node) -> void:
+	var groups: Dictionary = {}
+	var order: Array = []
+	for it in selected:
+		var item: BoardItem = it
+		if item == null:
+			continue
+		var schema: Array = item.bulk_shareable_properties()
+		if schema.is_empty():
+			continue
+		var key: String = item.type_id if item.type_id != "" else item.display_name()
+		if not groups.has(key):
+			groups[key] = []
+			order.append(key)
+		(groups[key] as Array).append(item)
+	for key in order:
+		var bucket: Array = groups[key]
+		if bucket.size() < 2:
+			continue
+		var section: Control = BulkPropertyEditor.build_section(bucket, editor)
+		if section != null:
+			_content.add_child(section)
 
 
 func _attach_lock_section(item: BoardItem) -> void:

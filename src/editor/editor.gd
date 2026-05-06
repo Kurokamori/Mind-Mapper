@@ -23,6 +23,16 @@ const SAVE_DEBOUNCE_SEC: float = 0.5
 @onready var _board_outliner: BoardOutliner = %BoardOutliner
 @onready var _minimap: Minimap = %Minimap
 @onready var _command_palette: CommandPalette = %CommandPalette
+@onready var _add_node_popup: AddNodePopup = %AddNodePopup
+@onready var _presence_overlay: PresenceOverlay = %PresenceOverlay
+@onready var _presence_strip: PresenceAvatarStrip = _toolbar.presence_strip()
+@onready var _host_dialog: HostSessionDialog = %HostSessionDialog
+@onready var _join_dialog: JoinSessionDialog = %JoinSessionDialog
+@onready var _participant_dialog: ParticipantManagerDialog = %ParticipantManagerDialog
+@onready var _new_map_dialog: NewMapDialog = %NewMapDialog
+@onready var _import_tileset_dialog: ImportTilesetDialog = %ImportTilesetDialog
+@onready var _new_tileset_image_dialog: NewTilesetFromImageDialog = %NewTilesetFromImageDialog
+@onready var _tileset_info_dialog: AcceptDialog = %TilesetInfoDialog
 
 var _pending_image_path: String = ""
 var _pending_sound_path: String = ""
@@ -43,8 +53,19 @@ var _port_drag_source_item: BoardItem = null
 var _port_drag_source_anchor: String = ""
 var _port_drag_target_item: BoardItem = null
 var _port_drag_target_anchor: String = ""
+var _add_world_pos: Vector2 = Vector2.ZERO
+var _has_pending_add_pos: bool = false
+var _pending_connect_source_id: String = ""
+var _pending_connect_source_anchor: String = ""
+var _add_popup_selection_active: bool = false
 
 const PORT_DRAG_SNAP_PX: float = 28.0
+const ENVELOPE_MAX_PASSES: int = 8
+const ADD_POPUP_BASE_FONT_SIZE: int = 14
+const ADD_POPUP_FONT_MIN: int = 12
+const ADD_POPUP_FONT_MAX: int = 48
+
+var _envelope_pass_running: bool = false
 
 
 func _ready() -> void:
@@ -76,10 +97,20 @@ func _ready() -> void:
 	AppState.current_board_changed.connect(_on_board_changed)
 	_minimap.bind_editor(self, _camera)
 	_marquee.bind_camera(_camera)
+	_add_node_popup.type_chosen.connect(_on_add_popup_type_chosen)
+	_add_node_popup.map_page_requested.connect(_on_add_popup_map_page_requested)
+	_add_node_popup.popup_hide.connect(_on_add_popup_hidden)
+	_new_map_dialog.map_created.connect(_on_new_map_page_confirmed)
+	_import_tileset_dialog.tileset_import_requested.connect(_on_tileset_import_confirmed)
+	_new_tileset_image_dialog.tileset_creation_requested.connect(_on_tileset_create_from_image_confirmed)
+	_board_outliner.new_map_page_requested.connect(_open_new_map_page_dialog)
+	_image_dialog.canceled.connect(_on_image_dialog_canceled)
+	_sound_dialog.canceled.connect(_on_sound_dialog_canceled)
 	_command_palette.result_chosen.connect(_on_palette_result_chosen)
 	_inspector_panel.close_requested.connect(_on_inspector_close_requested)
 	_board_outliner.close_requested.connect(_on_outliner_close_requested)
 	_minimap.close_requested.connect(_on_minimap_close_requested)
+	History.changed.connect(_on_history_changed)
 	_apply_initial_panel_visibility()
 	_refresh_template_menu()
 	Templates.templates_changed.connect(_refresh_template_menu)
@@ -88,6 +119,25 @@ func _ready() -> void:
 		_on_board_changed(AppState.current_board)
 	_refresh_tag_filter_menu()
 	Tags.tags_changed.connect(_refresh_tag_filter_menu)
+	OpBus.bind_editor(self)
+	MultiplayerService.bind_editor(self)
+	SelectionBus.selection_changed.connect(_on_selection_changed_for_presence)
+	tree_exited.connect(_on_editor_tree_exited)
+	if _presence_overlay != null:
+		_presence_overlay.bind_camera(_camera)
+	if _presence_strip != null:
+		_presence_strip.host_session_requested.connect(_on_host_session_requested)
+		_presence_strip.join_session_requested.connect(_on_join_session_requested)
+		_presence_strip.manage_participants_requested.connect(_on_manage_participants_requested)
+		_presence_strip.leave_session_requested.connect(_on_leave_session_requested)
+		_presence_strip.follow_camera_requested.connect(_on_follow_camera_requested)
+		_presence_strip.toggle_viewport_ghosts_requested.connect(_on_toggle_viewport_ghosts_requested)
+		_presence_strip.toggle_presence_overlay_requested.connect(_on_toggle_presence_overlay_requested)
+	if _host_dialog != null:
+		_host_dialog.host_confirmed.connect(_on_host_confirmed)
+	if _join_dialog != null:
+		_join_dialog.join_confirmed.connect(_on_join_confirmed)
+	MultiplayerService.session_log.connect(_on_session_log)
 
 
 func _refresh_tag_filter_menu() -> void:
@@ -114,6 +164,7 @@ func _on_board_changed(board: Board) -> void:
 		_minimap.notify_items_changed()
 	if AppState.active_tag_filter != "":
 		_apply_tag_filter(AppState.active_tag_filter)
+	_envelope_groups()
 
 
 func _load_connections_from_board(board: Board) -> void:
@@ -187,6 +238,8 @@ func _wire_item(item: BoardItem) -> void:
 	item.moved.connect(_on_item_moved)
 	item.edit_begun.connect(_on_item_edit_begun)
 	item.resized_by_user.connect(_on_item_resized)
+	item.resize_started.connect(_on_item_resize_started)
+	item.resize_ended.connect(_on_item_resize_ended)
 	item.link_followed.connect(_on_item_link_followed)
 	item.navigate_requested.connect(_on_item_navigate_requested)
 	item.dragging.connect(_on_item_dragging)
@@ -218,24 +271,108 @@ func _input(event: InputEvent) -> void:
 				_camera.zoom_at_screen(wheel_mb.position, factor)
 				get_viewport().set_input_as_handled()
 				return
-	if not _port_drag_active:
+	if _marquee.active:
+		if event is InputEventMouseMotion:
+			_marquee.update_drag()
+			get_viewport().set_input_as_handled()
+			return
+		if event is InputEventMouseButton:
+			var marquee_mb: InputEventMouseButton = event as InputEventMouseButton
+			if marquee_mb.button_index == MOUSE_BUTTON_LEFT and not marquee_mb.pressed:
+				var rect: Rect2 = _marquee.finish()
+				_select_in_rect(rect, marquee_mb.shift_pressed)
+				get_viewport().set_input_as_handled()
+				return
+	if _port_drag_active:
+		if event is InputEventMouseMotion:
+			var motion: InputEventMouseMotion = event as InputEventMouseMotion
+			_update_port_drag_hover(_camera.screen_to_world(motion.position))
+			get_viewport().set_input_as_handled()
+			return
+		if event is InputEventMouseButton:
+			var port_mb: InputEventMouseButton = event as InputEventMouseButton
+			if port_mb.button_index == MOUSE_BUTTON_LEFT and not port_mb.pressed:
+				_finalize_port_drag(get_viewport().get_mouse_position())
+				get_viewport().set_input_as_handled()
+				return
+		if event is InputEventKey and event.pressed and not event.echo:
+			var port_k: InputEventKey = event as InputEventKey
+			if port_k.keycode == KEY_ESCAPE:
+				_cancel_port_drag()
+				get_viewport().set_input_as_handled()
+				return
+	if _connection_layer != null and _connection_layer.is_dragging_waypoint():
+		if event is InputEventMouseMotion:
+			var wp_motion: InputEventMouseMotion = event as InputEventMouseMotion
+			_connection_layer.update_waypoint_drag(_camera.screen_to_world(wp_motion.position))
+			get_viewport().set_input_as_handled()
+			return
+		if event is InputEventMouseButton:
+			var wp_mb: InputEventMouseButton = event as InputEventMouseButton
+			if wp_mb.button_index == MOUSE_BUTTON_LEFT and not wp_mb.pressed:
+				_connection_layer.end_waypoint_drag()
+				get_viewport().set_input_as_handled()
+				return
+	if _connect_tool_active and _connection_layer != null and _connection_layer.is_pending_active() and event is InputEventMouseMotion:
+		var pend_motion: InputEventMouseMotion = event as InputEventMouseMotion
+		_connection_layer.update_pending_endpoint(_camera.screen_to_world(pend_motion.position))
+	if not (event is InputEventMouseButton):
 		return
-	if event is InputEventMouseMotion:
-		var motion: InputEventMouseMotion = event as InputEventMouseMotion
-		_update_port_drag_hover(_camera.screen_to_world(motion.position))
+	var mb: InputEventMouseButton = event as InputEventMouseButton
+	if not mb.pressed:
+		return
+	if mb.button_index != MOUSE_BUTTON_LEFT and mb.button_index != MOUSE_BUTTON_RIGHT:
+		return
+	if not _is_visible_canvas_hover():
+		return
+	var screen_pos: Vector2 = get_viewport().get_mouse_position()
+	var world_pos: Vector2 = _camera.screen_to_world(screen_pos)
+	var item_under: BoardItem = _item_strictly_at_world(world_pos)
+	if mb.button_index == MOUSE_BUTTON_RIGHT:
+		var rc_blocking: BoardItem = item_under
+		if rc_blocking is GroupNode and _is_world_pos_on_group_body(rc_blocking as GroupNode, world_pos):
+			rc_blocking = null
+		if rc_blocking != null:
+			return
+		_commit_active_edits()
+		_clear_pending_add_state()
+		_has_pending_add_pos = true
+		_add_world_pos = world_pos
+		_show_add_popup_at(screen_pos)
 		get_viewport().set_input_as_handled()
 		return
-	if event is InputEventMouseButton:
-		var mb: InputEventMouseButton = event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
-			_finalize_port_drag()
-			get_viewport().set_input_as_handled()
+	if item_under != null:
 		return
-	if event is InputEventKey and event.pressed and not event.echo:
-		var k: InputEventKey = event as InputEventKey
-		if k.keycode == KEY_ESCAPE:
-			_cancel_port_drag()
+	_commit_active_edits()
+	if _connect_tool_active and _connection_layer != null and _connection_layer.is_pending_active():
+		_connection_layer.cancel_pending()
+		_set_connect_tool_active(false)
+		get_viewport().set_input_as_handled()
+		return
+	if _connection_layer != null:
+		var wp_hit: Dictionary = _connection_layer.hit_test_waypoint(world_pos)
+		if not wp_hit.is_empty():
+			if mb.shift_pressed:
+				_connection_layer.remove_selected_waypoint(world_pos)
+			else:
+				_connection_layer.begin_waypoint_drag(String(wp_hit.connection_id), int(wp_hit.index))
 			get_viewport().set_input_as_handled()
+			return
+		var hit: Connection = _connection_layer.hit_test(world_pos)
+		if hit != null:
+			if mb.alt_pressed:
+				_connection_layer.add_waypoint_at(world_pos)
+				get_viewport().set_input_as_handled()
+				return
+			SelectionBus.clear()
+			_connection_layer.select_connection(hit.id, mb.shift_pressed)
+			get_viewport().set_input_as_handled()
+			return
+	if not mb.shift_pressed:
+		SelectionBus.clear()
+		_clear_connection_selection()
+	_marquee.begin_drag()
+	get_viewport().set_input_as_handled()
 
 
 func _update_port_drag_hover(world_pos: Vector2) -> void:
@@ -260,6 +397,33 @@ func _update_port_drag_hover(world_pos: Vector2) -> void:
 		_connection_layer.update_pending_endpoint(endpoint_world)
 
 
+func _item_strictly_at_world(world_pos: Vector2) -> BoardItem:
+	var hit: BoardItem = null
+	for it in all_items():
+		var rect: Rect2 = Rect2(it.position, it.size)
+		if rect.has_point(world_pos):
+			hit = it
+	return hit
+
+
+func _non_group_item_at_world(world_pos: Vector2) -> BoardItem:
+	var hit: BoardItem = null
+	for it in all_items():
+		if it is GroupNode:
+			continue
+		var rect: Rect2 = Rect2(it.position, it.size)
+		if rect.has_point(world_pos):
+			hit = it
+	return hit
+
+
+func _is_world_pos_on_group_body(group: GroupNode, world_pos: Vector2) -> bool:
+	var local_y: float = world_pos.y - group.position.y
+	if local_y <= GroupNode.TITLE_HEIGHT:
+		return false
+	return _non_group_item_at_world(world_pos) == null
+
+
 func _find_topmost_item_at_world(world_pos: Vector2, exclude: BoardItem) -> BoardItem:
 	var hit: BoardItem = null
 	for it in all_items():
@@ -271,19 +435,28 @@ func _find_topmost_item_at_world(world_pos: Vector2, exclude: BoardItem) -> Boar
 	return hit
 
 
-func _finalize_port_drag() -> void:
+func _finalize_port_drag(release_screen_pos: Vector2) -> void:
 	if not _port_drag_active:
 		return
 	var source: BoardItem = _port_drag_source_item
 	var source_anchor: String = _port_drag_source_anchor
 	var target: BoardItem = _port_drag_target_item
 	var target_anchor: String = _port_drag_target_anchor
+	var release_world: Vector2 = _camera.screen_to_world(release_screen_pos)
 	_reset_port_drag_state()
-	if target == null or target_anchor == "" or target == source:
+	if target != null and target_anchor != "" and target != source:
+		var c: Connection = Connection.make_new(source.item_id, target.item_id, source_anchor, target_anchor)
+		History.push(AddConnectionsCommand.new(self, [c.to_dict()]))
+		select_connection_by_id(c.id)
 		return
-	var c: Connection = Connection.make_new(source.item_id, target.item_id, source_anchor, target_anchor)
-	History.push(AddConnectionsCommand.new(self, [c.to_dict()]))
-	select_connection_by_id(c.id)
+	if source == null:
+		return
+	_clear_pending_add_state()
+	_has_pending_add_pos = true
+	_add_world_pos = release_world
+	_pending_connect_source_id = source.item_id
+	_pending_connect_source_anchor = source_anchor
+	_show_add_popup_at(release_screen_pos)
 
 
 func _cancel_port_drag() -> void:
@@ -335,6 +508,7 @@ func _on_item_dragging(item: BoardItem, world_center: Vector2) -> void:
 		if _connection_layer != null:
 			_connection_layer.notify_item_changed()
 	var pin: PinboardNode = _find_pinboard_under(world_center, item)
+	_envelope_groups()
 	if pin == _drop_target_pinboard:
 		return
 	if _drop_target_pinboard != null:
@@ -368,7 +542,7 @@ func _is_visible_canvas_hover() -> bool:
 		if node is BoardItem:
 			return true
 		if node == self:
-			return true
+			return false
 		node = node.get_parent()
 	return false
 
@@ -399,6 +573,9 @@ func _on_item_navigate_requested(target_kind: String, target_id: String) -> void
 	if target_kind == BoardItem.LINK_KIND_BOARD and target_id != "":
 		_perform_save()
 		AppState.navigate_to_board(target_id)
+	elif target_kind == BoardItem.LINK_KIND_MAP_PAGE and target_id != "":
+		_perform_save()
+		AppState.navigate_to_map_page(target_id)
 
 
 func follow_item_link(item: BoardItem) -> void:
@@ -588,6 +765,63 @@ func _on_item_resized(item: BoardItem, from_size: Vector2, to_size: Vector2) -> 
 	request_save()
 
 
+func _on_item_resize_started(item: BoardItem) -> void:
+	var others: Array = []
+	for it in all_items():
+		if it != item:
+			others.append(Rect2(it.position, it.size))
+	AlignmentGuideService.begin_resize(item, others)
+
+
+func _on_item_resize_ended(_item: BoardItem) -> void:
+	AlignmentGuideService.end_resize()
+
+
+func _on_history_changed() -> void:
+	_envelope_groups()
+
+
+func _envelope_groups() -> void:
+	if _envelope_pass_running:
+		return
+	if _items_by_id.is_empty():
+		return
+	_envelope_pass_running = true
+	var any_change_total: bool = false
+	var pass_idx: int = 0
+	while pass_idx < ENVELOPE_MAX_PASSES:
+		var groups: Array[GroupNode] = []
+		for it: BoardItem in all_items():
+			if it is GroupNode:
+				groups.append(it as GroupNode)
+		if groups.is_empty():
+			break
+		var any_change: bool = false
+		for g: GroupNode in groups:
+			var child_rects: Array = []
+			for other: BoardItem in all_items():
+				if other == g:
+					continue
+				if g.contains_item_center(other.position, other.size):
+					child_rects.append(Rect2(other.position, other.size))
+			if child_rects.is_empty():
+				continue
+			var result: Dictionary = g.compute_envelope(child_rects)
+			var new_pos: Vector2 = result["position"]
+			var new_size: Vector2 = result["size"]
+			if new_pos != g.position or new_size != g.size:
+				g.position = new_pos
+				g.size = new_size
+				any_change = true
+		if not any_change:
+			break
+		any_change_total = true
+		pass_idx += 1
+	_envelope_pass_running = false
+	if any_change_total:
+		request_save()
+
+
 func _finalize_drop_into_pinboard(primary: BoardItem, pin: PinboardNode) -> void:
 	if AppState.current_project == null or AppState.current_board == null:
 		return
@@ -621,59 +855,6 @@ func _finalize_drop_into_pinboard(primary: BoardItem, pin: PinboardNode) -> void
 	_drag_batch_capturing = false
 	_drag_batch_starts.clear()
 	History.push(MoveItemsBetweenBoardsCommand.new(self, AppState.current_board.id, target_id, entries))
-
-
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton:
-		var mb: InputEventMouseButton = event as InputEventMouseButton
-		if mb.button_index == MOUSE_BUTTON_LEFT:
-			if mb.pressed:
-				_commit_active_edits()
-				var world_pos: Vector2 = _camera.screen_to_world(mb.position)
-				if _connect_tool_active and _connection_layer != null and _connection_layer.is_pending_active():
-					_connection_layer.cancel_pending()
-					_set_connect_tool_active(false)
-					accept_event()
-					return
-				if _connection_layer != null:
-					var wp_hit: Dictionary = _connection_layer.hit_test_waypoint(world_pos)
-					if not wp_hit.is_empty():
-						if mb.shift_pressed:
-							_connection_layer.remove_selected_waypoint(world_pos)
-						else:
-							_connection_layer.begin_waypoint_drag(String(wp_hit.connection_id), int(wp_hit.index))
-						accept_event()
-						return
-					var hit: Connection = _connection_layer.hit_test(world_pos)
-					if hit != null:
-						if mb.alt_pressed:
-							_connection_layer.add_waypoint_at(world_pos)
-							accept_event()
-							return
-						SelectionBus.clear()
-						_connection_layer.select_connection(hit.id, mb.shift_pressed)
-						accept_event()
-						return
-				if not mb.shift_pressed:
-					SelectionBus.clear()
-					_clear_connection_selection()
-				_marquee.begin_drag()
-				accept_event()
-			else:
-				if _connection_layer != null:
-					_connection_layer.end_waypoint_drag()
-				if _marquee.active:
-					var rect: Rect2 = _marquee.finish()
-					_select_in_rect(rect, mb.shift_pressed)
-					accept_event()
-	elif event is InputEventMouseMotion:
-		var motion: InputEventMouseMotion = event as InputEventMouseMotion
-		if _connection_layer != null:
-			_connection_layer.update_waypoint_drag(_camera.screen_to_world(motion.position))
-		if _marquee.active:
-			_marquee.update_drag()
-		if _connect_tool_active and _connection_layer != null and _connection_layer.is_pending_active():
-			_connection_layer.update_pending_endpoint(_camera.screen_to_world(motion.position))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -929,6 +1110,12 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			_handle_template(payload as Dictionary)
 		EditorToolbar.ACTION_SETTINGS:
 			_handle_settings(String(payload))
+		EditorToolbar.ACTION_NEW_MAP_PAGE:
+			_open_new_map_page_dialog()
+		EditorToolbar.ACTION_IMPORT_TILESET:
+			_open_import_tileset_dialog()
+		EditorToolbar.ACTION_NEW_TILESET_FROM_IMAGE:
+			_open_new_tileset_from_image_dialog()
 
 
 func _on_inspector_close_requested() -> void:
@@ -1353,6 +1540,149 @@ func _handle_add(type_id: String) -> void:
 				_add_simple(type_id, ItemRegistry.default_payload(type_id))
 
 
+func _add_anchor_world() -> Vector2:
+	return _add_world_pos if _has_pending_add_pos else _camera.position
+
+
+func _show_add_popup_at(_local_pos: Vector2) -> void:
+	if _add_node_popup == null:
+		return
+	_add_popup_selection_active = false
+	_apply_add_popup_zoom_font()
+	var window_local: Vector2 = get_viewport().get_mouse_position()
+	_add_node_popup.popup_at_screen(window_local)
+
+
+func _apply_add_popup_zoom_font() -> void:
+	var zoom_x: float = 1.0
+	if _camera != null:
+		zoom_x = max(_camera.zoom.x, 0.001)
+	var raw: float = float(ADD_POPUP_BASE_FONT_SIZE) / zoom_x
+	var sz: int = int(clamp(round(raw), float(ADD_POPUP_FONT_MIN), float(ADD_POPUP_FONT_MAX)))
+	_add_node_popup.add_theme_font_size_override("font_size", sz)
+
+
+func _on_add_popup_type_chosen(type_id: String) -> void:
+	_add_popup_selection_active = true
+	_handle_add(type_id)
+
+
+func _on_add_popup_map_page_requested() -> void:
+	_add_popup_selection_active = true
+	_open_new_map_page_dialog()
+
+
+func _on_add_popup_hidden() -> void:
+	if not _add_popup_selection_active:
+		_clear_pending_add_state()
+	_add_popup_selection_active = false
+
+
+func _open_new_map_page_dialog() -> void:
+	if AppState.current_project == null:
+		return
+	_new_map_dialog.open()
+
+
+func _open_import_tileset_dialog() -> void:
+	if AppState.current_project == null:
+		_show_tileset_info("Open a project first.")
+		return
+	_import_tileset_dialog.open()
+
+
+func _open_new_tileset_from_image_dialog() -> void:
+	if AppState.current_project == null:
+		_show_tileset_info("Open a project first.")
+		return
+	_new_tileset_image_dialog.open()
+
+
+func _on_new_map_page_confirmed(map_name: String, tile_size: Vector2i) -> void:
+	if AppState.current_project == null:
+		return
+	var page: MapPage = AppState.current_project.create_map_page(map_name, tile_size)
+	if page == null:
+		_show_tileset_info("Failed to create map page.")
+		return
+	AppState.emit_signal("map_page_modified", page.id)
+	if AppState.current_board != null:
+		_add_map_page_node_for(page)
+		return
+	AppState.navigate_to_map_page(page.id)
+
+
+func _add_map_page_node_for(page: MapPage) -> void:
+	if page == null:
+		return
+	var anchor: Vector2 = _add_anchor_world()
+	var d: Dictionary = {
+		"id": Uuid.v4(),
+		"type": ItemRegistry.TYPE_MAP_PAGE,
+		"position": [anchor.x - 180, anchor.y - 130],
+		"size": [360, 260],
+		"target_map_page_id": page.id,
+		"title": page.name,
+		"view_zoom": 0.5,
+		"auto_fit": true,
+	}
+	History.push(AddItemsCommand.new(self, [d]))
+	_after_added(find_item_by_id(String(d["id"])))
+
+
+func _on_tileset_import_confirmed(name_str: String, tres_path: String, godot_root: String) -> void:
+	var result: TilesetImporter.ImportResult = TilesetImporter.import_from_tres(AppState.current_project, name_str, tres_path, godot_root)
+	if not result.ok:
+		_show_tileset_info(result.error_message)
+		return
+	_show_tileset_info("Imported tileset '%s' with %d tiles." % [result.tileset.name, result.tile_count])
+
+
+func _on_tileset_create_from_image_confirmed(name_str: String, image_source_path: String, tile_size: Vector2i, margins: Vector2i, separation: Vector2i) -> void:
+	var result: TilesetImporter.ImportResult = TilesetImporter.create_from_image(AppState.current_project, name_str, image_source_path, tile_size, margins, separation)
+	if not result.ok:
+		_show_tileset_info(result.error_message)
+		return
+	_show_tileset_info("Created tileset '%s' with %d tiles." % [result.tileset.name, result.tile_count])
+
+
+func _show_tileset_info(message: String) -> void:
+	if _tileset_info_dialog == null:
+		return
+	_tileset_info_dialog.dialog_text = message
+	_tileset_info_dialog.popup_centered()
+
+
+func _clear_pending_add_state() -> void:
+	_has_pending_add_pos = false
+	_add_world_pos = Vector2.ZERO
+	_pending_connect_source_id = ""
+	_pending_connect_source_anchor = ""
+
+
+func _on_image_dialog_canceled() -> void:
+	_pending_image_path = ""
+	_clear_pending_add_state()
+
+
+func _on_sound_dialog_canceled() -> void:
+	_pending_sound_path = ""
+	_clear_pending_add_state()
+
+
+func _after_added(newly: BoardItem) -> void:
+	if newly == null:
+		_clear_pending_add_state()
+		return
+	SelectionBus.set_single(newly)
+	if _pending_connect_source_id != "" and _pending_connect_source_id != newly.item_id:
+		var source_item: BoardItem = find_item_by_id(_pending_connect_source_id)
+		if source_item != null:
+			var c: Connection = Connection.make_new(_pending_connect_source_id, newly.item_id, _pending_connect_source_anchor, Connection.ANCHOR_AUTO)
+			History.push(AddConnectionsCommand.new(self, [c.to_dict()]))
+	_clear_pending_add_state()
+
+
 func _add_pinboard() -> void:
 	if AppState.current_project == null:
 		return
@@ -1360,18 +1690,17 @@ func _add_pinboard() -> void:
 	var child: Board = AppState.current_project.create_child_board(parent_id, "Pinboard")
 	if child == null:
 		return
+	var anchor: Vector2 = _add_anchor_world()
 	var d: Dictionary = {
 		"id": Uuid.v4(),
 		"type": ItemRegistry.TYPE_PINBOARD,
-		"position": [_camera.position.x - 130, _camera.position.y - 100],
+		"position": [anchor.x - 130, anchor.y - 100],
 		"size": [260, 200],
 		"target_board_id": child.id,
 		"title": child.name,
 	}
 	History.push(AddItemsCommand.new(self, [d]))
-	var newly: BoardItem = find_item_by_id(String(d["id"]))
-	if newly != null:
-		SelectionBus.set_single(newly)
+	_after_added(find_item_by_id(String(d["id"])))
 
 
 func _add_subpage() -> void:
@@ -1381,10 +1710,11 @@ func _add_subpage() -> void:
 	var child: Board = AppState.current_project.create_child_board(parent_id, "Subpage")
 	if child == null:
 		return
+	var anchor: Vector2 = _add_anchor_world()
 	var d: Dictionary = {
 		"id": Uuid.v4(),
 		"type": ItemRegistry.TYPE_SUBPAGE,
-		"position": [_camera.position.x - 180, _camera.position.y - 130],
+		"position": [anchor.x - 180, anchor.y - 130],
 		"size": [360, 260],
 		"target_board_id": child.id,
 		"title": child.name,
@@ -1392,23 +1722,20 @@ func _add_subpage() -> void:
 		"auto_fit": true,
 	}
 	History.push(AddItemsCommand.new(self, [d]))
-	var newly: BoardItem = find_item_by_id(String(d["id"]))
-	if newly != null:
-		SelectionBus.set_single(newly)
+	_after_added(find_item_by_id(String(d["id"])))
 
 
 func _add_simple(type_id: String, extra: Dictionary) -> void:
+	var anchor: Vector2 = _add_anchor_world()
 	var d: Dictionary = {
 		"id": Uuid.v4(),
 		"type": type_id,
-		"position": [_camera.position.x - 110, _camera.position.y - 50],
+		"position": [anchor.x - 110, anchor.y - 50],
 	}
 	for k in extra.keys():
 		d[k] = extra[k]
 	History.push(AddItemsCommand.new(self, [d]))
-	var newly: BoardItem = find_item_by_id(String(d["id"]))
-	if newly != null:
-		SelectionBus.set_single(newly)
+	_after_added(find_item_by_id(String(d["id"])))
 
 
 func _on_image_chosen(path: String) -> void:
@@ -1429,10 +1756,11 @@ func _finalize_image_add(embed: bool) -> void:
 		return
 	var path: String = _pending_image_path
 	_pending_image_path = ""
+	var anchor: Vector2 = _add_anchor_world()
 	var d: Dictionary = {
 		"id": Uuid.v4(),
 		"type": ItemRegistry.TYPE_IMAGE,
-		"position": [_camera.position.x - 120, _camera.position.y - 90],
+		"position": [anchor.x - 120, anchor.y - 90],
 		"size": [240, 180],
 	}
 	if embed and AppState.current_project != null:
@@ -1450,9 +1778,7 @@ func _finalize_image_add(embed: bool) -> void:
 		d["source_path"] = path
 		d["asset_name"] = ""
 	History.push(AddItemsCommand.new(self, [d]))
-	var newly: BoardItem = find_item_by_id(String(d["id"]))
-	if newly != null:
-		SelectionBus.set_single(newly)
+	_after_added(find_item_by_id(String(d["id"])))
 
 
 func _on_sound_chosen(path: String) -> void:
@@ -1473,10 +1799,11 @@ func _finalize_sound_add(embed: bool) -> void:
 		return
 	var path: String = _pending_sound_path
 	_pending_sound_path = ""
+	var anchor: Vector2 = _add_anchor_world()
 	var d: Dictionary = {
 		"id": Uuid.v4(),
 		"type": ItemRegistry.TYPE_SOUND,
-		"position": [_camera.position.x - 140, _camera.position.y - 55],
+		"position": [anchor.x - 140, anchor.y - 55],
 		"display_label": path.get_file(),
 	}
 	if embed and AppState.current_project != null:
@@ -1494,9 +1821,7 @@ func _finalize_sound_add(embed: bool) -> void:
 		d["source_path"] = path
 		d["asset_name"] = ""
 	History.push(AddItemsCommand.new(self, [d]))
-	var newly: BoardItem = find_item_by_id(String(d["id"]))
-	if newly != null:
-		SelectionBus.set_single(newly)
+	_after_added(find_item_by_id(String(d["id"])))
 
 
 func _nudge_selection(keycode: int, shift_held: bool) -> void:
@@ -1796,3 +2121,223 @@ func _set_connect_tool_active(active: bool) -> void:
 	_connect_tool_active = active
 	if _connection_layer != null and not active:
 		_connection_layer.cancel_pending()
+
+
+func apply_remote_op(op: Op) -> void:
+	if op == null or AppState.current_board == null or op.board_id != AppState.current_board.id:
+		return
+	match op.kind:
+		OpKinds.CREATE_ITEM:
+			var item_dict_raw: Variant = op.payload.get("item_dict", null)
+			if typeof(item_dict_raw) == TYPE_DICTIONARY:
+				var d: Dictionary = item_dict_raw
+				if not _items_by_id.has(String(d.get("id", ""))):
+					_spawn_item_from_dict(d)
+		OpKinds.DELETE_ITEM:
+			remove_item_by_id(String(op.payload.get("item_id", "")))
+		OpKinds.MOVE_ITEMS:
+			var entries_raw: Variant = op.payload.get("entries", [])
+			if typeof(entries_raw) == TYPE_ARRAY:
+				for e_v: Variant in (entries_raw as Array):
+					if typeof(e_v) != TYPE_DICTIONARY:
+						continue
+					var item: BoardItem = find_item_by_id(String((e_v as Dictionary).get("id", "")))
+					if item == null:
+						continue
+					var to_arr: Array = (e_v as Dictionary).get("to", []) as Array
+					if to_arr.size() >= 2:
+						item.position = Vector2(float(to_arr[0]), float(to_arr[1]))
+		OpKinds.SET_ITEM_PROPERTY:
+			var item: BoardItem = find_item_by_id(String(op.payload.get("item_id", "")))
+			if item != null:
+				var key: String = String(op.payload.get("key", ""))
+				var raw_value: Variant = op.payload.get("value", null)
+				item.apply_property(key, _deserialize_property_value(key, raw_value))
+		OpKinds.REORDER_ITEMS:
+			var order_raw: Variant = op.payload.get("order", [])
+			if typeof(order_raw) == TYPE_ARRAY:
+				apply_z_order_snapshot(order_raw)
+		OpKinds.CREATE_CONNECTION:
+			var conn_raw: Variant = op.payload.get("connection_dict", null)
+			if typeof(conn_raw) == TYPE_DICTIONARY:
+				var c: Connection = Connection.from_dict(conn_raw)
+				if find_connection_by_id(c.id) == null:
+					add_connection(c)
+		OpKinds.DELETE_CONNECTION:
+			remove_connection_by_id(String(op.payload.get("connection_id", "")))
+		OpKinds.SET_CONNECTION_PROPERTY:
+			var c: Connection = find_connection_by_id(String(op.payload.get("connection_id", "")))
+			if c != null:
+				c.apply_property(String(op.payload.get("key", "")), op.payload.get("value", null))
+				notify_connection_updated(c)
+		_:
+			OpBus.applier().apply_to_project(op)
+	if _connection_layer != null:
+		_connection_layer.notify_item_changed()
+	if _minimap != null:
+		_minimap.notify_items_changed()
+	request_save()
+
+
+func apply_op_locally_through_editor(op: Op) -> bool:
+	if op == null:
+		return false
+	return false
+
+
+func _deserialize_property_value(key: String, raw: Variant) -> Variant:
+	match key:
+		"position", "size":
+			if typeof(raw) == TYPE_ARRAY and (raw as Array).size() >= 2:
+				return Vector2(float(raw[0]), float(raw[1]))
+			return raw
+		"color", "background_color_override", "color_override":
+			if typeof(raw) == TYPE_ARRAY and (raw as Array).size() >= 3:
+				var arr: Array = raw
+				var a: float = 1.0 if arr.size() < 4 else float(arr[3])
+				return Color(float(arr[0]), float(arr[1]), float(arr[2]), a)
+			return raw
+		"tags":
+			if typeof(raw) == TYPE_ARRAY:
+				var packed: PackedStringArray = PackedStringArray()
+				for s_v: Variant in (raw as Array):
+					packed.append(String(s_v))
+				return packed
+			return raw
+		_:
+			return raw
+
+
+func on_asset_streamed(asset_name: String) -> void:
+	if asset_name == "":
+		return
+	for it in all_items():
+		if it.has_method("notify_asset_available"):
+			it.call("notify_asset_available", asset_name)
+		else:
+			it.queue_redraw()
+
+
+func _on_editor_tree_exited() -> void:
+	OpBus.unbind_editor()
+	MultiplayerService.unbind_editor()
+
+
+func _process(_delta: float) -> void:
+	if not MultiplayerService.is_in_session():
+		return
+	if _camera == null:
+		return
+	var screen_pos: Vector2 = get_viewport().get_mouse_position()
+	var world_pos: Vector2 = _camera.screen_to_world(screen_pos)
+	MultiplayerService.update_local_cursor(world_pos)
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var top_left: Vector2 = _camera.screen_to_world(Vector2.ZERO)
+	var bottom_right: Vector2 = _camera.screen_to_world(viewport_size)
+	MultiplayerService.update_local_viewport_rect(Rect2(top_left, bottom_right - top_left), true)
+
+
+func _on_selection_changed_for_presence(_items: Array) -> void:
+	if not MultiplayerService.is_in_session():
+		return
+	var current: Array = SelectionBus.current()
+	if current.is_empty():
+		MultiplayerService.update_local_selection_rect(Rect2(), false)
+		return
+	var min_x: float = INF
+	var min_y: float = INF
+	var max_x: float = -INF
+	var max_y: float = -INF
+	for it_v: Variant in current:
+		var it: BoardItem = it_v as BoardItem
+		if it == null:
+			continue
+		min_x = min(min_x, it.position.x)
+		min_y = min(min_y, it.position.y)
+		max_x = max(max_x, it.position.x + it.size.x)
+		max_y = max(max_y, it.position.y + it.size.y)
+	if min_x == INF:
+		MultiplayerService.update_local_selection_rect(Rect2(), false)
+		return
+	MultiplayerService.update_local_selection_rect(Rect2(min_x, min_y, max_x - min_x, max_y - min_y), true)
+
+
+func _on_host_session_requested() -> void:
+	if _host_dialog != null:
+		_host_dialog.popup_centered()
+
+
+func _on_join_session_requested() -> void:
+	if _join_dialog != null:
+		_join_dialog.popup_centered()
+
+
+func _on_manage_participants_requested() -> void:
+	if _participant_dialog != null:
+		_participant_dialog.popup_centered()
+
+
+func _on_leave_session_requested() -> void:
+	MultiplayerService.leave_session()
+
+
+func _on_follow_camera_requested(stable_id: String) -> void:
+	var presence: PresenceState = MultiplayerService.presence_for(stable_id)
+	if presence == null or _camera == null:
+		return
+	if presence.has_viewport_rect:
+		_camera.position = presence.viewport_world_rect.position + presence.viewport_world_rect.size * 0.5
+	elif presence.has_cursor:
+		_camera.position = presence.cursor_world
+
+
+func _on_toggle_viewport_ghosts_requested() -> void:
+	if _presence_overlay != null:
+		_presence_overlay.toggle_viewport_ghosts()
+	if _presence_strip != null:
+		_presence_strip.mark_viewport_ghosts_enabled(_presence_overlay.show_viewport_ghosts())
+
+
+func _on_toggle_presence_overlay_requested() -> void:
+	if _presence_overlay == null:
+		return
+	if _presence_overlay.current_mode() == PresenceOverlay.MODE_OFF:
+		_presence_overlay.set_mode(PresenceOverlay.MODE_FULL)
+	else:
+		_presence_overlay.set_mode(PresenceOverlay.MODE_OFF)
+	if _presence_strip != null:
+		_presence_strip.mark_overlay_enabled(_presence_overlay.current_mode() != PresenceOverlay.MODE_OFF)
+
+
+func _on_host_confirmed(adapter_kind: String, settings: Dictionary) -> void:
+	var err: Error = MultiplayerService.host_session(adapter_kind, settings)
+	if err != OK:
+		_show_session_error("Failed to host: %s" % str(err))
+
+
+func _on_join_confirmed(adapter_kind: String, connect_info: Dictionary) -> void:
+	var err: Error = MultiplayerService.join_session(adapter_kind, connect_info)
+	if err != OK:
+		_show_session_error("Failed to join: %s" % str(err))
+
+
+func _on_session_log(severity: String, message: String) -> void:
+	if severity == "error":
+		_show_session_error(message)
+
+
+func _show_session_error(message: String) -> void:
+	push_warning("Multiplayer: %s" % message)
+	var err_dialog: AcceptDialog = AcceptDialog.new()
+	err_dialog.title = "Multiplayer"
+	err_dialog.dialog_text = message
+	add_child(err_dialog)
+	err_dialog.popup_centered()
+	err_dialog.confirmed.connect(err_dialog.queue_free)
+	err_dialog.canceled.connect(err_dialog.queue_free)
+
+
+func handle_canvas_ping(world_pos: Vector2) -> void:
+	if not MultiplayerService.is_in_session():
+		return
+	MultiplayerService.send_ping_marker(world_pos)

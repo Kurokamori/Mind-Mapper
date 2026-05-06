@@ -1,0 +1,50 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/tilemap/new_map_dialog.gd" id="1_dialog"]
+
+[node name="NewMapDialog" type="ConfirmationDialog"]
+title = "New Map Page"
+ok_button_text = "Create"
+size = Vector2i(360, 200)
+script = ExtResource("1_dialog")
+
+[node name="VBox" type="VBoxContainer" parent="."]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -56.0
+theme_override_constants/separation = 8
+
+[node name="NameLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Name"
+
+[node name="NameEdit" type="LineEdit" parent="VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TileSizeLabel" type="Label" parent="VBox"]
+layout_mode = 2
+text = "Tile size (px)"
+
+[node name="TileSizeRow" type="HBoxContainer" parent="VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TileWSpin" type="SpinBox" parent="VBox/TileSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 1024.0
+value = 16.0
+
+[node name="X" type="Label" parent="VBox/TileSizeRow"]
+layout_mode = 2
+text = "x"
+
+[node name="TileHSpin" type="SpinBox" parent="VBox/TileSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 1024.0
+value = 16.0
