@@ -1,0 +1,84 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/text/text_inspector.gd" id="1_txi"]
+
+[node name="TextInspector" type="VBoxContainer"]
+script = ExtResource("1_txi")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Text"
+theme_override_font_sizes/font_size = 16
+
+[node name="TextSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TextLabel" type="Label" parent="TextSection"]
+layout_mode = 2
+text = "Text"
+
+[node name="TextEdit" type="TextEdit" parent="TextSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 120)
+layout_mode = 2
+wrap_mode = 1
+
+[node name="FontSizeRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Font size"
+
+[node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 6.0
+max_value = 96.0
+value = 18.0
+
+[node name="BgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="BgLabel" type="Label" parent="BgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Background"
+
+[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="FgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="FgLabel" type="Label" parent="FgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Text color"
+
+[node name="FgPicker" type="ColorPickerButton" parent="FgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="AutoFitLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Auto-fit to content"
+theme_override_font_sizes/font_size = 12
+
+[node name="AutoFitRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="AutoWidthCheck" type="CheckBox" parent="AutoFitRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Width"
+
+[node name="AutoHeightCheck" type="CheckBox" parent="AutoFitRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Height"

@@ -1,0 +1,111 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/editor/connection_inspector.gd" id="1_ci"]
+
+[node name="ConnectionInspector" type="VBoxContainer"]
+script = ExtResource("1_ci")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Connection"
+theme_override_font_sizes/font_size = 16
+
+[node name="FromLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "From: "
+
+[node name="ToLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "To: "
+
+[node name="ColorRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ColorLabelNode" type="Label" parent="ColorRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Color"
+
+[node name="ColorPicker" type="ColorPickerButton" parent="ColorRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="ThicknessRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ThicknessLabel" type="Label" parent="ThicknessRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Thickness"
+
+[node name="ThicknessSpin" type="SpinBox" parent="ThicknessRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.5
+max_value = 24.0
+step = 0.5
+value = 2.5
+
+[node name="StyleRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="StyleLabel" type="Label" parent="StyleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Style"
+
+[node name="StyleOption" type="OptionButton" parent="StyleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ArrowEndCheck" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Arrow at end"
+
+[node name="ArrowStartCheck" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Arrow at start"
+
+[node name="LabelEditRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="LabelLabel" type="Label" parent="LabelEditRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Label"
+
+[node name="LabelEdit" type="LineEdit" parent="LabelEditRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+
+[node name="LabelSizeRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="LabelSizeLabel" type="Label" parent="LabelSizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Label size"
+
+[node name="LabelSizeSpin" type="SpinBox" parent="LabelSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 6.0
+max_value = 48.0
+value = 12.0
+
+[node name="DeleteButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Delete connection"

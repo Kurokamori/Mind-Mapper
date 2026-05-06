@@ -1,0 +1,88 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/primitive/primitive_inspector.gd" id="1_pi"]
+
+[node name="PrimitiveInspector" type="VBoxContainer"]
+script = ExtResource("1_pi")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Primitive"
+theme_override_font_sizes/font_size = 16
+
+[node name="ShapeRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ShapeLabel" type="Label" parent="ShapeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Shape"
+
+[node name="ShapeOption" type="OptionButton" parent="ShapeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FillCheck" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Filled"
+button_pressed = true
+
+[node name="FillRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="FillLabel" type="Label" parent="FillRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fill color"
+
+[node name="FillPicker" type="ColorPickerButton" parent="FillRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="OutlineRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="OutlineLabel" type="Label" parent="OutlineRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Outline color"
+
+[node name="OutlinePicker" type="ColorPickerButton" parent="OutlineRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="OutlineWidthRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="OutlineWidthLabel" type="Label" parent="OutlineWidthRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Outline width"
+
+[node name="OutlineWidthSpin" type="SpinBox" parent="OutlineWidthRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 32.0
+step = 0.5
+value = 2.0
+
+[node name="CornerRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="CornerLabel" type="Label" parent="CornerRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Corner radius"
+
+[node name="CornerRadiusSpin" type="SpinBox" parent="CornerRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 64.0
+step = 1.0
+value = 12.0

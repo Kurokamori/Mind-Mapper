@@ -1,0 +1,73 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/sound/sound_inspector.gd" id="1_si"]
+
+[node name="SoundInspector" type="VBoxContainer"]
+script = ExtResource("1_si")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Sound"
+theme_override_font_sizes/font_size = 16
+
+[node name="PathLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="ReplaceButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Replace audio…"
+
+[node name="LabelSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="LabelLabel" type="Label" parent="LabelSection"]
+layout_mode = 2
+text = "Display label"
+
+[node name="LabelEdit" type="LineEdit" parent="LabelSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="VolumeSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="VolumeRow" type="HBoxContainer" parent="VolumeSection"]
+layout_mode = 2
+
+[node name="VolumeLabel" type="Label" parent="VolumeSection/VolumeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Volume"
+
+[node name="VolumeValue" type="Label" parent="VolumeSection/VolumeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+0.0 dB"
+
+[node name="VolumeSlider" type="HSlider" parent="VolumeSection"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = -40.0
+max_value = 12.0
+step = 0.1
+
+[node name="FileDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Choose audio"
+size = Vector2i(800, 600)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.mp3 ; MP3", "*.ogg ; Ogg Vorbis", "*.wav ; WAV")
+
+[node name="EmbedChoice" type="ConfirmationDialog" parent="."]
+unique_name_in_owner = true
+title = "Add Sound"
+size = Vector2i(420, 120)
+ok_button_text = "Embed"
+dialog_text = "Embed the audio into this project (copies the file) or link to its current location?"

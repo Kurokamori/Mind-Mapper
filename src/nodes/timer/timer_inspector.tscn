@@ -1,0 +1,72 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/timer/timer_inspector.gd" id="1_ti"]
+
+[node name="TimerInspector" type="VBoxContainer"]
+script = ExtResource("1_ti")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Timer"
+theme_override_font_sizes/font_size = 16
+
+[node name="LabelSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="LabelText" type="Label" parent="LabelSection"]
+layout_mode = 2
+text = "Label"
+
+[node name="LabelEdit" type="LineEdit" parent="LabelSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DurationLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Initial duration"
+
+[node name="DurationRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="HoursVBox" type="VBoxContainer" parent="DurationRow"]
+layout_mode = 2
+
+[node name="HoursLabel" type="Label" parent="DurationRow/HoursVBox"]
+layout_mode = 2
+text = "Hours"
+theme_override_font_sizes/font_size = 11
+
+[node name="HoursSpin" type="SpinBox" parent="DurationRow/HoursVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 99.0
+
+[node name="MinutesVBox" type="VBoxContainer" parent="DurationRow"]
+layout_mode = 2
+
+[node name="MinutesLabel" type="Label" parent="DurationRow/MinutesVBox"]
+layout_mode = 2
+text = "Minutes"
+theme_override_font_sizes/font_size = 11
+
+[node name="MinutesSpin" type="SpinBox" parent="DurationRow/MinutesVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 59.0
+
+[node name="SecondsVBox" type="VBoxContainer" parent="DurationRow"]
+layout_mode = 2
+
+[node name="SecondsLabel" type="Label" parent="DurationRow/SecondsVBox"]
+layout_mode = 2
+text = "Seconds"
+theme_override_font_sizes/font_size = 11
+
+[node name="SecondsSpin" type="SpinBox" parent="DurationRow/SecondsVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 59.0

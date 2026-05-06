@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://byfpgmymru6pi"]
+
+[ext_resource type="Script" uid="uid://suekekn8ksd3" path="res://src/editor/breadcrumb_bar.gd" id="1_bc"]
+
+[node name="BreadcrumbBar" type="PanelContainer" unique_id=2047099221]
+custom_minimum_size = Vector2(0, 24)
+mouse_filter = 1
+script = ExtResource("1_bc")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=863799072]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 0
+
+[node name="HBox" type="HBoxContainer" parent="Margin" unique_id=308944486]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="BackButton" type="Button" parent="Margin/HBox" unique_id=1498345259]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "← Back"
+
+[node name="RootButton" type="Button" parent="Margin/HBox" unique_id=1512109149]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Root"
+flat = true
+
+[node name="Sep" type="Label" parent="Margin/HBox" unique_id=566811212]
+layout_mode = 2
+text = "›"
+
+[node name="Segments" type="HBoxContainer" parent="Margin/HBox" unique_id=401378891]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CurrentLabel" type="Label" parent="Margin/HBox" unique_id=1076809281]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 14

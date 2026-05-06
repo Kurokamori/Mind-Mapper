@@ -1,0 +1,93 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/rich_text/rich_text_inspector.gd" id="1_rti"]
+[ext_resource type="PackedScene" path="res://src/nodes/rich_text/bbcode_toolbar.tscn" id="2_bbtb"]
+
+[node name="RichTextInspector" type="VBoxContainer"]
+script = ExtResource("1_rti")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Rich Text"
+theme_override_font_sizes/font_size = 16
+
+[node name="HelpLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Use the toolbar to wrap the selection. Manual BBCode is supported below."
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="FormatToolbarScroll" type="ScrollContainer" parent="."]
+layout_mode = 2
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="FormatToolbar" parent="FormatToolbarScroll" instance=ExtResource("2_bbtb")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BBEdit" type="TextEdit" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+wrap_mode = 1
+
+[node name="FontSizeRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Font size"
+
+[node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 6.0
+max_value = 72.0
+value = 16.0
+
+[node name="BgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="BgLabel" type="Label" parent="BgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Background"
+
+[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="FgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="FgLabel" type="Label" parent="FgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Default text"
+
+[node name="FgPicker" type="ColorPickerButton" parent="FgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="AutoFitLabel" type="Label" parent="."]
+layout_mode = 2
+text = "Auto-fit to content"
+theme_override_font_sizes/font_size = 12
+
+[node name="AutoFitRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="AutoWidthCheck" type="CheckBox" parent="AutoFitRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Width"
+
+[node name="AutoHeightCheck" type="CheckBox" parent="AutoFitRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Height"

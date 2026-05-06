@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/group/group_inspector.gd" id="1_gi"]
+
+[node name="GroupInspector" type="VBoxContainer"]
+script = ExtResource("1_gi")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Group"
+theme_override_font_sizes/font_size = 16
+
+[node name="TitleSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="TitleSection"]
+layout_mode = 2
+text = "Title"
+
+[node name="TitleEdit" type="LineEdit" parent="TitleSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="BgLabel" type="Label" parent="BgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Background"
+
+[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="TitleBgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleBgLabel" type="Label" parent="TitleBgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Title bar"
+
+[node name="TitleBgPicker" type="ColorPickerButton" parent="TitleBgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="TitleFgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleFgLabel" type="Label" parent="TitleFgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Title text"
+
+[node name="TitleFgPicker" type="ColorPickerButton" parent="TitleFgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
