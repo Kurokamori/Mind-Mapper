@@ -1,0 +1,132 @@
+name: "godot-ci export"
+on: push
+
+# NOTE: If your `project.godot` is at the repository root, set `PROJECT_PATH` below to ".".
+
+env:
+  GODOT_VERSION: 4.6.2
+  EXPORT_NAME: soupjam-2026
+  PROJECT_PATH: .
+
+jobs:
+  export:
+    name: Export
+    runs-on: ubuntu-22.04  # Use 22.04 with godot 4
+    permissions:
+      contents: write
+      actions: write
+      checks: write
+    container:
+      image: barichello/godot-ci:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Setup
+        run: |
+          apt-get update
+          apt-get install -y wget apt-transport-https software-properties-common zip
+          . /etc/os-release
+          wget -q https://packages.microsoft.com/config/ubuntu/$VERSION_ID/packages-microsoft-prod.deb
+          dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          apt-get update
+          apt-get install -y powershell
+          mkdir -v -p ~/.local/share/godot/export_templates/
+          mkdir -v -p ~/.config/
+          mv /root/.config/godot ~/.config/godot
+          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+      - name: Build All
+        run: |
+          cd $PROJECT_PATH
+          mkdir bin
+          pwsh compile.ps1
+      - name: Upload Windows Artifact
+        uses: ncipollo/release-action@v1
+        with:
+          tag: nightly
+          allowUpdates: true
+          artifacts: "bin/windows.exe"
+          prerelease: true
+      - name: Upload Windows Artifact
+        uses: ncipollo/release-action@v1
+        with:
+          tag: nightly
+          allowUpdates: true
+          artifacts: "bin/linux"
+          prerelease: true
+      # - name: Upload Web Artifact
+      #   uses: ncipollo/release-action@v1
+      #   with:
+      #     tag: nightly
+      #     allowUpdates: true
+      #     artifacts: "bin/web.zip"
+      #     prerelease: true
+      # - name: Publish to Itch (Web)
+      #   uses: KikimoraGames/itch-publish@v0.0.3
+      #   with:
+      #     butlerApiKey: ${{ secrets.BUTLER_API_KEY }}
+      #     gameData: ./bin/web.zip  # Path to files or .zip
+      #     itchUsername: sol-vin # Or hardcode your username
+      #     itchGameId: soup            # The last part of your game's URL
+      #     buildChannel: web               # e.g., web, windows, linux, mac
+      # - name: Publish to Itch (Windows)
+      #   uses: KikimoraGames/itch-publish@v0.0.3
+      #   with:
+      #     butlerApiKey: ${{ secrets.BUTLER_API_KEY }}
+      #     gameData: ./bin/windows.exe  # Path to files or .zip
+      #     itchUsername: sol-vin # Or hardcode your username
+      #     itchGameId: soup            # The last part of your game's URL
+      #     buildChannel: windows-64             # e.g., web, windows, linux, mac
+  # export-linux:
+  #   name: Linux Export
+  #   runs-on: ubuntu-22.04  # Use 22.04 with godot 4
+  #   container:
+  #     image: barichello/godot-ci:latest
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         lfs: true
+  #     - name: Setup
+  #       run: |
+  #         mkdir -v -p ~/.local/share/godot/export_templates/
+  #         mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+  #     - name: Linux Build
+  #       run: |
+  #         cd $PROJECT_PATH
+  #         mkdir bin
+  #         godot --headless --verbose --export-release "Linux" "bin/linux"
+  #     - name: Upload Windows Artifact
+  #       uses: ncipollo/release-action@v1
+  #       with:
+  #         tag: nightly
+  #         allowUpdates: true
+  #         artifacts: "bin/linux"
+  #         prerelease: true
+  # export-mac:
+  #   name: Mac Export
+  #   runs-on: ubuntu-22.04  # Use 22.04 with godot 4
+  #   container:
+  #     image: barichello/godot-ci:4.4
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #       with:
+  #         lfs: true
+  #     - name: Setup
+  #       run: |
+  #         mkdir -v -p ~/.local/share/godot/export_templates/
+  #         mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+  #     - name: Mac Build
+  #       run: |
+  #         mkdir -v -p build/mac
+  #         EXPORT_DIR="$(readlink -f build)"
+  #         cd $PROJECT_PATH
+  #         godot --headless --verbose --export-release "macOS" "$EXPORT_DIR/mac/$EXPORT_NAME.zip"
+  #     - name: Upload Artifact
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: mac
+  #         path: build/mac
