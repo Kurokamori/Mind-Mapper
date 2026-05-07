@@ -5,6 +5,10 @@ signal changed()
 var _payload: Array = []
 
 
+func _exit_tree() -> void:
+	_payload.clear()
+
+
 func is_empty() -> bool:
 	return _payload.is_empty()
 

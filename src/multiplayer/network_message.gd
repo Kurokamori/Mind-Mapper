@@ -34,6 +34,7 @@ const KIND_GUEST_POLICY: String = "guest_policy"
 const KIND_MERGE_PREFLIGHT: String = "merge_preflight"
 const KIND_MERGE_PREFLIGHT_RESPONSE: String = "merge_preflight_response"
 const KIND_MERGE_FINALIZE: String = "merge_finalize"
+const KIND_CHAT_MESSAGE: String = "chat_message"
 
 
 static func envelope(kind: String, payload: Variant) -> Dictionary:

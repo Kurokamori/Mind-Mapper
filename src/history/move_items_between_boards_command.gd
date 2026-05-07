@@ -29,7 +29,8 @@ func do() -> void:
 				elif typeof(c) == TYPE_DICTIONARY:
 					_pruned_connections.append((c as Dictionary).duplicate(true))
 		_editor.remove_item_by_id(id)
-		OpBus.record_local_change(OpKinds.DELETE_ITEM, {"item_id": id}, _source_board_id)
+		var captured_source_dict: Dictionary = (entry.get("dict", {}) as Dictionary).duplicate(true)
+		OpBus.record_local_change(OpKinds.DELETE_ITEM, {"item_id": id}, _source_board_id, {"item_dict": captured_source_dict})
 	if AppState.current_project == null:
 		return
 	var target: Board = AppState.current_project.read_board(_target_board_id)
@@ -63,7 +64,7 @@ func undo() -> void:
 			if not move_ids.has(String(d.get("id", ""))):
 				keep.append(d)
 			else:
-				OpBus.record_local_change(OpKinds.DELETE_ITEM, {"item_id": String(d.get("id", ""))}, _target_board_id)
+				OpBus.record_local_change(OpKinds.DELETE_ITEM, {"item_id": String(d.get("id", ""))}, _target_board_id, {"item_dict": (d as Dictionary).duplicate(true)})
 		target.items = keep
 		AppState.write_board(target)
 	for entry in _entries:

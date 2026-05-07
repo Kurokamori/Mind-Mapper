@@ -27,8 +27,8 @@ func _ready() -> void:
 	_suppress_signals = false
 	_binders["title"] = PropertyBinder.new(_editor, _item, "title", _item.title)
 	_title_edit.text_changed.connect(func(t: String) -> void: _binders["title"].live(t))
-	_title_edit.focus_exited.connect(func() -> void: _binders["title"].commit(_title_edit.text))
-	_title_edit.text_submitted.connect(func(t: String) -> void: _binders["title"].commit(t))
+	_title_edit.focus_exited.connect(func() -> void: _commit_title(_title_edit.text))
+	_title_edit.text_submitted.connect(func(t: String) -> void: _commit_title(t))
 	_open_button.pressed.connect(_on_open_pressed)
 	_refresh_button.pressed.connect(_on_refresh_pressed)
 	_retarget_option.item_selected.connect(_on_retarget_selected)
@@ -64,6 +64,15 @@ func _populate_retarget() -> void:
 		idx += 1
 	if current_idx >= 0:
 		_retarget_option.select(current_idx)
+
+
+func _commit_title(text: String) -> void:
+	_binders["title"].commit(text)
+	if _item != null and _item.target_board_id != "" and OpBus.has_project() and not OpBus.is_applying_remote():
+		OpBus.record_local_change(OpKinds.RENAME_BOARD, {
+			"board_id": _item.target_board_id,
+			"name": text,
+		}, "")
 
 
 func _on_open_pressed() -> void:

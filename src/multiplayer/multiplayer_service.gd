@@ -16,6 +16,8 @@ signal merge_dialog_close_requested()
 signal merge_report_received(report: Dictionary)
 signal merge_report_entry_rolled_back(report_id: String, op_id: String)
 signal merge_report_fully_rolled_back(report_id: String)
+signal chat_message_received(entry: Dictionary)
+signal chat_history_cleared()
 
 const STATE_IDLE: int = 0
 const STATE_HOSTING: int = 1
@@ -27,6 +29,8 @@ const PRESENCE_BROADCAST_HZ: float = 20.0
 const HEARTBEAT_HZ: float = 1.0
 const PRESENCE_SCRUB_HZ: float = 1.0
 const BOARD_HASH_INTERVAL_OPS: int = 64
+const CHAT_MESSAGE_MAX_LENGTH: int = 2000
+const CHAT_HISTORY_MAX_ENTRIES: int = 250
 
 const ROLE_OWNER: String = ParticipantsManifest.ROLE_OWNER
 const ROLE_CO_AUTHOR: String = ParticipantsManifest.ROLE_CO_AUTHOR
@@ -68,6 +72,7 @@ var _last_known_can_edit: bool = true
 var _merge_session: MergeSession = null
 var _host_merge_ledger: Dictionary = {}
 var _suppress_local_op_broadcast: bool = false
+var _chat_history: Array = []
 
 
 func _ready() -> void:
@@ -350,6 +355,7 @@ func leave_session() -> void:
 	_set_state(STATE_IDLE)
 	emit_signal("participants_changed")
 	notify_permissions_maybe_changed()
+	clear_chat_history()
 	_leaving_session = false
 
 
@@ -576,6 +582,109 @@ func send_ping_marker(world_pos: Vector2) -> void:
 		"stable_id": KeypairService.stable_id(),
 	})
 	emit_signal("ping_marker_received", world_pos, color, KeypairService.stable_id())
+
+
+func send_chat_message(text: String) -> Error:
+	if not is_in_session() or _active_adapter == null:
+		return ERR_UNAVAILABLE
+	var trimmed: String = text.strip_edges()
+	if trimmed == "":
+		return ERR_PARAMETER_RANGE_ERROR
+	if trimmed.length() > CHAT_MESSAGE_MAX_LENGTH:
+		trimmed = trimmed.substr(0, CHAT_MESSAGE_MAX_LENGTH)
+	KeypairService.ensure_ready()
+	var local_id: String = KeypairService.stable_id()
+	var local_name: String = KeypairService.display_name()
+	var local_color: Color = _chat_color_for_stable_id(local_id)
+	var timestamp_unix: int = int(Time.get_unix_time_from_system())
+	var entry: Dictionary = {
+		"stable_id": local_id,
+		"display_name": local_name,
+		"color": local_color,
+		"text": trimmed,
+		"timestamp_ms": Time.get_ticks_msec(),
+		"timestamp_unix": timestamp_unix,
+		"is_system": false,
+		"is_local": true,
+	}
+	_record_chat_entry(entry)
+	_active_adapter.send_to_all(NetworkMessage.KIND_CHAT_MESSAGE, {
+		"text": trimmed,
+		"timestamp_unix": timestamp_unix,
+	})
+	return OK
+
+
+func recent_chat_messages() -> Array:
+	return _chat_history.duplicate(true)
+
+
+func clear_chat_history() -> void:
+	if _chat_history.is_empty():
+		return
+	_chat_history.clear()
+	emit_signal("chat_history_cleared")
+
+
+func _handle_chat_message(from_network_id: int, payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var d: Dictionary = payload
+	var text: String = String(d.get("text", "")).strip_edges()
+	if text == "":
+		return
+	if text.length() > CHAT_MESSAGE_MAX_LENGTH:
+		text = text.substr(0, CHAT_MESSAGE_MAX_LENGTH)
+	var stable_id: String = String(_network_id_to_stable_id.get(from_network_id, ""))
+	var display_name: String = ""
+	var color: Color = _chat_color_for_stable_id(stable_id)
+	var presence: PresenceState = _presence_by_stable_id.get(stable_id, null) as PresenceState
+	if presence != null:
+		if presence.display_name != "":
+			display_name = presence.display_name
+		color = presence.avatar_color
+	if display_name == "":
+		var peer: PeerIdentity = _peers_by_network_id.get(from_network_id, null) as PeerIdentity
+		if peer != null:
+			if peer.display_name != "":
+				display_name = peer.display_name
+			if presence == null:
+				color = peer.avatar_color
+	if display_name == "":
+		display_name = "Player"
+	var timestamp_unix: int = int(d.get("timestamp_unix", int(Time.get_unix_time_from_system())))
+	var entry: Dictionary = {
+		"stable_id": stable_id,
+		"display_name": display_name,
+		"color": color,
+		"text": text,
+		"timestamp_ms": Time.get_ticks_msec(),
+		"timestamp_unix": timestamp_unix,
+		"is_system": false,
+		"is_local": false,
+	}
+	_record_chat_entry(entry)
+
+
+func _record_chat_entry(entry: Dictionary) -> void:
+	_chat_history.append(entry)
+	if _chat_history.size() > CHAT_HISTORY_MAX_ENTRIES:
+		var overflow: int = _chat_history.size() - CHAT_HISTORY_MAX_ENTRIES
+		for i: int in range(overflow):
+			_chat_history.pop_front()
+	emit_signal("chat_message_received", entry.duplicate(true))
+
+
+func _chat_color_for_stable_id(stable_id: String) -> Color:
+	if stable_id == "":
+		return PeerIdentity.color_for_stable_id("")
+	var presence: PresenceState = _presence_by_stable_id.get(stable_id, null) as PresenceState
+	if presence != null:
+		return presence.avatar_color
+	var peer: PeerIdentity = _peers_by_stable_id.get(stable_id, null) as PeerIdentity
+	if peer != null:
+		return peer.avatar_color
+	return PeerIdentity.color_for_stable_id(stable_id)
 
 
 func request_board(board_id: String) -> void:
@@ -822,6 +931,8 @@ func _on_message_received(from_network_id: int, kind: String, payload: Variant, 
 			_handle_merge_preflight_response(from_network_id, payload)
 		NetworkMessage.KIND_MERGE_FINALIZE:
 			_handle_merge_finalize(from_network_id, payload)
+		NetworkMessage.KIND_CHAT_MESSAGE:
+			_handle_chat_message(from_network_id, payload)
 		NetworkMessage.KIND_GUEST_POLICY:
 			pass
 		NetworkMessage.KIND_ASSET_QUERY:
@@ -885,6 +996,28 @@ func _on_remote_op_applied(op: Op) -> void:
 		var asset_name: String = String(op.payload.get("asset_name", ""))
 		if asset_name != "" and _asset_transfer != null and not _asset_transfer.has_local_asset(asset_name):
 			_asset_transfer.request_unknown_assets([asset_name], _resolve_op_origin_network_id(op))
+	_notify_remote_board_topology(op)
+
+
+func _notify_remote_board_topology(op: Op) -> void:
+	match op.kind:
+		OpKinds.CREATE_BOARD, OpKinds.RENAME_BOARD, OpKinds.REPARENT_BOARD:
+			var board_id: String = String(op.payload.get("board_id", ""))
+			if board_id == "":
+				return
+			AppState.emit_signal("board_modified", board_id)
+			if AppState.current_board != null and AppState.current_board.id == board_id and op.kind == OpKinds.RENAME_BOARD:
+				AppState.current_board.name = String(op.payload.get("name", AppState.current_board.name))
+				AppState.emit_signal("navigation_changed")
+		OpKinds.DELETE_BOARD:
+			var deleted_board_id: String = String(op.payload.get("board_id", ""))
+			if deleted_board_id == "":
+				return
+			AppState.emit_signal("board_modified", deleted_board_id)
+			if AppState.current_board != null and AppState.current_board.id == deleted_board_id and _project != null:
+				var fallback: String = _project.root_board_id
+				if fallback != "":
+					AppState.navigate_to_board(fallback)
 
 
 func _register_message_sender(from_network_id: int, _kind: String, _payload: Variant) -> void:
@@ -1383,6 +1516,22 @@ func _apply_project_property(key: String, value: Variant) -> void:
 		"name":
 			_project.name = String(value)
 			_project.write_manifest()
+		"discovery_enabled":
+			_project.discovery_enabled = bool(value)
+			_project.write_manifest()
+			var root: Node = get_tree().root if get_tree() != null else null
+			if root != null and root.has_node("SteamPresenceService"):
+				SteamPresenceService.notify_project_discovery_changed()
+
+
+func set_project_discovery_enabled(enabled: bool) -> Op:
+	return set_project_property("discovery_enabled", enabled)
+
+
+func project_discovery_enabled() -> bool:
+	if _project == null:
+		return true
+	return _project.discovery_enabled
 
 
 func _set_state(state: int) -> void:

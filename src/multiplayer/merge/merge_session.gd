@@ -151,6 +151,16 @@ func _apply_resolutions() -> void:
 		var resolution: String = String(conflict.get("resolution", MergeAnalyzer.RESOLUTION_PENDING))
 		var local_ops: Array = conflict.get("local_ops", []) as Array
 		var remote_ops: Array = conflict.get("remote_ops", []) as Array
+		var resurrection_path: String = _resurrection_path(conflict, resolution, local_ops, remote_ops)
+		match resurrection_path:
+			"resurrect_for_local":
+				kept_local_count += 1
+				_apply_resurrection_for_keep_local(conflict, local_ops, remote_ops, ops_to_apply, entries)
+				continue
+			"resurrect_for_remote":
+				kept_host_count += 1
+				_apply_resurrection_for_keep_remote(conflict, local_ops, remote_ops, entries)
+				continue
 		match resolution:
 			MergeAnalyzer.RESOLUTION_KEEP_LOCAL:
 				kept_local_count += 1
@@ -179,6 +189,94 @@ func _apply_resolutions() -> void:
 				entries.append(_make_report_entry(conflict, "Host edit kept (unresolved)", false))
 	MultiplayerService.set_merge_broadcast_suppressed(false)
 	_finalize_and_emit_report(ops_to_apply, entries, kept_local_count, kept_host_count)
+
+
+func _resurrection_path(conflict: Dictionary, resolution: String, local_ops: Array, remote_ops: Array) -> String:
+	if String(conflict.get("target_kind", "")) != MergeAnalyzer.TARGET_KIND_ITEM:
+		return ""
+	var has_remote_delete: bool = _ops_contain_kind(remote_ops, OpKinds.DELETE_ITEM)
+	var has_local_delete: bool = _ops_contain_kind(local_ops, OpKinds.DELETE_ITEM)
+	if resolution == MergeAnalyzer.RESOLUTION_KEEP_LOCAL and has_remote_delete and not has_local_delete:
+		return "resurrect_for_local"
+	if resolution == MergeAnalyzer.RESOLUTION_KEEP_REMOTE and has_local_delete and not has_remote_delete:
+		return "resurrect_for_remote"
+	return ""
+
+
+func _apply_resurrection_for_keep_local(conflict: Dictionary, local_ops: Array, remote_ops: Array, ops_to_apply: Array, entries: Array) -> void:
+	var item_id: String = String(conflict.get("target_id", ""))
+	var board_id: String = ""
+	for l_op_v: Variant in local_ops:
+		if l_op_v is Op:
+			board_id = (l_op_v as Op).board_id
+			break
+	if board_id == "":
+		for r_op_v: Variant in remote_ops:
+			if r_op_v is Op:
+				board_id = (r_op_v as Op).board_id
+				break
+	var snapshot: Dictionary = _snapshot_item_from_local_board(board_id, item_id)
+	if snapshot.is_empty():
+		for r_op_v: Variant in remote_ops:
+			if r_op_v is Op:
+				OpBus.ingest_remote(r_op_v)
+		entries.append(_make_report_entry(conflict, "Host delete kept (could not resurrect — local snapshot missing)", false))
+		return
+	var fresh: Op = OpBus.emit_local(OpKinds.CREATE_ITEM, {"item_dict": snapshot}, board_id)
+	if fresh != null:
+		ops_to_apply.append(fresh.to_dict())
+	for r_op_v: Variant in remote_ops:
+		if r_op_v is Op and OpBus.oplog() != null:
+			OpBus.mark_already_applied(r_op_v)
+	entries.append(_make_report_entry(conflict, "Resurrected with your offline edits (host's delete overridden)", true))
+
+
+func _apply_resurrection_for_keep_remote(conflict: Dictionary, local_ops: Array, remote_ops: Array, entries: Array) -> void:
+	var delete_op: Op = null
+	for l_op_v: Variant in local_ops:
+		if l_op_v is Op and (l_op_v as Op).kind == OpKinds.DELETE_ITEM:
+			delete_op = l_op_v
+			break
+	if delete_op == null or delete_op.inverse_payload.is_empty():
+		for r_op_v: Variant in remote_ops:
+			if r_op_v is Op:
+				OpBus.ingest_remote(r_op_v)
+		entries.append(_make_report_entry(conflict, "Host edit kept (could not resurrect — no inverse snapshot)", false))
+		return
+	var item_dict: Dictionary = (delete_op.inverse_payload as Dictionary).get("item_dict", {}) as Dictionary
+	if item_dict.is_empty():
+		for r_op_v: Variant in remote_ops:
+			if r_op_v is Op:
+				OpBus.ingest_remote(r_op_v)
+		entries.append(_make_report_entry(conflict, "Host edit kept (could not resurrect — no item snapshot)", false))
+		return
+	var board_id: String = delete_op.board_id
+	OpBus.emit_local(OpKinds.CREATE_ITEM, {"item_dict": item_dict.duplicate(true)}, board_id)
+	for r_op_v: Variant in remote_ops:
+		if r_op_v is Op:
+			OpBus.ingest_remote(r_op_v)
+	entries.append(_make_report_entry(conflict, "Resurrected and host's edit applied (your offline delete overridden)", false))
+
+
+func _ops_contain_kind(ops: Array, kind: String) -> bool:
+	for op_v: Variant in ops:
+		if op_v is Op and (op_v as Op).kind == kind:
+			return true
+	return false
+
+
+func _snapshot_item_from_local_board(board_id: String, item_id: String) -> Dictionary:
+	if _project == null or board_id == "" or item_id == "":
+		return {}
+	var board: Board = _project.read_board(board_id)
+	if board == null:
+		return {}
+	for d_v: Variant in board.items:
+		if typeof(d_v) != TYPE_DICTIONARY:
+			continue
+		if String((d_v as Dictionary).get("id", "")) == item_id:
+			return (d_v as Dictionary).duplicate(true)
+	return {}
 
 
 func _finalize_and_emit_report(ops_to_apply: Array, override_entries: Array, kept_local_count: int = 0, kept_host_count: int = 0) -> void:

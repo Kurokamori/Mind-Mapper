@@ -5,6 +5,10 @@ signal selection_changed(selected_items: Array)
 var _items: Array[BoardItem] = []
 
 
+func _exit_tree() -> void:
+	_items.clear()
+
+
 func current() -> Array[BoardItem]:
 	return _items.duplicate()
 

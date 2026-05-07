@@ -93,14 +93,36 @@ func ensure_target_board() -> String:
 	var parent_id: String = ""
 	if AppState.current_board != null:
 		parent_id = AppState.current_board.id
-	var b: Board = AppState.current_project.create_child_board(parent_id, title)
+	var new_id: String = Uuid.v4()
+	var b: Board = AppState.current_project.create_child_board_with_id(parent_id, new_id, title)
 	if b == null:
 		return ""
 	target_board_id = b.id
+	_broadcast_board_create(b.id, parent_id, b.name)
+	AppState.emit_signal("board_modified", b.id)
 	if _preview != null:
 		_preview.bind(target_board_id)
 		_apply_view_to_preview()
 	return target_board_id
+
+
+func _broadcast_board_create(board_id: String, parent_board_id: String, board_name: String) -> void:
+	if board_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.CREATE_BOARD, {
+		"board_id": board_id,
+		"name": board_name,
+		"parent_board_id": parent_board_id,
+	}, "")
+
+
+func _broadcast_board_rename(board_id: String, new_name: String) -> void:
+	if board_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.RENAME_BOARD, {
+		"board_id": board_id,
+		"name": new_name,
+	}, "")
 
 
 func _ensure_preview() -> void:
@@ -226,6 +248,7 @@ func _on_edit_end() -> void:
 			_refresh_visuals()
 		if target_board_id != "" and AppState.current_project != null:
 			AppState.current_project.rename_board(target_board_id, new_title)
+			_broadcast_board_rename(target_board_id, new_title)
 	else:
 		_refresh_visuals()
 

@@ -45,6 +45,11 @@ func _ready() -> void:
 		_full_reindex()
 
 
+func _exit_tree() -> void:
+	_board_summaries.clear()
+	_board_order.clear()
+
+
 func _on_project_opened(_project: Project) -> void:
 	_full_reindex()
 

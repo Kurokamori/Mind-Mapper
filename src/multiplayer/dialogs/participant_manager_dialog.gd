@@ -11,6 +11,8 @@ extends AcceptDialog
 @onready var _import_field: TextEdit = %ImportPublicKeyField
 @onready var _import_name_field: LineEdit = %ImportNameField
 @onready var _guest_policy_option: OptionButton = %GuestPolicyOption
+@onready var _discovery_check: CheckBox = %DiscoveryCheckBox
+@onready var _discovery_hint: Label = %DiscoveryHint
 
 
 func _ready() -> void:
@@ -26,7 +28,9 @@ func _ready() -> void:
 	_guest_policy_option.add_item("Comment", 1)
 	_guest_policy_option.add_item("Edit", 2)
 	_guest_policy_option.item_selected.connect(_on_guest_policy_changed)
+	_discovery_check.toggled.connect(_on_discovery_toggled)
 	MultiplayerService.participants_changed.connect(_refresh)
+	AppState.project_opened.connect(_on_project_opened_for_discovery)
 	_refresh()
 
 
@@ -62,6 +66,7 @@ func _refresh() -> void:
 	_remove_button.disabled = not is_owner
 	_transfer_button.disabled = not is_owner
 	_guest_policy_option.disabled = not is_owner
+	_refresh_discovery_state(is_owner)
 
 
 func _on_add_pressed() -> void:
@@ -116,3 +121,24 @@ func _on_guest_policy_changed(idx: int) -> void:
 		2:
 			policy = ParticipantsManifest.GUEST_POLICY_EDIT
 	MultiplayerService.set_guest_policy(policy)
+
+
+func _refresh_discovery_state(is_owner: bool) -> void:
+	if AppState.current_project == null:
+		_discovery_check.disabled = true
+		_discovery_check.button_pressed = false
+		return
+	_discovery_check.disabled = not is_owner
+	_discovery_check.button_pressed = AppState.current_project.discovery_enabled
+
+
+func _on_discovery_toggled(enabled: bool) -> void:
+	if AppState.current_project == null:
+		return
+	if AppState.current_project.discovery_enabled == enabled:
+		return
+	MultiplayerService.set_project_discovery_enabled(enabled)
+
+
+func _on_project_opened_for_discovery(_project: Project) -> void:
+	_refresh()

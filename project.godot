@@ -35,6 +35,7 @@ KeybindingService="*res://src/autoload/keybinding_service.gd"
 KeypairService="*res://src/multiplayer/ops/keypair_service.gd"
 OpBus="*res://src/multiplayer/ops/op_bus.gd"
 MultiplayerService="*res://src/multiplayer/multiplayer_service.gd"
+SteamPresenceService="*res://src/multiplayer/steam_presence_service.gd"
 
 [display]
 

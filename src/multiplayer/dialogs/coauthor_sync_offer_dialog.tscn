@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://b8mpcasync01"]
+
+[ext_resource type="Script" path="res://src/multiplayer/dialogs/coauthor_sync_offer_dialog.gd" id="1_casync"]
+
+[node name="CoauthorSyncOfferDialog" type="Window"]
+title = "Co-author edits available"
+position = Vector2i(220, 220)
+size = Vector2i(520, 280)
+min_size = Vector2i(420, 240)
+visible = false
+script = ExtResource("1_casync")
+
+[node name="Root" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderLabel" type="Label" parent="Root/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "A co-author has different state for this project."
+
+[node name="PersonaLabel" type="Label" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ProjectLabel" type="Label" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DivergenceLabel" type="Label" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="ActionLabel" type="Label" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="ButtonRow" type="HBoxContainer" parent="Root/VBox"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 8
+size_flags_vertical = 8
+
+[node name="DisableDiscoveryButton" type="Button" parent="Root/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Stop offering"
+
+[node name="DismissButton" type="Button" parent="Root/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Not now"
+
+[node name="AcceptButton" type="Button" parent="Root/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sync Now"

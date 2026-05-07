@@ -4,6 +4,7 @@ extends RefCounted
 const SCOPE_BOARD: String = "board"
 const SCOPE_PROJECT: String = "project"
 const SCOPE_MANIFEST: String = "manifest"
+const SCOPE_MAP: String = "map"
 
 const CREATE_ITEM: String = "create_item"
 const DELETE_ITEM: String = "delete_item"
@@ -31,6 +32,24 @@ const CREATE_COMMENT: String = "create_comment"
 const DELETE_COMMENT: String = "delete_comment"
 const SET_COMMENT_PROPERTY: String = "set_comment_property"
 
+const CREATE_MAP_PAGE: String = "create_map_page"
+const RENAME_MAP_PAGE: String = "rename_map_page"
+const DELETE_MAP_PAGE: String = "delete_map_page"
+const SET_MAP_PROPERTY: String = "set_map_property"
+const MAP_INSERT_LAYER: String = "map_insert_layer"
+const MAP_REMOVE_LAYER: String = "map_remove_layer"
+const MAP_REORDER_LAYER: String = "map_reorder_layer"
+const MAP_SET_LAYER_PROPERTY: String = "map_set_layer_property"
+const MAP_SET_LAYER_CELLS: String = "map_set_layer_cells"
+const MAP_ADD_OBJECT: String = "map_add_object"
+const MAP_REMOVE_OBJECT: String = "map_remove_object"
+const MAP_MOVE_OBJECT: String = "map_move_object"
+const MAP_SET_OBJECT_PROPERTY: String = "map_set_object_property"
+
+const CREATE_TILESET: String = "create_tileset"
+const DELETE_TILESET: String = "delete_tileset"
+const UPDATE_TILESET: String = "update_tileset"
+
 const ADD_PARTICIPANT: String = "add_participant"
 const REMOVE_PARTICIPANT: String = "remove_participant"
 const TRANSFER_OWNERSHIP: String = "transfer_ownership"
@@ -46,8 +65,14 @@ static func scope_for_kind(kind: String) -> String:
 		CREATE_COMMENT, DELETE_COMMENT, SET_COMMENT_PROPERTY, \
 		REPLACE_ASSET, SET_BOARD_PROPERTY:
 			return SCOPE_BOARD
-		CREATE_BOARD, RENAME_BOARD, REPARENT_BOARD, DELETE_BOARD:
+		CREATE_BOARD, RENAME_BOARD, REPARENT_BOARD, DELETE_BOARD, \
+		CREATE_MAP_PAGE, RENAME_MAP_PAGE, DELETE_MAP_PAGE, \
+		CREATE_TILESET, DELETE_TILESET, UPDATE_TILESET:
 			return SCOPE_PROJECT
+		SET_MAP_PROPERTY, MAP_INSERT_LAYER, MAP_REMOVE_LAYER, MAP_REORDER_LAYER, \
+		MAP_SET_LAYER_PROPERTY, MAP_SET_LAYER_CELLS, \
+		MAP_ADD_OBJECT, MAP_REMOVE_OBJECT, MAP_MOVE_OBJECT, MAP_SET_OBJECT_PROPERTY:
+			return SCOPE_MAP
 		ADD_PARTICIPANT, REMOVE_PARTICIPANT, TRANSFER_OWNERSHIP, SET_PROJECT_PROPERTY, SET_GUEST_POLICY:
 			return SCOPE_MANIFEST
 		_:
@@ -65,7 +90,10 @@ static func is_owner_only(kind: String) -> bool:
 static func is_structural(kind: String) -> bool:
 	match kind:
 		CREATE_ITEM, DELETE_ITEM, CREATE_CONNECTION, DELETE_CONNECTION, \
-		CREATE_BOARD, DELETE_BOARD, REPARENT_BOARD:
+		CREATE_BOARD, DELETE_BOARD, REPARENT_BOARD, \
+		CREATE_MAP_PAGE, DELETE_MAP_PAGE, \
+		MAP_INSERT_LAYER, MAP_REMOVE_LAYER, MAP_ADD_OBJECT, MAP_REMOVE_OBJECT, \
+		CREATE_TILESET, DELETE_TILESET:
 			return true
 		_:
 			return false

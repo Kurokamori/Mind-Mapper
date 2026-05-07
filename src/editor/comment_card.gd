@@ -18,6 +18,8 @@ var _comment_id: String = ""
 var _data: Dictionary = {}
 var _suppress_signals: bool = false
 var _read_only: bool = false
+var _local_stable_id: String = ""
+var _is_full_editor: bool = true
 var _last_committed_title: String = ""
 var _last_committed_body: String = ""
 var _last_committed_resolved: bool = false
@@ -79,14 +81,59 @@ func set_target_label(text: String) -> void:
 
 func set_read_only(value: bool) -> void:
 	_read_only = value
-	if not is_inside_tree():
+	if is_inside_tree():
+		_apply_permission_visuals()
+
+
+func set_local_identity(stable_id: String, is_full_editor: bool) -> void:
+	_local_stable_id = stable_id
+	_is_full_editor = is_full_editor
+	if is_inside_tree():
+		_apply_permission_visuals()
+
+
+func _is_local_author() -> bool:
+	var author: String = String(_data.get(CommentData.FIELD_AUTHOR_STABLE_ID, ""))
+	return author != "" and author == _local_stable_id
+
+
+func _can_edit_text_fields() -> bool:
+	if _read_only:
+		return false
+	return _is_full_editor or _is_local_author()
+
+
+func _can_delete_self() -> bool:
+	if _read_only:
+		return false
+	return _is_full_editor or _is_local_author()
+
+
+func _can_change_color() -> bool:
+	return not _read_only
+
+
+func _can_toggle_resolved() -> bool:
+	return not _read_only
+
+
+func _apply_permission_visuals() -> void:
+	if _color_button == null:
 		return
-	_color_button.disabled = value
-	_title_edit.editable = not value
-	_resolve_button.disabled = value
-	_edit_button.disabled = value
-	_delete_button.disabled = value
-	_body_edit.editable = not value
+	var edit_text: bool = _can_edit_text_fields()
+	var change_color: bool = _can_change_color()
+	var toggle_resolve: bool = _can_toggle_resolved()
+	var can_delete: bool = _can_delete_self()
+	_color_button.disabled = not change_color
+	_title_edit.editable = edit_text
+	_resolve_button.disabled = not toggle_resolve
+	_edit_button.disabled = not edit_text
+	_delete_button.disabled = not can_delete
+	_body_edit.editable = edit_text
+	if not edit_text and _edit_button.button_pressed:
+		_edit_button.set_pressed_no_signal(false)
+		_body_view.visible = true
+		_body_edit.visible = false
 
 
 func _apply_data_to_widgets() -> void:
@@ -108,6 +155,7 @@ func _apply_data_to_widgets() -> void:
 	_last_committed_color = color
 	_apply_resolve_visuals()
 	_apply_color_visuals(color)
+	_apply_permission_visuals()
 	_suppress_signals = false
 
 
@@ -151,7 +199,7 @@ func _on_color_changed(color: Color) -> void:
 
 
 func _on_color_popup_closed() -> void:
-	if _read_only or _suppress_signals:
+	if _suppress_signals or not _can_change_color():
 		return
 	var new_color: Color = _color_button.color
 	if new_color.is_equal_approx(_last_committed_color):
@@ -171,7 +219,7 @@ func _on_title_focus_exited() -> void:
 
 
 func _commit_title_if_changed() -> void:
-	if _read_only or _suppress_signals:
+	if _suppress_signals or not _can_edit_text_fields():
 		return
 	var new_title: String = _title_edit.text
 	if new_title == _last_committed_title:
@@ -184,7 +232,7 @@ func _commit_title_if_changed() -> void:
 func _on_resolve_toggled(pressed: bool) -> void:
 	if _suppress_signals:
 		return
-	if _read_only:
+	if not _can_toggle_resolved():
 		_suppress_signals = true
 		_resolve_button.button_pressed = _last_committed_resolved
 		_suppress_signals = false
@@ -203,7 +251,7 @@ func _on_edit_toggled(pressed: bool) -> void:
 
 
 func _on_body_focus_exited() -> void:
-	if _read_only or _suppress_signals:
+	if _suppress_signals or not _can_edit_text_fields():
 		return
 	var new_body: String = _body_edit.text
 	if new_body == _last_committed_body:
@@ -215,7 +263,7 @@ func _on_body_focus_exited() -> void:
 
 
 func _on_delete_pressed() -> void:
-	if _read_only:
+	if not _can_delete_self():
 		return
 	if _editor != null and _editor.has_method("delete_comment"):
 		_editor.call("delete_comment", _comment_id)

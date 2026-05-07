@@ -31,11 +31,13 @@ const SAVE_DEBOUNCE_SEC: float = 0.5
 @onready var _participant_dialog: ParticipantManagerDialog = %ParticipantManagerDialog
 @onready var _merge_resolution_dialog: MergeResolutionDialog = %MergeResolutionDialog
 @onready var _host_merge_report_panel: HostMergeReportPanel = %HostMergeReportPanel
+@onready var _coauthor_sync_offer_dialog: CoauthorSyncOfferDialog = %CoauthorSyncOfferDialog
 @onready var _new_map_dialog: NewMapDialog = %NewMapDialog
 @onready var _import_tileset_dialog: ImportTilesetDialog = %ImportTilesetDialog
 @onready var _new_tileset_image_dialog: NewTilesetFromImageDialog = %NewTilesetFromImageDialog
 @onready var _tileset_info_dialog: AcceptDialog = %TilesetInfoDialog
 @onready var _comments_panel: CommentsPanel = %CommentsPanel
+@onready var _chat_panel: ChatPanel = %ChatPanel
 
 var _pending_image_path: String = ""
 var _pending_sound_path: String = ""
@@ -66,6 +68,8 @@ var _item_context_menu_target_item_id: String = ""
 var _item_context_menu_card_ids: Array = []
 var _board_comments: Array = []
 var _comments_button_state: bool = false
+var _chat_button_state: bool = false
+var _chat_unread_count: int = 0
 
 const PORT_DRAG_SNAP_PX: float = 28.0
 const ENVELOPE_MAX_PASSES: int = 8
@@ -149,10 +153,16 @@ func _ready() -> void:
 	MultiplayerService.local_permissions_changed.connect(_on_local_permissions_changed)
 	_apply_local_permissions(MultiplayerService.local_can_edit())
 	_wire_merge_dialogs()
+	_wire_steam_discovery()
 	if _comments_panel != null:
 		_comments_panel.bind_editor(self)
+		_comments_panel.set_local_identity(_local_stable_id_for_comments(), _local_is_full_editor())
 		_comments_panel.close_requested.connect(_on_comments_panel_close_requested)
 		_comments_panel.jump_to_target_requested.connect(_on_comment_jump_requested)
+	if _chat_panel != null:
+		_chat_panel.close_requested.connect(_on_chat_panel_close_requested)
+	MultiplayerService.chat_message_received.connect(_on_chat_message_for_unread)
+	MultiplayerService.chat_history_cleared.connect(_on_chat_history_cleared_for_unread)
 	_build_item_context_menu()
 
 
@@ -240,6 +250,7 @@ func _apply_local_permissions(can_edit: bool) -> void:
 	if _inspector_panel != null and _inspector_panel.has_method("set_edit_mode_enabled"):
 		_inspector_panel.set_edit_mode_enabled(can_edit)
 	if _comments_panel != null:
+		_comments_panel.set_local_identity(_local_stable_id_for_comments(), _local_is_full_editor())
 		_comments_panel.set_read_only(_comments_read_only_for_permissions(can_edit))
 
 
@@ -1145,6 +1156,8 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			_toggle_timer_tray(bool(payload))
 		EditorToolbar.ACTION_TOGGLE_COMMENTS:
 			_toggle_comments_panel(bool(payload))
+		EditorToolbar.ACTION_TOGGLE_CHAT:
+			_toggle_chat_panel(bool(payload))
 		EditorToolbar.ACTION_UNDO:
 			History.undo()
 		EditorToolbar.ACTION_REDO:
@@ -1753,9 +1766,12 @@ func _add_pinboard() -> void:
 	if AppState.current_project == null:
 		return
 	var parent_id: String = AppState.current_board.id if AppState.current_board != null else ""
-	var child: Board = AppState.current_project.create_child_board(parent_id, "Pinboard")
+	var child_id: String = Uuid.v4()
+	var child: Board = AppState.current_project.create_child_board_with_id(parent_id, child_id, "Pinboard")
 	if child == null:
 		return
+	_broadcast_create_board(child.id, parent_id, child.name)
+	AppState.emit_signal("board_modified", child.id)
 	var anchor: Vector2 = _add_anchor_world()
 	var d: Dictionary = {
 		"id": Uuid.v4(),
@@ -1773,9 +1789,12 @@ func _add_subpage() -> void:
 	if AppState.current_project == null:
 		return
 	var parent_id: String = AppState.current_board.id if AppState.current_board != null else ""
-	var child: Board = AppState.current_project.create_child_board(parent_id, "Subpage")
+	var child_id: String = Uuid.v4()
+	var child: Board = AppState.current_project.create_child_board_with_id(parent_id, child_id, "Subpage")
 	if child == null:
 		return
+	_broadcast_create_board(child.id, parent_id, child.name)
+	AppState.emit_signal("board_modified", child.id)
 	var anchor: Vector2 = _add_anchor_world()
 	var d: Dictionary = {
 		"id": Uuid.v4(),
@@ -1789,6 +1808,20 @@ func _add_subpage() -> void:
 	}
 	History.push(AddItemsCommand.new(self, [d]))
 	_after_added(find_item_by_id(String(d["id"])))
+
+
+func _broadcast_create_board(board_id: String, parent_board_id: String, board_name: String) -> void:
+	if board_id == "":
+		return
+	if not OpBus.has_project():
+		return
+	if OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.CREATE_BOARD, {
+		"board_id": board_id,
+		"name": board_name,
+		"parent_board_id": parent_board_id,
+	}, "")
 
 
 func _add_simple(type_id: String, extra: Dictionary) -> void:
@@ -2435,6 +2468,40 @@ func _on_comments_panel_close_requested() -> void:
 	_toggle_comments_panel(false)
 
 
+func _toggle_chat_panel(visible_state: bool) -> void:
+	if _chat_panel == null:
+		return
+	_chat_panel.visible = visible_state
+	_chat_button_state = visible_state
+	if visible_state:
+		_chat_unread_count = 0
+		_chat_panel.grab_input_focus()
+	if _toolbar != null and _toolbar.has_method("set_chat_pressed"):
+		_toolbar.set_chat_pressed(visible_state)
+	if _toolbar != null and _toolbar.has_method("set_chat_unread_count"):
+		_toolbar.set_chat_unread_count(_chat_unread_count)
+
+
+func _on_chat_panel_close_requested() -> void:
+	_toggle_chat_panel(false)
+
+
+func _on_chat_message_for_unread(entry: Dictionary) -> void:
+	if bool(entry.get("is_local", false)):
+		return
+	if _chat_button_state and _chat_panel != null and _chat_panel.visible:
+		return
+	_chat_unread_count += 1
+	if _toolbar != null and _toolbar.has_method("set_chat_unread_count"):
+		_toolbar.set_chat_unread_count(_chat_unread_count)
+
+
+func _on_chat_history_cleared_for_unread() -> void:
+	_chat_unread_count = 0
+	if _toolbar != null and _toolbar.has_method("set_chat_unread_count"):
+		_toolbar.set_chat_unread_count(_chat_unread_count)
+
+
 func _load_comments_from_board(board: Board) -> void:
 	_board_comments.clear()
 	if board != null:
@@ -2473,6 +2540,8 @@ func modify_comment_property(comment_id: String, key: String, from_value: Varian
 		return
 	if not _can_emit_comment_kind(OpKinds.SET_COMMENT_PROPERTY):
 		return
+	if _comment_property_requires_authorship(key) and not _is_local_author_of_comment(comment_id):
+		return
 	History.push(ModifyCommentPropertyCommand.new(self, comment_id, key, from_value, to_value))
 
 
@@ -2481,10 +2550,44 @@ func delete_comment(comment_id: String) -> void:
 		return
 	if not _can_emit_comment_kind(OpKinds.DELETE_COMMENT):
 		return
+	if not _is_local_author_of_comment(comment_id):
+		return
 	var snapshot: Dictionary = CommentData.find_comment(_board_comments, comment_id)
 	if snapshot.is_empty():
 		return
 	History.push(DeleteCommentCommand.new(self, comment_id, snapshot))
+
+
+func _comment_property_requires_authorship(key: String) -> bool:
+	if _local_is_full_editor():
+		return false
+	return key == CommentData.FIELD_TITLE or key == CommentData.FIELD_BODY_BBCODE
+
+
+func _is_local_author_of_comment(comment_id: String) -> bool:
+	if _local_is_full_editor():
+		return true
+	var snapshot: Dictionary = CommentData.find_comment(_board_comments, comment_id)
+	if snapshot.is_empty():
+		return false
+	var author: String = String(snapshot.get(CommentData.FIELD_AUTHOR_STABLE_ID, ""))
+	return author != "" and author == _local_stable_id_for_comments()
+
+
+func _local_stable_id_for_comments() -> String:
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root != null and root.has_node("KeypairService"):
+		KeypairService.ensure_ready()
+		return KeypairService.stable_id()
+	return ""
+
+
+func _local_is_full_editor() -> bool:
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root == null or not root.has_node("MultiplayerService"):
+		return true
+	var role: String = MultiplayerService.local_role_label()
+	return role == ParticipantsManifest.ROLE_OWNER or role == ParticipantsManifest.ROLE_CO_AUTHOR
 
 
 func apply_comment_create_locally(comment_dict: Dictionary) -> void:
@@ -2761,3 +2864,56 @@ func _on_host_rollback_all_requested(report_id: String) -> void:
 
 func _on_host_report_dismissed(report_id: String) -> void:
 	MultiplayerService.handle_host_dismiss_report(report_id)
+
+
+func _wire_steam_discovery() -> void:
+	if _coauthor_sync_offer_dialog == null:
+		return
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root == null or not root.has_node("SteamPresenceService"):
+		return
+	SteamPresenceService.co_author_sync_offer.connect(_on_co_author_sync_offer)
+	_coauthor_sync_offer_dialog.sync_accepted.connect(_on_sync_offer_accepted)
+	_coauthor_sync_offer_dialog.sync_dismissed.connect(_on_sync_offer_dismissed)
+	_coauthor_sync_offer_dialog.discovery_disabled_requested.connect(_on_sync_offer_disable_discovery)
+
+
+func _on_co_author_sync_offer(_steam_id: int, persona: String, project_id: String, friend_lobby_id: int, divergence: String) -> void:
+	if AppState.current_project == null or AppState.current_project.id != project_id:
+		return
+	if MultiplayerService.is_in_session():
+		return
+	_coauthor_sync_offer_dialog.setup(_steam_id, persona, AppState.current_project.name, friend_lobby_id, divergence)
+	_coauthor_sync_offer_dialog.popup_centered_clamped(Vector2i(560, 320))
+
+
+func _on_sync_offer_accepted(_steam_id: int, friend_lobby_id: int) -> void:
+	if friend_lobby_id != 0:
+		var connect_info: Dictionary = {
+			"lobby_id": friend_lobby_id,
+			"adapter_kind": NetworkAdapter.ADAPTER_KIND_STEAM,
+		}
+		var err: Error = MultiplayerService.join_session(NetworkAdapter.ADAPTER_KIND_STEAM, connect_info)
+		if err != OK:
+			_show_session_error("Failed to join Steam lobby: %s" % str(err))
+		return
+	if _host_dialog != null:
+		_host_dialog.popup_centered()
+
+
+func _on_sync_offer_dismissed(_steam_id: int) -> void:
+	pass
+
+
+func _on_sync_offer_disable_discovery() -> void:
+	if AppState.current_project == null:
+		SteamPresenceService.set_enabled(false)
+		return
+	if not AppState.current_project.discovery_enabled:
+		return
+	var manifest: ParticipantsManifest = MultiplayerService.participants_manifest()
+	var is_owner: bool = manifest != null and manifest.is_owner(MultiplayerService.local_stable_id())
+	if is_owner:
+		MultiplayerService.set_project_discovery_enabled(false)
+	else:
+		SteamPresenceService.set_enabled(false)

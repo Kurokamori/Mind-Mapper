@@ -26,7 +26,7 @@ func do() -> void:
 					_captured_connections.append(captured_dict)
 					OpBus.record_local_change(OpKinds.DELETE_CONNECTION, {"connection_id": String(captured_dict.get("id", ""))}, board_id)
 		_editor.remove_item_by_id(item_id)
-		OpBus.record_local_change(OpKinds.DELETE_ITEM, {"item_id": item_id}, board_id)
+		OpBus.record_local_change(OpKinds.DELETE_ITEM, {"item_id": item_id}, board_id, {"item_dict": d.duplicate(true)})
 	_editor.request_save()
 
 

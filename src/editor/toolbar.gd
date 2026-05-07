@@ -12,6 +12,7 @@ const ACTION_TOGGLE_OUTLINER: String = "toggle_outliner"
 const ACTION_TOGGLE_MINIMAP: String = "toggle_minimap"
 const ACTION_TOGGLE_TIMER_TRAY: String = "toggle_timer_tray"
 const ACTION_TOGGLE_COMMENTS: String = "toggle_comments"
+const ACTION_TOGGLE_CHAT: String = "toggle_chat"
 const ACTION_OPEN_PALETTE: String = "open_palette"
 const ACTION_UNDO: String = "undo"
 const ACTION_REDO: String = "redo"
@@ -86,6 +87,7 @@ const SETTINGS_ACTION_OPEN_TODOS: String = "settings_open_todos"
 @onready var _minimap_button: Button = %MinimapButton
 @onready var _timer_tray_button: Button = %TimerTrayButton
 @onready var _comments_button: Button = %CommentsButton
+@onready var _chat_button: Button = %ChatButton
 @onready var _tag_filter_button: MenuButton = %TagFilterButton
 @onready var _group_button: Button = %GroupButton
 @onready var _present_button: Button = %PresentButton
@@ -115,6 +117,7 @@ func _ready() -> void:
 	_minimap_button.toggled.connect(_on_minimap_toggled)
 	_timer_tray_button.toggled.connect(_on_timer_tray_toggled)
 	_comments_button.toggled.connect(_on_comments_toggled)
+	_chat_button.toggled.connect(_on_chat_toggled)
 	_group_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_GROUP, null))
 	_present_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_PRESENT, null))
 	_populate_export_menu()
@@ -458,6 +461,10 @@ func _on_comments_toggled(pressed: bool) -> void:
 	emit_signal("action_requested", ACTION_TOGGLE_COMMENTS, pressed)
 
 
+func _on_chat_toggled(pressed: bool) -> void:
+	emit_signal("action_requested", ACTION_TOGGLE_CHAT, pressed)
+
+
 func set_inspector_pressed(pressed: bool) -> void:
 	if _inspector_button == null:
 		return
@@ -491,6 +498,24 @@ func set_comments_pressed(pressed: bool) -> void:
 		return
 	if _comments_button.button_pressed != pressed:
 		_comments_button.set_pressed_no_signal(pressed)
+
+
+func set_chat_pressed(pressed: bool) -> void:
+	if _chat_button == null:
+		return
+	if _chat_button.button_pressed != pressed:
+		_chat_button.set_pressed_no_signal(pressed)
+
+
+func set_chat_unread_count(count: int) -> void:
+	if _chat_button == null:
+		return
+	if count <= 0:
+		_chat_button.text = "Chat"
+	elif count > 99:
+		_chat_button.text = "Chat (99+)"
+	else:
+		_chat_button.text = "Chat (%d)" % count
 
 func _refresh_snap() -> void:
 	_refresh_snap_menu_checks()

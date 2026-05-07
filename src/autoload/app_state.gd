@@ -28,6 +28,7 @@ var nav_history: Array = []
 var save_state: String = SAVE_STATE_SAVED
 var last_save_unix: int = 0
 var active_tag_filter: String = ""
+var _pending_nav_board_id: String = ""
 
 
 func open_project(project: Project) -> void:
@@ -45,6 +46,14 @@ func open_project(project: Project) -> void:
 		emit_signal("current_board_changed", current_board)
 		emit_signal("current_page_kind_changed", current_page_kind)
 		emit_signal("navigation_changed")
+
+
+func _exit_tree() -> void:
+	current_project = null
+	current_board = null
+	current_map_page = null
+	nav_history.clear()
+	active_tag_filter = ""
 
 
 func close_project() -> void:
@@ -67,7 +76,10 @@ func navigate_to_board(board_id: String) -> bool:
 		return false
 	var b: Board = current_project.read_board(board_id)
 	if b == null:
+		_pending_nav_board_id = board_id
+		_request_remote_board_if_possible(board_id)
 		return false
+	_pending_nav_board_id = ""
 	emit_signal("before_navigation")
 	_push_current_to_history()
 	current_board = b
@@ -233,8 +245,36 @@ func write_board(board: Board) -> Error:
 	return err
 
 
+func _request_remote_board_if_possible(board_id: String) -> void:
+	if board_id == "":
+		return
+	var root: Node = get_tree().root
+	if root == null or not root.has_node("MultiplayerService"):
+		return
+	var mps: Node = root.get_node("MultiplayerService")
+	if not mps.has_method("is_in_session") or not bool(mps.call("is_in_session")):
+		return
+	if mps.has_method("request_board"):
+		mps.call("request_board", board_id)
+
+
 func apply_remote_board_snapshot(board: Board) -> void:
 	if current_project == null or board == null:
+		return
+	if _pending_nav_board_id == board.id:
+		_pending_nav_board_id = ""
+		emit_signal("before_navigation")
+		_push_current_to_history()
+		current_board = board
+		current_map_page = null
+		var prev_kind_pn: String = current_page_kind
+		current_page_kind = PAGE_KIND_BOARD
+		History.bind_page(board.id)
+		emit_signal("current_board_changed", current_board)
+		if prev_kind_pn != current_page_kind:
+			emit_signal("current_page_kind_changed", current_page_kind)
+		emit_signal("board_modified", board.id)
+		emit_signal("navigation_changed")
 		return
 	if current_page_kind == PAGE_KIND_BOARD and current_board != null and current_board.id == board.id:
 		current_board = board

@@ -20,10 +20,12 @@
 [ext_resource type="PackedScene" uid="uid://cn62kfhcgbvfc" path="res://src/multiplayer/dialogs/participant_manager_dialog.tscn" id="24_pm_dialog"]
 [ext_resource type="PackedScene" uid="uid://b8merge0001r" path="res://src/multiplayer/merge/merge_resolution_dialog.tscn" id="25_merge_dlg"]
 [ext_resource type="PackedScene" uid="uid://b8merge0002p" path="res://src/multiplayer/merge/host_merge_report_panel.tscn" id="26_merge_rp"]
+[ext_resource type="PackedScene" uid="uid://b8mpcasync01" path="res://src/multiplayer/dialogs/coauthor_sync_offer_dialog.tscn" id="27_casync"]
 [ext_resource type="PackedScene" path="res://src/tilemap/new_map_dialog.tscn" id="30_new_map"]
 [ext_resource type="PackedScene" path="res://src/tilemap/import_tileset_dialog.tscn" id="31_import_ts"]
 [ext_resource type="PackedScene" path="res://src/tilemap/new_tileset_from_image_dialog.tscn" id="32_new_ts"]
 [ext_resource type="PackedScene" path="res://src/editor/comments_panel.tscn" id="40_comments"]
+[ext_resource type="PackedScene" path="res://src/editor/chat_panel.tscn" id="41_chat"]
 
 [node name="Editor" type="Control" unique_id=2075924755]
 layout_mode = 3
@@ -101,6 +103,9 @@ unique_name_in_owner = true
 [node name="CommentsPanel" parent="CanvasLayer" unique_id=2074111111 instance=ExtResource("40_comments")]
 unique_name_in_owner = true
 
+[node name="ChatPanel" parent="CanvasLayer" unique_id=2074111222 instance=ExtResource("41_chat")]
+unique_name_in_owner = true
+
 [node name="Minimap" parent="CanvasLayer" unique_id=104751447 instance=ExtResource("12_minimap")]
 unique_name_in_owner = true
 anchors_preset = 2
@@ -174,6 +179,9 @@ unique_name_in_owner = true
 unique_name_in_owner = true
 
 [node name="HostMergeReportPanel" parent="." unique_id=706562302 instance=ExtResource("26_merge_rp")]
+unique_name_in_owner = true
+
+[node name="CoauthorSyncOfferDialog" parent="." instance=ExtResource("27_casync")]
 unique_name_in_owner = true
 
 [node name="NewMapDialog" parent="." unique_id=1610713250 instance=ExtResource("30_new_map")]

@@ -20,6 +20,8 @@ func apply_to_project(op: Op) -> Dictionary:
 			return _apply_to_project_scope(op)
 		OpKinds.SCOPE_MANIFEST:
 			return _apply_to_manifest(op)
+		OpKinds.SCOPE_MAP:
+			return _apply_to_map(op)
 		_:
 			return {"applied": false, "reason": "unknown_scope"}
 
@@ -82,11 +84,59 @@ func _apply_to_project_scope(op: Op) -> Dictionary:
 			changed = _op_reparent_board(op)
 		OpKinds.DELETE_BOARD:
 			changed = _op_delete_board(op)
+		OpKinds.CREATE_MAP_PAGE:
+			changed = _op_create_map_page(op)
+		OpKinds.RENAME_MAP_PAGE:
+			changed = _op_rename_map_page(op)
+		OpKinds.DELETE_MAP_PAGE:
+			changed = _op_delete_map_page(op)
+		OpKinds.CREATE_TILESET, OpKinds.UPDATE_TILESET:
+			changed = _op_upsert_tileset(op)
+		OpKinds.DELETE_TILESET:
+			changed = _op_delete_tileset(op)
 		_:
 			return {"applied": false, "reason": "unknown_kind"}
 	if changed:
 		_project.write_manifest()
 	return {"applied": changed}
+
+
+func _apply_to_map(op: Op) -> Dictionary:
+	var map_id: String = op.board_id
+	if map_id == "":
+		map_id = String(op.payload.get("map_id", ""))
+	if map_id == "":
+		return {"applied": false, "reason": "missing_map_id"}
+	var page: MapPage = _project.read_map_page(map_id)
+	if page == null:
+		return {"applied": false, "reason": "missing_map_page"}
+	var changed: bool = false
+	match op.kind:
+		OpKinds.SET_MAP_PROPERTY:
+			changed = _op_map_set_property(page, op)
+		OpKinds.MAP_INSERT_LAYER:
+			changed = _op_map_insert_layer(page, op)
+		OpKinds.MAP_REMOVE_LAYER:
+			changed = _op_map_remove_layer(page, op)
+		OpKinds.MAP_REORDER_LAYER:
+			changed = _op_map_reorder_layer(page, op)
+		OpKinds.MAP_SET_LAYER_PROPERTY:
+			changed = _op_map_set_layer_property(page, op)
+		OpKinds.MAP_SET_LAYER_CELLS:
+			changed = _op_map_set_layer_cells(page, op)
+		OpKinds.MAP_ADD_OBJECT:
+			changed = _op_map_add_object(page, op)
+		OpKinds.MAP_REMOVE_OBJECT:
+			changed = _op_map_remove_object(page, op)
+		OpKinds.MAP_MOVE_OBJECT:
+			changed = _op_map_move_object(page, op)
+		OpKinds.MAP_SET_OBJECT_PROPERTY:
+			changed = _op_map_set_object_property(page, op)
+		_:
+			return {"applied": false, "reason": "unknown_kind"}
+	if changed:
+		_project.write_map_page(page)
+	return {"applied": changed, "map_id": map_id}
 
 
 func _apply_to_manifest(op: Op) -> Dictionary:
@@ -535,3 +585,249 @@ func _remove_connections_referencing_item(board: Board, item_id: String) -> void
 		var t: String = String((c as Dictionary).get("to_item_id", ""))
 		if f == item_id or t == item_id:
 			board.connections.remove_at(i)
+
+
+func _op_create_map_page(op: Op) -> bool:
+	var map_id: String = String(op.payload.get("map_id", ""))
+	if map_id == "":
+		return false
+	if FileAccess.file_exists(_project.map_page_path(map_id)):
+		return false
+	var page_dict_raw: Variant = op.payload.get("page", null)
+	var page: MapPage = null
+	if typeof(page_dict_raw) == TYPE_DICTIONARY:
+		page = MapPage.from_dict(page_dict_raw)
+	else:
+		var page_name: String = String(op.payload.get("name", "Map"))
+		var ts_raw: Variant = op.payload.get("tile_size", [16, 16])
+		var ts: Vector2i = Vector2i(16, 16)
+		if typeof(ts_raw) == TYPE_ARRAY and (ts_raw as Array).size() >= 2:
+			ts = Vector2i(int((ts_raw as Array)[0]), int((ts_raw as Array)[1]))
+		page = MapPage.make_new(map_id, page_name, ts)
+	if page == null:
+		return false
+	page.id = map_id
+	if _project.write_map_page(page) != OK:
+		return false
+	return true
+
+
+func _op_rename_map_page(op: Op) -> bool:
+	var map_id: String = String(op.payload.get("map_id", ""))
+	var new_name: String = String(op.payload.get("name", ""))
+	if map_id == "" or new_name == "":
+		return false
+	return _project.rename_map_page(map_id, new_name)
+
+
+func _op_delete_map_page(op: Op) -> bool:
+	var map_id: String = String(op.payload.get("map_id", ""))
+	if map_id == "":
+		return false
+	return _project.delete_map_page(map_id)
+
+
+func _op_upsert_tileset(op: Op) -> bool:
+	var ts_dict_raw: Variant = op.payload.get("tileset", null)
+	if typeof(ts_dict_raw) != TYPE_DICTIONARY:
+		return false
+	var ts: TileSetResource = TileSetResource.from_dict(ts_dict_raw)
+	if ts == null or ts.id == "":
+		return false
+	if _project.write_tileset(ts) != OK:
+		return false
+	return true
+
+
+func _op_delete_tileset(op: Op) -> bool:
+	var tileset_id: String = String(op.payload.get("tileset_id", ""))
+	if tileset_id == "":
+		return false
+	return _project.delete_tileset(tileset_id)
+
+
+func _op_map_set_property(page: MapPage, op: Op) -> bool:
+	var key: String = String(op.payload.get("key", ""))
+	if key == "":
+		return false
+	if not (op.payload as Dictionary).has("value"):
+		return false
+	var value: Variant = op.payload["value"]
+	match key:
+		"name":
+			page.name = String(value)
+		"tile_size":
+			if typeof(value) == TYPE_ARRAY and (value as Array).size() >= 2:
+				var arr: Array = value
+				page.tile_size = Vector2i(int(arr[0]), int(arr[1]))
+		"background_color":
+			if typeof(value) == TYPE_ARRAY and (value as Array).size() >= 3:
+				var arr_bg: Array = value
+				var a: float = 1.0 if arr_bg.size() < 4 else float(arr_bg[3])
+				page.background_color = Color(float(arr_bg[0]), float(arr_bg[1]), float(arr_bg[2]), a)
+		"camera_position":
+			if typeof(value) == TYPE_ARRAY and (value as Array).size() >= 2:
+				var arr_cam: Array = value
+				page.camera_position = Vector2(float(arr_cam[0]), float(arr_cam[1]))
+		"camera_zoom":
+			page.camera_zoom = float(value)
+		_:
+			return false
+	return true
+
+
+func _op_map_insert_layer(page: MapPage, op: Op) -> bool:
+	var layer_dict_raw: Variant = op.payload.get("layer", null)
+	if typeof(layer_dict_raw) != TYPE_DICTIONARY:
+		return false
+	var index: int = int(op.payload.get("index", page.layers.size()))
+	var layer: MapLayer = MapLayer.from_dict(layer_dict_raw)
+	if layer == null or layer.id == "":
+		return false
+	if page.layer_index_of(layer.id) >= 0:
+		return false
+	var clamped: int = clamp(index, 0, page.layers.size())
+	page.layers.insert(clamped, layer)
+	return true
+
+
+func _op_map_remove_layer(page: MapPage, op: Op) -> bool:
+	var layer_id: String = String(op.payload.get("layer_id", ""))
+	if layer_id == "":
+		return false
+	return page.remove_layer(layer_id)
+
+
+func _op_map_reorder_layer(page: MapPage, op: Op) -> bool:
+	var layer_id: String = String(op.payload.get("layer_id", ""))
+	var new_index: int = int(op.payload.get("index", -1))
+	if layer_id == "" or new_index < 0:
+		return false
+	return page.move_layer(layer_id, new_index)
+
+
+func _op_map_set_layer_property(page: MapPage, op: Op) -> bool:
+	var layer_id: String = String(op.payload.get("layer_id", ""))
+	var key: String = String(op.payload.get("key", ""))
+	if layer_id == "" or key == "":
+		return false
+	if not (op.payload as Dictionary).has("value"):
+		return false
+	var layer: MapLayer = page.find_layer(layer_id)
+	if layer == null:
+		return false
+	var value: Variant = op.payload["value"]
+	match key:
+		"name":
+			layer.name = String(value)
+		"visible":
+			layer.visible = bool(value)
+		"opacity":
+			layer.opacity = float(value)
+		"tileset_id":
+			layer.tileset_id = String(value)
+		"locked":
+			layer.locked = bool(value)
+		_:
+			return false
+	return true
+
+
+func _op_map_set_layer_cells(page: MapPage, op: Op) -> bool:
+	var layer_id: String = String(op.payload.get("layer_id", ""))
+	if layer_id == "":
+		return false
+	var layer: MapLayer = page.find_layer(layer_id)
+	if layer == null:
+		return false
+	var cells_raw: Variant = op.payload.get("cells", null)
+	if typeof(cells_raw) != TYPE_ARRAY:
+		return false
+	for entry_v: Variant in (cells_raw as Array):
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_v
+		var coord_raw: Variant = entry.get("coord", null)
+		if typeof(coord_raw) != TYPE_ARRAY or (coord_raw as Array).size() < 2:
+			continue
+		var coord: Vector2i = Vector2i(int((coord_raw as Array)[0]), int((coord_raw as Array)[1]))
+		if entry.get("erased", false):
+			layer.erase_cell(coord)
+			continue
+		var atlas_raw: Variant = entry.get("atlas", null)
+		if typeof(atlas_raw) != TYPE_ARRAY or (atlas_raw as Array).size() < 3:
+			continue
+		var atlas_arr: Array = atlas_raw
+		var atlas_coord: Vector2i = Vector2i(int(atlas_arr[0]), int(atlas_arr[1]))
+		var alternative: int = int(atlas_arr[2])
+		layer.set_cell(coord, atlas_coord, alternative)
+	return true
+
+
+func _op_map_add_object(page: MapPage, op: Op) -> bool:
+	var object_dict_raw: Variant = op.payload.get("object", null)
+	if typeof(object_dict_raw) != TYPE_DICTIONARY:
+		return false
+	var object_dict: Dictionary = (object_dict_raw as Dictionary).duplicate(true)
+	var object_id: String = String(object_dict.get("id", ""))
+	if object_id == "":
+		return false
+	for existing: Variant in page.objects:
+		if typeof(existing) == TYPE_DICTIONARY and String((existing as Dictionary).get("id", "")) == object_id:
+			return false
+	page.objects.append(object_dict)
+	return true
+
+
+func _op_map_remove_object(page: MapPage, op: Op) -> bool:
+	var object_id: String = String(op.payload.get("object_id", ""))
+	if object_id == "":
+		return false
+	for i in range(page.objects.size() - 1, -1, -1):
+		var entry_v: Variant = page.objects[i]
+		if typeof(entry_v) == TYPE_DICTIONARY and String((entry_v as Dictionary).get("id", "")) == object_id:
+			page.objects.remove_at(i)
+			return true
+	return false
+
+
+func _op_map_move_object(page: MapPage, op: Op) -> bool:
+	var object_id: String = String(op.payload.get("object_id", ""))
+	var pos_raw: Variant = op.payload.get("position", null)
+	if object_id == "" or typeof(pos_raw) != TYPE_ARRAY or (pos_raw as Array).size() < 2:
+		return false
+	var pos_arr: Array = pos_raw
+	for i in range(page.objects.size()):
+		var entry_v: Variant = page.objects[i]
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		if String((entry_v as Dictionary).get("id", "")) != object_id:
+			continue
+		(entry_v as Dictionary)["position"] = [float(pos_arr[0]), float(pos_arr[1])]
+		page.objects[i] = entry_v
+		return true
+	return false
+
+
+func _op_map_set_object_property(page: MapPage, op: Op) -> bool:
+	var object_id: String = String(op.payload.get("object_id", ""))
+	var key: String = String(op.payload.get("key", ""))
+	if object_id == "" or key == "":
+		return false
+	if not (op.payload as Dictionary).has("value"):
+		return false
+	var value: Variant = op.payload["value"]
+	for i in range(page.objects.size()):
+		var entry_v: Variant = page.objects[i]
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_v
+		if String(entry.get("id", "")) != object_id:
+			continue
+		if typeof(value) == TYPE_VECTOR2:
+			entry[key] = [(value as Vector2).x, (value as Vector2).y]
+		else:
+			entry[key] = value
+		page.objects[i] = entry
+		return true
+	return false

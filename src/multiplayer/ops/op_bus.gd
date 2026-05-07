@@ -12,6 +12,15 @@ var _lamport_clock: int = 0
 var _editor: Node = null
 var _seen_op_ids: Dictionary = {}
 var _suppress_local_apply: bool = false
+var _applying_remote_depth: int = 0
+
+
+func is_applying_remote() -> bool:
+	return _applying_remote_depth > 0
+
+
+func has_project() -> bool:
+	return _project != null
 
 
 func bind_project(project: Project) -> void:
@@ -196,15 +205,23 @@ func _apply_locally(op: Op) -> void:
 func _apply_remote(op: Op) -> bool:
 	if _applier == null:
 		return false
+	_applying_remote_depth += 1
+	var ok: bool = false
 	if op.scope == OpKinds.SCOPE_MANIFEST:
 		MultiplayerService.apply_manifest_op(op)
-		return true
-	var on_current_board: bool = AppState.current_project != null and AppState.current_board != null and op.board_id == AppState.current_board.id
-	if on_current_board and _editor != null and _editor.has_method("apply_remote_op"):
-		_editor.call("apply_remote_op", op)
-		return true
-	var result: Dictionary = _applier.apply_to_project(op)
-	return bool(result.get("applied", false))
+		ok = true
+	else:
+		var on_current_board: bool = AppState.current_project != null and AppState.current_board != null and op.board_id == AppState.current_board.id
+		if on_current_board and _editor != null and _editor.has_method("apply_remote_op"):
+			_editor.call("apply_remote_op", op)
+			ok = true
+		else:
+			var result: Dictionary = _applier.apply_to_project(op)
+			ok = bool(result.get("applied", false))
+	_applying_remote_depth -= 1
+	if _applying_remote_depth < 0:
+		_applying_remote_depth = 0
+	return ok
 
 
 func _record_seen(op_id: String) -> void:

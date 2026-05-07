@@ -12,6 +12,10 @@ func _ready() -> void:
 	_load()
 
 
+func _exit_tree() -> void:
+	_templates.clear()
+
+
 func names() -> PackedStringArray:
 	var out: PackedStringArray = PackedStringArray()
 	var keys: Array = _templates.keys()

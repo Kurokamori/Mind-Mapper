@@ -1,0 +1,115 @@
+[gd_scene format=3 uid="uid://bbfap3pgndbod"]
+
+[ext_resource type="Script" uid="uid://ceb4mcbc111u3" path="res://src/editor/chat_panel.gd" id="1_chat_panel"]
+[ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
+
+[node name="ChatPanel" type="PanelContainer" unique_id=2107411222]
+visible = false
+custom_minimum_size = Vector2(280, 0)
+script = ExtResource("1_chat_panel")
+dock_id = "chat"
+drag_handle_path = NodePath("Margin/VBox/Header/ChatTitle")
+grip_top_path = NodePath("ChatGripTop")
+grip_bottom_path = NodePath("ChatGripBottom")
+grip_left_path = NodePath("ChatGripLeft")
+grip_right_path = NodePath("ChatGripRight")
+default_floating_position = Vector2(180, 220)
+default_floating_size = Vector2(360, 420)
+default_dock_size = 320.0
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=1160544518]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin" unique_id=762887901]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Margin/VBox" unique_id=512126320]
+layout_mode = 2
+
+[node name="ChatTitle" type="Label" parent="Margin/VBox/Header" unique_id=333524155]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+theme_override_font_sizes/font_size = 14
+text = "Chat"
+
+[node name="ChatCloseButton" type="Button" parent="Margin/VBox/Header" unique_id=771154773]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Close chat panel"
+focus_mode = 0
+text = "X"
+flat = true
+
+[node name="ChatHistoryLabel" type="RichTextLabel" parent="Margin/VBox" unique_id=445778098]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+focus_mode = 0
+bbcode_enabled = true
+scroll_following = true
+context_menu_enabled = true
+selection_enabled = true
+
+[node name="ChatEmptyLabel" type="Label" parent="Margin/VBox" unique_id=1090827213]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.55)
+text = "No messages yet."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ChatStatusLabel" type="Label" parent="Margin/VBox" unique_id=1716919546]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.55)
+theme_override_font_sizes/font_size = 11
+text = "Join or host a session to chat."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="InputRow" type="HBoxContainer" parent="Margin/VBox" unique_id=1390041180]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ChatInputLine" type="LineEdit" parent="Margin/VBox/InputRow" unique_id=71270440]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Send a message…"
+max_length = 2000
+caret_blink = true
+
+[node name="ChatSendButton" type="Button" parent="Margin/VBox/InputRow" unique_id=1059918514]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+disabled = true
+text = "Send"
+
+[node name="ChatGripTop" parent="." unique_id=829346501 instance=ExtResource("2_grip")]
+top_level = true
+layout_mode = 2
+directions = 1
+
+[node name="ChatGripBottom" parent="." unique_id=511245402 instance=ExtResource("2_grip")]
+top_level = true
+layout_mode = 2
+directions = 2
+
+[node name="ChatGripLeft" parent="." unique_id=435898132 instance=ExtResource("2_grip")]
+top_level = true
+layout_mode = 2
+directions = 4
+
+[node name="ChatGripRight" parent="." unique_id=815740232 instance=ExtResource("2_grip")]
+top_level = true
+layout_mode = 2
+directions = 8

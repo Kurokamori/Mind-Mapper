@@ -11,6 +11,10 @@ const SECONDS_PER_YEAR: int = 31556952
 var _entries: Dictionary = {}
 
 
+func _exit_tree() -> void:
+	_entries.clear()
+
+
 func register(timer_item_id: String, board_id: String, label: String, seconds_remaining: float, running: bool) -> void:
 	if timer_item_id == "":
 		return

@@ -19,6 +19,7 @@ var root_board_id: String = ""
 var board_index: Dictionary = {}
 var map_page_index: Dictionary = {}
 var tileset_index: Dictionary = {}
+var discovery_enabled: bool = true
 
 
 static func create_new(folder_path_: String, project_name: String) -> Project:
@@ -91,6 +92,8 @@ static func load_from_folder(folder_path_: String) -> Project:
 	var tileset_index_raw: Variant = parsed.get("tileset_index", {})
 	if typeof(tileset_index_raw) == TYPE_DICTIONARY:
 		p.tileset_index = tileset_index_raw.duplicate()
+	if parsed.has("discovery_enabled"):
+		p.discovery_enabled = bool(parsed.get("discovery_enabled", true))
 	return p
 
 
@@ -270,6 +273,7 @@ func write_manifest() -> Error:
 		"board_index": board_index,
 		"map_page_index": map_page_index,
 		"tileset_index": tileset_index,
+		"discovery_enabled": discovery_enabled,
 	}
 	var path := folder_path.path_join(MANIFEST_FILENAME)
 	var f := FileAccess.open(path, FileAccess.WRITE)
@@ -343,8 +347,16 @@ func resolve_asset_path(asset_name: String) -> String:
 
 
 func create_child_board(parent_board_id: String, child_name: String) -> Board:
+	return create_child_board_with_id(parent_board_id, Uuid.v4(), child_name)
+
+
+func create_child_board_with_id(parent_board_id: String, board_id: String, child_name: String) -> Board:
+	if board_id == "":
+		return null
+	if FileAccess.file_exists(board_path(board_id)):
+		return read_board(board_id)
 	var b := Board.new()
-	b.id = Uuid.v4()
+	b.id = board_id
 	b.name = child_name if child_name.strip_edges() != "" else "Sub-board"
 	b.parent_board_id = parent_board_id
 	if write_board(b) != OK:

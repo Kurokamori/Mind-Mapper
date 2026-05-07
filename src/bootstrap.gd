@@ -10,8 +10,24 @@ var _current: Node = null
 
 
 func _ready() -> void:
+	get_tree().set_auto_accept_quit(false)
 	AppState.current_page_kind_changed.connect(_on_page_kind_changed)
 	_show_splash()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_shutdown_and_quit()
+
+
+func _shutdown_and_quit() -> void:
+	if _current != null:
+		var parent: Node = _current.get_parent()
+		if parent != null:
+			parent.remove_child(_current)
+		_current.free()
+		_current = null
+	get_tree().quit()
 
 
 func _show_splash() -> void:

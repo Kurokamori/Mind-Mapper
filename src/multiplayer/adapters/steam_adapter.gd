@@ -23,6 +23,10 @@ func adapter_kind() -> String:
 	return ADAPTER_KIND_STEAM
 
 
+func current_lobby_id() -> int:
+	return _lobby_id
+
+
 func is_available() -> bool:
 	return _steam != null
 

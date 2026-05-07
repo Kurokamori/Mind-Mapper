@@ -12,6 +12,7 @@ const RICH_TEXT_VARIANT_SLOTS: Dictionary = {
 const DARK_THEME: Theme = preload("res://assets/ui/resources/dark_theme.tres")
 const LIGHT_THEME: Theme = preload("res://assets/ui/resources/light_theme.tres")
 const PANEL_ALPHA: float = 0.75
+const RELATIVE_FONT_SCALE_META: String = "_relative_font_scale"
 
 const DARK_BG: Color = Color(0.085, 0.08, 0.105, 1.0)
 const DARK_PANEL: Color = Color(0.11, 0.105, 0.135, 1.0)
@@ -141,6 +142,24 @@ func _ready() -> void:
 	UserPrefs.theme_changed.connect(_apply_to_root)
 	get_tree().node_added.connect(_on_node_added)
 	call_deferred("_apply_to_root")
+
+
+func _exit_tree() -> void:
+	var tree: SceneTree = get_tree()
+	if tree != null and tree.node_added.is_connected(_on_node_added):
+		tree.node_added.disconnect(_on_node_added)
+	if UserPrefs != null and UserPrefs.theme_changed.is_connected(_apply_to_root):
+		UserPrefs.theme_changed.disconnect(_apply_to_root)
+	if _engine_fallback_font != null:
+		ThemeDB.fallback_font = _engine_fallback_font
+	ThemeDB.fallback_font_size = _engine_fallback_font_size
+	if tree != null and tree.root != null:
+		tree.root.theme = null
+	_current_theme = null
+	_font_manifest = null
+	_custom_font_cache.clear()
+	_engine_fallback_font = null
+	_last_node_palette.clear()
 
 
 func _on_node_added(node: Node) -> void:
@@ -283,11 +302,58 @@ func _apply_font_override_to_control(ctrl: Control, font: Font) -> void:
 				ctrl.add_theme_font_override(slot, f)
 			else:
 				ctrl.remove_theme_font_override(slot)
+		_reapply_relative_font_size(ctrl)
 		return
 	if font != null:
 		ctrl.add_theme_font_override("font", font)
 	else:
 		ctrl.remove_theme_font_override("font")
+	_reapply_relative_font_size(ctrl)
+
+
+func scaled_font_size(scale: float) -> int:
+	var base: int = UserPrefs.font_size
+	var sized: int = int(round(float(base) * scale))
+	return max(1, sized)
+
+
+func apply_relative_font_size(ctrl: Control, scale: float) -> void:
+	if ctrl == null:
+		return
+	ctrl.set_meta(RELATIVE_FONT_SCALE_META, scale)
+	_reapply_relative_font_size(ctrl)
+
+
+func clear_relative_font_size(ctrl: Control) -> void:
+	if ctrl == null:
+		return
+	if ctrl.has_meta(RELATIVE_FONT_SCALE_META):
+		ctrl.remove_meta(RELATIVE_FONT_SCALE_META)
+	if ctrl is RichTextLabel:
+		for variant_v: Variant in RICH_TEXT_VARIANT_SLOTS.keys():
+			var slot: String = String(RICH_TEXT_VARIANT_SLOTS[variant_v])
+			var size_slot: String = slot.replace("_font", "_font_size")
+			ctrl.remove_theme_font_size_override(size_slot)
+	else:
+		ctrl.remove_theme_font_size_override("font_size")
+
+
+func _reapply_relative_font_size(ctrl: Control) -> void:
+	if ctrl == null or not ctrl.has_meta(RELATIVE_FONT_SCALE_META):
+		return
+	var raw: Variant = ctrl.get_meta(RELATIVE_FONT_SCALE_META)
+	if typeof(raw) != TYPE_FLOAT and typeof(raw) != TYPE_INT:
+		return
+	var scale: float = float(raw)
+	var sz: int = scaled_font_size(scale)
+	if ctrl is RichTextLabel:
+		ctrl.add_theme_font_size_override("normal_font_size", sz)
+		ctrl.add_theme_font_size_override("bold_font_size", sz)
+		ctrl.add_theme_font_size_override("italics_font_size", sz)
+		ctrl.add_theme_font_size_override("bold_italics_font_size", sz)
+		ctrl.add_theme_font_size_override("mono_font_size", sz)
+	else:
+		ctrl.add_theme_font_size_override("font_size", sz)
 
 
 func _apply_font_override_to_window(win: Window, font: Font) -> void:

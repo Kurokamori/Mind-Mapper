@@ -276,6 +276,7 @@ func _on_item_edited() -> void:
 		if AppState.current_project == null:
 			return
 		if AppState.current_project.rename_board(bid, new_name):
+			_broadcast_rename_board(bid, new_name)
 			AppState.emit_signal("board_modified", bid)
 			if AppState.current_board != null and AppState.current_board.id == bid:
 				AppState.current_board.name = new_name
@@ -428,9 +429,11 @@ func _on_close_pressed() -> void:
 func _create_child(parent_board_id: String) -> void:
 	if AppState.current_project == null:
 		return
-	var b: Board = AppState.current_project.create_child_board(parent_board_id, "New Board")
+	var child_id: String = Uuid.v4()
+	var b: Board = AppState.current_project.create_child_board_with_id(parent_board_id, child_id, "New Board")
 	if b == null:
 		return
+	_broadcast_create_board(b.id, parent_board_id, b.name)
 	AppState.emit_signal("board_modified", b.id)
 	AppState.navigate_to_board(b.id)
 
@@ -522,6 +525,7 @@ func _outliner_drop_data(_at_position: Vector2, data: Variant) -> void:
 		return
 	if not AppState.current_project.reparent_board(src_id, target_id):
 		return
+	_broadcast_reparent_board(src_id, target_id)
 	AppState.emit_signal("board_modified", src_id)
 
 
@@ -549,11 +553,48 @@ func _delete_board(board_id: String) -> void:
 		parent_id = current_b.parent_board_id
 	if not AppState.current_project.delete_board(board_id):
 		return
+	_broadcast_delete_board(board_id)
 	if AppState.current_board != null and AppState.current_board.id == board_id:
 		var fallback: String = parent_id if parent_id != "" else AppState.current_project.root_board_id
 		if fallback != "":
 			AppState.navigate_to_board(fallback)
 	AppState.emit_signal("board_modified", board_id)
+
+
+func _broadcast_create_board(board_id: String, parent_board_id: String, board_name: String) -> void:
+	if board_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.CREATE_BOARD, {
+		"board_id": board_id,
+		"name": board_name,
+		"parent_board_id": parent_board_id,
+	}, "")
+
+
+func _broadcast_rename_board(board_id: String, new_name: String) -> void:
+	if board_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.RENAME_BOARD, {
+		"board_id": board_id,
+		"name": new_name,
+	}, "")
+
+
+func _broadcast_reparent_board(board_id: String, parent_board_id: String) -> void:
+	if board_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.REPARENT_BOARD, {
+		"board_id": board_id,
+		"parent_board_id": parent_board_id,
+	}, "")
+
+
+func _broadcast_delete_board(board_id: String) -> void:
+	if board_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.DELETE_BOARD, {
+		"board_id": board_id,
+	}, "")
 
 
 func _apply_translucent_panel() -> void:

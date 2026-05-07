@@ -109,6 +109,7 @@ func _render_for(selected: Array) -> void:
 	_attach_tag_section(item)
 	_attach_link_section(item)
 	_attach_backlinks_section(item)
+	_attach_delete_section(item)
 	_apply_read_only_to_subtree(_content, not _edit_mode_enabled)
 
 
@@ -152,6 +153,27 @@ func _attach_multi_selection_section(selected: Array) -> void:
 			for t in after: after_arr.append(String(t))
 			History.push(ModifyPropertyCommand.new(editor, item.item_id, "tags", before_arr, after_arr))
 		Tags.notify_changed()
+	)
+	var delete_sep: HSeparator = HSeparator.new()
+	v.add_child(delete_sep)
+	var delete_btn: Button = Button.new()
+	delete_btn.text = "Delete all (%d)" % selected.size()
+	delete_btn.tooltip_text = "Remove all selected nodes from the board (undoable)"
+	delete_btn.add_theme_color_override("font_color", Color(0.95, 0.45, 0.45))
+	delete_btn.add_theme_color_override("font_hover_color", Color(1.0, 0.55, 0.55))
+	delete_btn.add_theme_color_override("font_pressed_color", Color(0.85, 0.35, 0.35))
+	v.add_child(delete_btn)
+	delete_btn.pressed.connect(func() -> void:
+		if editor == null:
+			return
+		var snapshot: Array = []
+		for it in selected:
+			if it is BoardItem:
+				snapshot.append(it)
+		if snapshot.is_empty():
+			return
+		SelectionBus.clear()
+		History.push(RemoveItemsCommand.new(editor, snapshot))
 	)
 	_content.add_child(v)
 	_attach_shared_property_groups(selected, editor)
@@ -295,6 +317,28 @@ func _attach_backlinks_section(item: BoardItem) -> void:
 	var editor: Node = _find_editor_node()
 	section.bind(item, editor)
 	_content.add_child(section)
+
+
+func _attach_delete_section(item: BoardItem) -> void:
+	var v: VBoxContainer = VBoxContainer.new()
+	v.add_theme_constant_override("separation", 4)
+	var sep: HSeparator = HSeparator.new()
+	v.add_child(sep)
+	var btn: Button = Button.new()
+	btn.text = "Delete node"
+	btn.tooltip_text = "Remove this node from the board (undoable)"
+	btn.add_theme_color_override("font_color", Color(0.95, 0.45, 0.45))
+	btn.add_theme_color_override("font_hover_color", Color(1.0, 0.55, 0.55))
+	btn.add_theme_color_override("font_pressed_color", Color(0.85, 0.35, 0.35))
+	var editor: Node = _find_editor_node()
+	btn.pressed.connect(func() -> void:
+		if editor == null or item == null:
+			return
+		SelectionBus.clear()
+		History.push(RemoveItemsCommand.new(editor, [item]))
+	)
+	v.add_child(btn)
+	_content.add_child(v)
 
 
 func _find_editor_node() -> Node:

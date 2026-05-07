@@ -23,6 +23,8 @@ var _selected_item_id: String = ""
 var _comments: Array = []
 var _cards_by_comment_id: Dictionary = {}
 var _read_only: bool = false
+var _local_stable_id: String = ""
+var _is_full_editor: bool = true
 
 
 func _ready() -> void:
@@ -65,6 +67,15 @@ func set_read_only(value: bool) -> void:
 		var card: CommentCard = c_v as CommentCard
 		if card != null:
 			card.set_read_only(value)
+
+
+func set_local_identity(stable_id: String, is_full_editor: bool) -> void:
+	_local_stable_id = stable_id
+	_is_full_editor = is_full_editor
+	for c_v: Variant in _cards_by_comment_id.values():
+		var card: CommentCard = c_v as CommentCard
+		if card != null:
+			card.set_local_identity(stable_id, is_full_editor)
 
 
 func set_comments(comments: Array) -> void:
@@ -122,6 +133,7 @@ func _render() -> void:
 		_list.add_child(card)
 		card.bind(_editor, comment_v as Dictionary)
 		card.set_target_label(_target_label_for(comment_v as Dictionary))
+		card.set_local_identity(_local_stable_id, _is_full_editor)
 		card.set_read_only(_read_only)
 		card.jump_requested.connect(_on_card_jump_requested)
 		_cards_by_comment_id[String((comment_v as Dictionary).get(CommentData.FIELD_ID, ""))] = card

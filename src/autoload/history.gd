@@ -10,6 +10,13 @@ var _per_page_undo: Dictionary = {}
 var _per_page_redo: Dictionary = {}
 
 
+func _exit_tree() -> void:
+	_per_page_undo.clear()
+	_per_page_redo.clear()
+	_bound_page_id = ""
+	_project = null
+
+
 func set_project(project: Project) -> void:
 	_project = project
 
