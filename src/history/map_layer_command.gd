@@ -51,10 +51,13 @@ func do() -> void:
 	match _kind:
 		KIND_ADD:
 			_editor.insert_layer_from_dict(_layer_dict, _to_index)
+			_record_insert(_to_index)
 		KIND_REMOVE:
 			_editor.remove_layer_by_id(_layer_id)
+			_record_remove()
 		KIND_REORDER:
 			_editor.reorder_layer(_layer_id, _to_index)
+			_record_reorder(_to_index)
 	_editor.request_save()
 
 
@@ -64,11 +67,52 @@ func undo() -> void:
 	match _kind:
 		KIND_ADD:
 			_editor.remove_layer_by_id(_layer_id)
+			_record_remove()
 		KIND_REMOVE:
 			_editor.insert_layer_from_dict(_layer_dict, _from_index)
+			_record_insert(_from_index)
 		KIND_REORDER:
 			_editor.reorder_layer(_layer_id, _from_index)
+			_record_reorder(_from_index)
 	_editor.request_save()
+
+
+func _map_id() -> String:
+	if AppState.current_map_page == null:
+		return ""
+	return AppState.current_map_page.id
+
+
+func _record_insert(target_index: int) -> void:
+	var mid: String = _map_id()
+	if mid == "":
+		return
+	OpBus.record_local_change(OpKinds.MAP_INSERT_LAYER, {
+		"map_id": mid,
+		"layer": _layer_dict.duplicate(true),
+		"index": target_index,
+	}, mid)
+
+
+func _record_remove() -> void:
+	var mid: String = _map_id()
+	if mid == "":
+		return
+	OpBus.record_local_change(OpKinds.MAP_REMOVE_LAYER, {
+		"map_id": mid,
+		"layer_id": _layer_id,
+	}, mid)
+
+
+func _record_reorder(target_index: int) -> void:
+	var mid: String = _map_id()
+	if mid == "":
+		return
+	OpBus.record_local_change(OpKinds.MAP_REORDER_LAYER, {
+		"map_id": mid,
+		"layer_id": _layer_id,
+		"index": target_index,
+	}, mid)
 
 
 func description() -> String:

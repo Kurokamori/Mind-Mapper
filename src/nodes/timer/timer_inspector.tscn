@@ -10,7 +10,6 @@ theme_override_constants/separation = 6
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
 text = "Timer"
-theme_override_font_sizes/font_size = 16
 
 [node name="LabelSection" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -54,7 +53,6 @@ size_flags_horizontal = 3
 [node name="YearsLabel" type="Label" parent="DurationPanel/DurationRow1/YearsVBox"]
 layout_mode = 2
 text = "Years"
-theme_override_font_sizes/font_size = 11
 
 [node name="YearsSpin" type="SpinBox" parent="DurationPanel/DurationRow1/YearsVBox"]
 unique_name_in_owner = true
@@ -71,7 +69,6 @@ size_flags_horizontal = 3
 [node name="WeeksLabel" type="Label" parent="DurationPanel/DurationRow1/WeeksVBox"]
 layout_mode = 2
 text = "Weeks"
-theme_override_font_sizes/font_size = 11
 
 [node name="WeeksSpin" type="SpinBox" parent="DurationPanel/DurationRow1/WeeksVBox"]
 unique_name_in_owner = true
@@ -88,7 +85,6 @@ size_flags_horizontal = 3
 [node name="DaysLabel" type="Label" parent="DurationPanel/DurationRow1/DaysVBox"]
 layout_mode = 2
 text = "Days"
-theme_override_font_sizes/font_size = 11
 
 [node name="DaysSpin" type="SpinBox" parent="DurationPanel/DurationRow1/DaysVBox"]
 unique_name_in_owner = true
@@ -109,7 +105,6 @@ size_flags_horizontal = 3
 [node name="HoursLabel" type="Label" parent="DurationPanel/DurationRow2/HoursVBox"]
 layout_mode = 2
 text = "Hours"
-theme_override_font_sizes/font_size = 11
 
 [node name="HoursSpin" type="SpinBox" parent="DurationPanel/DurationRow2/HoursVBox"]
 unique_name_in_owner = true
@@ -126,7 +121,6 @@ size_flags_horizontal = 3
 [node name="MinutesLabel" type="Label" parent="DurationPanel/DurationRow2/MinutesVBox"]
 layout_mode = 2
 text = "Minutes"
-theme_override_font_sizes/font_size = 11
 
 [node name="MinutesSpin" type="SpinBox" parent="DurationPanel/DurationRow2/MinutesVBox"]
 unique_name_in_owner = true
@@ -143,7 +137,6 @@ size_flags_horizontal = 3
 [node name="SecondsLabel" type="Label" parent="DurationPanel/DurationRow2/SecondsVBox"]
 layout_mode = 2
 text = "Seconds"
-theme_override_font_sizes/font_size = 11
 
 [node name="SecondsSpin" type="SpinBox" parent="DurationPanel/DurationRow2/SecondsVBox"]
 unique_name_in_owner = true
@@ -174,7 +167,6 @@ size_flags_horizontal = 3
 [node name="TargetYearLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetYearVBox"]
 layout_mode = 2
 text = "Year"
-theme_override_font_sizes/font_size = 11
 
 [node name="TargetYearSpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetYearVBox"]
 unique_name_in_owner = true
@@ -192,7 +184,6 @@ size_flags_horizontal = 3
 [node name="TargetMonthLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetMonthVBox"]
 layout_mode = 2
 text = "Month"
-theme_override_font_sizes/font_size = 11
 
 [node name="TargetMonthSpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetMonthVBox"]
 unique_name_in_owner = true
@@ -210,7 +201,6 @@ size_flags_horizontal = 3
 [node name="TargetDayLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetDayVBox"]
 layout_mode = 2
 text = "Day"
-theme_override_font_sizes/font_size = 11
 
 [node name="TargetDaySpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetDayVBox"]
 unique_name_in_owner = true
@@ -232,7 +222,6 @@ size_flags_horizontal = 3
 [node name="TargetHourLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetHourVBox"]
 layout_mode = 2
 text = "Hour"
-theme_override_font_sizes/font_size = 11
 
 [node name="TargetHourSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetHourVBox"]
 unique_name_in_owner = true
@@ -249,7 +238,6 @@ size_flags_horizontal = 3
 [node name="TargetMinuteLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetMinuteVBox"]
 layout_mode = 2
 text = "Minute"
-theme_override_font_sizes/font_size = 11
 
 [node name="TargetMinuteSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetMinuteVBox"]
 unique_name_in_owner = true
@@ -266,7 +254,6 @@ size_flags_horizontal = 3
 [node name="TargetSecondLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetSecondVBox"]
 layout_mode = 2
 text = "Second"
-theme_override_font_sizes/font_size = 11
 
 [node name="TargetSecondSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetSecondVBox"]
 unique_name_in_owner = true
@@ -309,4 +296,3 @@ unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 text = ""
-theme_override_font_sizes/font_size = 11

@@ -30,7 +30,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 text = "Minimap"
-theme_override_font_sizes/font_size = 11
 
 [node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
 unique_name_in_owner = true

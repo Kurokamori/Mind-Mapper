@@ -27,6 +27,7 @@ var _last_committed_color: Color = Color.WHITE
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_author_label, 0.80)
 	_color_button.color_changed.connect(_on_color_changed)
 	_color_button.popup_closed.connect(_on_color_popup_closed)
 	_title_edit.text_submitted.connect(_on_title_submitted)

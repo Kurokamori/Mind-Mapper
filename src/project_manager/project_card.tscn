@@ -13,23 +13,19 @@ theme_override_constants/separation = 4
 [node name="NameLabel" type="Label" parent="VBox" unique_id=1966902598]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 
 [node name="PathLabel" type="Label" parent="VBox" unique_id=1953938879]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
 autowrap_mode = 2
 
 [node name="ModifiedLabel" type="Label" parent="VBox" unique_id=2110388029]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
 
 [node name="LiveStatusLabel" type="Label" parent="VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
 
 [node name="Buttons" type="HBoxContainer" parent="VBox" unique_id=1862069045]
 layout_mode = 2

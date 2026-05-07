@@ -66,7 +66,6 @@ offset_top = 235.0
 offset_right = 290.0
 offset_bottom = 253.0
 text = "50%"
-theme_override_font_sizes/font_size = 11
 
 [node name="FitButton" type="Button" parent="."]
 unique_name_in_owner = true

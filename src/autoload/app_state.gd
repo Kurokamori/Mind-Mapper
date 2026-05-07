@@ -9,6 +9,7 @@ signal navigation_changed()
 signal before_navigation()
 signal board_modified(board_id: String)
 signal map_page_modified(map_id: String)
+signal tileset_changed(tileset_id: String)
 signal save_state_changed(state: String, unix_time: int)
 signal tag_filter_changed(tag: String)
 signal templates_changed()
@@ -29,6 +30,7 @@ var save_state: String = SAVE_STATE_SAVED
 var last_save_unix: int = 0
 var active_tag_filter: String = ""
 var _pending_nav_board_id: String = ""
+var _pending_nav_map_id: String = ""
 
 
 func open_project(project: Project) -> void:
@@ -101,7 +103,10 @@ func navigate_to_map_page(map_id: String) -> bool:
 		return false
 	var p: MapPage = current_project.read_map_page(map_id)
 	if p == null:
+		_pending_nav_map_id = map_id
+		_request_remote_map_if_possible(map_id)
 		return false
+	_pending_nav_map_id = ""
 	emit_signal("before_navigation")
 	_push_current_to_history()
 	current_map_page = p
@@ -114,6 +119,52 @@ func navigate_to_map_page(map_id: String) -> bool:
 		emit_signal("current_page_kind_changed", current_page_kind)
 	emit_signal("navigation_changed")
 	return true
+
+
+func _request_remote_map_if_possible(map_id: String) -> void:
+	if map_id == "":
+		return
+	var root: Node = get_tree().root
+	if root == null or not root.has_node("MultiplayerService"):
+		return
+	var mps: Node = root.get_node("MultiplayerService")
+	if not mps.has_method("is_in_session") or not bool(mps.call("is_in_session")):
+		return
+	if mps.has_method("request_map_page"):
+		mps.call("request_map_page", map_id)
+
+
+func apply_remote_map_page_snapshot(page: MapPage) -> void:
+	if current_project == null or page == null:
+		return
+	if _pending_nav_map_id == page.id:
+		_pending_nav_map_id = ""
+		emit_signal("before_navigation")
+		_push_current_to_history()
+		current_map_page = page
+		current_board = null
+		var prev_kind_pn: String = current_page_kind
+		current_page_kind = PAGE_KIND_MAP
+		History.bind_page(page.id)
+		emit_signal("current_map_page_changed", current_map_page)
+		if prev_kind_pn != current_page_kind:
+			emit_signal("current_page_kind_changed", current_page_kind)
+		emit_signal("map_page_modified", page.id)
+		emit_signal("navigation_changed")
+		return
+	if current_page_kind == PAGE_KIND_MAP and current_map_page != null and current_map_page.id == page.id:
+		current_map_page = page
+		emit_signal("current_map_page_changed", current_map_page)
+		emit_signal("map_page_modified", page.id)
+		emit_signal("navigation_changed")
+		return
+	emit_signal("map_page_modified", page.id)
+
+
+func notify_tileset_received(tileset_id: String) -> void:
+	if tileset_id == "":
+		return
+	emit_signal("tileset_changed", tileset_id)
 
 
 func navigate_back() -> bool:

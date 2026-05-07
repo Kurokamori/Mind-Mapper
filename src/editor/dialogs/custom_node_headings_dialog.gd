@@ -39,7 +39,7 @@ func _add_header_row() -> void:
 	for label_text: String in ["Node type", "Heading bg", "Heading text", "Reset"]:
 		var l: Label = Label.new()
 		l.text = label_text
-		l.add_theme_font_size_override("font_size", 12)
+		ThemeManager.apply_relative_font_size(l, 0.85)
 		_grid.add_child(l)
 
 

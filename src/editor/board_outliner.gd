@@ -298,6 +298,7 @@ func _on_item_edited() -> void:
 		if AppState.current_project == null:
 			return
 		if AppState.current_project.rename_map_page(mid, new_name_m):
+			_broadcast_rename_map_page(mid, new_name_m)
 			AppState.emit_signal("map_page_modified", mid)
 			if AppState.current_map_page != null and AppState.current_map_page.id == mid:
 				AppState.current_map_page.name = new_name_m
@@ -415,11 +416,29 @@ func _delete_map_page(map_id: String) -> void:
 		return
 	if not AppState.current_project.delete_map_page(map_id):
 		return
+	_broadcast_delete_map_page(map_id)
 	if AppState.current_map_page != null and AppState.current_map_page.id == map_id:
 		AppState.current_map_page = null
 		AppState.navigate_to_board(AppState.current_project.root_board_id)
 	AppState.emit_signal("map_page_modified", map_id)
 	_rebuild()
+
+
+func _broadcast_rename_map_page(map_id: String, new_name: String) -> void:
+	if map_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.RENAME_MAP_PAGE, {
+		"map_id": map_id,
+		"name": new_name,
+	}, "")
+
+
+func _broadcast_delete_map_page(map_id: String) -> void:
+	if map_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.DELETE_MAP_PAGE, {
+		"map_id": map_id,
+	}, "")
 
 
 func _on_close_pressed() -> void:

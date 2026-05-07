@@ -24,6 +24,8 @@ func bind(heading: String, initial_text: String, hint: String = "") -> void:
 
 func _ready() -> void:
 	close_requested.connect(_on_cancel)
+	ThemeManager.apply_relative_font_size(_heading_label, 1.15)
+	ThemeManager.apply_relative_font_size(_hint_label, 0.80)
 	_heading_label.text = _heading
 	_hint_label.text = _hint
 	_text_edit.text = _initial_text

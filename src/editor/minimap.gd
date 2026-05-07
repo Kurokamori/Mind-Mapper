@@ -24,6 +24,7 @@ var _panel_drag_offset: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	ThemeManager.theme_applied.connect(_on_theme_applied)
+	ThemeManager.apply_relative_font_sizes(self, {"Margin/VBox/Header/Title": 0.80})
 	_apply_translucent_panel()
 	_canvas.draw.connect(_on_canvas_draw)
 	_canvas.gui_input.connect(_on_canvas_input)

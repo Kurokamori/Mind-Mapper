@@ -324,6 +324,20 @@ func apply_relative_font_size(ctrl: Control, scale: float) -> void:
 	_reapply_relative_font_size(ctrl)
 
 
+func apply_relative_font_sizes(root: Node, mappings: Dictionary) -> void:
+	if root == null:
+		return
+	for key_v: Variant in mappings.keys():
+		var path: NodePath = NodePath(String(key_v))
+		var raw_scale: Variant = mappings[key_v]
+		if typeof(raw_scale) != TYPE_FLOAT and typeof(raw_scale) != TYPE_INT:
+			continue
+		var scale: float = float(raw_scale)
+		var node: Node = root.get_node_or_null(path)
+		if node is Control:
+			apply_relative_font_size(node as Control, scale)
+
+
 func clear_relative_font_size(ctrl: Control) -> void:
 	if ctrl == null:
 		return

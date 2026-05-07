@@ -29,6 +29,7 @@ var _last_load_path: String = ""
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_time_label, 0.85)
 	_play_button.pressed.connect(_on_play_pressed)
 	_stop_button.pressed.connect(_on_stop_pressed)
 	_player.finished.connect(_on_finished)

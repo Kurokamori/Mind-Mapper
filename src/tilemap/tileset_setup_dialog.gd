@@ -22,6 +22,7 @@ var _from_godot_tres: bool = false
 func _ready() -> void:
 	add_cancel_button("Cancel")
 	confirmed.connect(_on_confirmed)
+	ThemeManager.apply_relative_font_size(_info_label, 0.85)
 	_add_terrain_button.pressed.connect(_on_add_terrain_pressed)
 
 

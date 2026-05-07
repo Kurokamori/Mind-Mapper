@@ -27,7 +27,6 @@ mouse_filter = 2
 layout_mode = 2
 text = "Timer"
 clip_text = true
-theme_override_font_sizes/font_size = 13
 
 [node name="TimeLabel" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
@@ -37,7 +36,6 @@ size_flags_horizontal = 3
 text = "0:00"
 horizontal_alignment = 1
 clip_text = true
-theme_override_font_sizes/font_size = 30
 
 [node name="TargetLabel" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
@@ -47,7 +45,6 @@ visible = false
 text = ""
 horizontal_alignment = 1
 clip_text = true
-theme_override_font_sizes/font_size = 11
 
 [node name="ButtonsRow" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2

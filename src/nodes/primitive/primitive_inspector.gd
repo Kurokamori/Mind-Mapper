@@ -20,6 +20,7 @@ func bind(item: PrimitiveNode) -> void:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_sizes(self, {"Header": 1.15})
 	_populate_shape_options()
 	if _item == null:
 		return

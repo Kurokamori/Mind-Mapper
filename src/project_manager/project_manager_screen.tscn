@@ -45,7 +45,6 @@ theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="Margins/VBox" unique_id=391425348]
 layout_mode = 2
-theme_override_font_sizes/font_size = 32
 text = "Mind Mapper"
 
 [node name="Subtitle" type="Label" parent="Margins/VBox" unique_id=1878359120]
@@ -78,7 +77,6 @@ text = "Join session…"
 
 [node name="SectionHeader" type="Label" parent="Margins/VBox" unique_id=2090480832]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 text = "Recent projects"
 
 [node name="Scroll" type="ScrollContainer" parent="Margins/VBox" unique_id=1259681053]

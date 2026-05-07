@@ -29,6 +29,10 @@ static func create() -> ProjectCard:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_name_label, 1.30)
+	ThemeManager.apply_relative_font_size(_path_label, 0.80)
+	ThemeManager.apply_relative_font_size(_modified_label, 0.80)
+	ThemeManager.apply_relative_font_size(_live_status_label, 0.80)
 	_open_button.pressed.connect(func() -> void: emit_signal("open_requested", _folder_path))
 	_forget_button.pressed.connect(func() -> void: emit_signal("forget_requested", _folder_path))
 	_join_live_button.pressed.connect(_on_join_live_pressed)

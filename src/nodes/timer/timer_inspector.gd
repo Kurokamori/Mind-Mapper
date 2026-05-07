@@ -41,6 +41,22 @@ func bind(item: TimerNode) -> void:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_sizes(self, {
+		"Header": 1.15,
+		"DurationPanel/DurationRow1/YearsVBox/YearsLabel": 0.80,
+		"DurationPanel/DurationRow1/WeeksVBox/WeeksLabel": 0.80,
+		"DurationPanel/DurationRow1/DaysVBox/DaysLabel": 0.80,
+		"DurationPanel/DurationRow2/HoursVBox/HoursLabel": 0.80,
+		"DurationPanel/DurationRow2/MinutesVBox/MinutesLabel": 0.80,
+		"DurationPanel/DurationRow2/SecondsVBox/SecondsLabel": 0.80,
+		"TargetPanel/TargetDateRow/TargetYearVBox/TargetYearLabel": 0.80,
+		"TargetPanel/TargetDateRow/TargetMonthVBox/TargetMonthLabel": 0.80,
+		"TargetPanel/TargetDateRow/TargetDayVBox/TargetDayLabel": 0.80,
+		"TargetPanel/TargetTimeRow/TargetHourVBox/TargetHourLabel": 0.80,
+		"TargetPanel/TargetTimeRow/TargetMinuteVBox/TargetMinuteLabel": 0.80,
+		"TargetPanel/TargetTimeRow/TargetSecondVBox/TargetSecondLabel": 0.80,
+		"TargetPanel/TargetPreview": 0.80,
+	})
 	if _item == null:
 		return
 	_setup_mode_options()

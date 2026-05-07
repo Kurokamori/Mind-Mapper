@@ -19,6 +19,7 @@ var _row_controls: Array = []
 
 func _ready() -> void:
 	close_requested.connect(_on_close_requested)
+	ThemeManager.apply_relative_font_size(_status_label, 0.80)
 	if _row_template != null:
 		_row_template.visible = false
 	_keep_all_mine_button.pressed.connect(_on_keep_all_mine_pressed)
@@ -69,6 +70,10 @@ func _populate_row(row: Control, conflict: Dictionary, index: int) -> void:
 	var keep_local_button: Button = row.get_node("RowVBox/SidesRow/LocalPanel/LocalVBox/KeepLocalButton") as Button
 	var keep_remote_button: Button = row.get_node("RowVBox/SidesRow/RemotePanel/RemoteVBox/KeepRemoteButton") as Button
 	var resolution_label: Label = row.get_node("RowVBox/ResolutionLabel") as Label
+	ThemeManager.apply_relative_font_size(property_label, 0.80)
+	ThemeManager.apply_relative_font_size(local_meta_label, 0.80)
+	ThemeManager.apply_relative_font_size(remote_meta_label, 0.80)
+	ThemeManager.apply_relative_font_size(resolution_label, 0.80)
 	target_label.text = _format_target(conflict)
 	property_label.text = "Property: %s" % String(conflict.get("property_label", ""))
 	var local_summary: Dictionary = conflict.get("local_summary", {}) as Dictionary

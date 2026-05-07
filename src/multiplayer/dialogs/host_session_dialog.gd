@@ -17,6 +17,10 @@ var _adapter_kinds: Array[String] = []
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_adapter_status, 0.80)
+	ThemeManager.apply_relative_font_size(_stable_id_label, 0.72)
+	ThemeManager.apply_relative_font_size(_public_key_fingerprint_label, 0.72)
+	ThemeManager.apply_relative_font_size(_summary_label, 0.80)
 	title = "Host multiplayer session"
 	min_size = Vector2(480, 240)
 	get_ok_button().text = "Start hosting"

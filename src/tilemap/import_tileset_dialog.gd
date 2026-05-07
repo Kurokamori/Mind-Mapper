@@ -16,6 +16,7 @@ signal tileset_import_requested(name_str: String, tres_path: String, godot_proje
 func _ready() -> void:
 	add_cancel_button("Cancel")
 	confirmed.connect(_on_confirmed)
+	ThemeManager.apply_relative_font_size(_info_label, 0.85)
 	_tres_browse.pressed.connect(_on_tres_browse)
 	_project_root_browse.pressed.connect(_on_root_browse)
 	_tres_dialog.file_selected.connect(_on_tres_chosen)

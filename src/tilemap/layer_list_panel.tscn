@@ -36,7 +36,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
 text = "Layers"
-theme_override_font_sizes/font_size = 14
 
 [node name="AddButton" type="Button" parent="Margin/VBox/Header"]
 unique_name_in_owner = true

@@ -16,6 +16,12 @@ var _avatar_color: Color = Color(0.55, 0.78, 1.0, 1.0)
 var _is_self: bool = false
 
 
+func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_initial_label, 0.85)
+	ThemeManager.apply_relative_font_size(_role_badge, 0.72)
+	ThemeManager.apply_relative_font_size(_self_marker, 0.65)
+
+
 func bind(stable_id: String, display_name: String, role: String, hosting: bool, color: Color, is_self: bool) -> void:
 	_stable_id = stable_id
 	_avatar_color = color

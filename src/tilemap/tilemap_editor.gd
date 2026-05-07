@@ -94,6 +94,116 @@ func _ready() -> void:
 	AppState.current_page_kind_changed.connect(_on_page_kind_changed)
 	if AppState.current_map_page != null:
 		_on_map_page_changed(AppState.current_map_page)
+	OpBus.bind_map_editor(self)
+	AppState.tileset_changed.connect(_on_tileset_changed)
+	tree_exited.connect(_on_tree_exited)
+
+
+func _on_tree_exited() -> void:
+	OpBus.unbind_map_editor()
+
+
+func _on_tileset_changed(tileset_id: String) -> void:
+	if AppState.current_map_page == null:
+		return
+	_load_tilesets()
+	_refresh_tileset_palette()
+	for layer: MapLayer in AppState.current_map_page.layers:
+		if layer.tileset_id == tileset_id:
+			_apply_layer_renderer_binding(layer)
+	_refresh_layer_panel()
+
+
+func apply_remote_map_op(op: Op) -> void:
+	if op == null or AppState.current_map_page == null:
+		return
+	if op.board_id != "" and op.board_id != AppState.current_map_page.id:
+		return
+	match op.kind:
+		OpKinds.SET_MAP_PROPERTY:
+			_apply_remote_set_map_property(op)
+		OpKinds.MAP_INSERT_LAYER:
+			var layer_dict_raw: Variant = op.payload.get("layer", null)
+			if typeof(layer_dict_raw) == TYPE_DICTIONARY:
+				insert_layer_from_dict(layer_dict_raw, int(op.payload.get("index", AppState.current_map_page.layers.size())))
+		OpKinds.MAP_REMOVE_LAYER:
+			remove_layer_by_id(String(op.payload.get("layer_id", "")))
+		OpKinds.MAP_REORDER_LAYER:
+			reorder_layer(String(op.payload.get("layer_id", "")), int(op.payload.get("index", 0)))
+		OpKinds.MAP_SET_LAYER_PROPERTY:
+			apply_layer_property(String(op.payload.get("layer_id", "")), String(op.payload.get("key", "")), op.payload.get("value", null))
+		OpKinds.MAP_SET_LAYER_CELLS:
+			_apply_remote_layer_cells(op)
+		OpKinds.MAP_ADD_OBJECT:
+			var obj_dict_raw: Variant = op.payload.get("object", null)
+			if typeof(obj_dict_raw) == TYPE_DICTIONARY:
+				spawn_object_from_dict(obj_dict_raw)
+		OpKinds.MAP_REMOVE_OBJECT:
+			remove_object_by_id(String(op.payload.get("object_id", "")))
+		OpKinds.MAP_MOVE_OBJECT:
+			var pos_raw: Variant = op.payload.get("position", null)
+			if typeof(pos_raw) == TYPE_ARRAY and (pos_raw as Array).size() >= 2:
+				var arr: Array = pos_raw
+				apply_object_position(String(op.payload.get("object_id", "")), Vector2(float(arr[0]), float(arr[1])))
+		OpKinds.MAP_SET_OBJECT_PROPERTY:
+			var raw_value: Variant = op.payload.get("value", null)
+			if typeof(raw_value) == TYPE_ARRAY and (raw_value as Array).size() == 2 and (op.payload.get("key", "") == "position"):
+				raw_value = Vector2(float((raw_value as Array)[0]), float((raw_value as Array)[1]))
+			apply_object_property(String(op.payload.get("object_id", "")), String(op.payload.get("key", "")), raw_value)
+
+
+func _apply_remote_set_map_property(op: Op) -> void:
+	var key: String = String(op.payload.get("key", ""))
+	if key == "" or AppState.current_map_page == null:
+		return
+	if not (op.payload as Dictionary).has("value"):
+		return
+	var value: Variant = op.payload["value"]
+	match key:
+		"name":
+			AppState.current_map_page.name = String(value)
+			AppState.emit_signal("navigation_changed")
+		"tile_size":
+			if typeof(value) == TYPE_ARRAY and (value as Array).size() >= 2:
+				var arr: Array = value
+				AppState.current_map_page.tile_size = Vector2i(int(arr[0]), int(arr[1]))
+				_grid_overlay.set_tile_size(AppState.current_map_page.tile_size)
+				_rebuild_layer_renderers(AppState.current_map_page)
+		"background_color":
+			if typeof(value) == TYPE_ARRAY and (value as Array).size() >= 3:
+				var arr_bg: Array = value
+				var a: float = 1.0 if arr_bg.size() < 4 else float(arr_bg[3])
+				AppState.current_map_page.background_color = Color(float(arr_bg[0]), float(arr_bg[1]), float(arr_bg[2]), a)
+				_apply_background_color(AppState.current_map_page)
+	request_save()
+
+
+func _apply_remote_layer_cells(op: Op) -> void:
+	var layer_id: String = String(op.payload.get("layer_id", ""))
+	if layer_id == "" or AppState.current_map_page == null:
+		return
+	var cells_raw: Variant = op.payload.get("cells", null)
+	if typeof(cells_raw) != TYPE_ARRAY:
+		return
+	var cells_state: Dictionary = {}
+	for entry_v: Variant in (cells_raw as Array):
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		var entry: Dictionary = entry_v
+		var coord_raw: Variant = entry.get("coord", null)
+		if typeof(coord_raw) != TYPE_ARRAY or (coord_raw as Array).size() < 2:
+			continue
+		var coord: Vector2i = Vector2i(int((coord_raw as Array)[0]), int((coord_raw as Array)[1]))
+		if entry.get("erased", false):
+			cells_state[coord] = null
+			continue
+		var atlas_raw: Variant = entry.get("atlas", null)
+		if typeof(atlas_raw) != TYPE_ARRAY or (atlas_raw as Array).size() < 3:
+			continue
+		var atlas_arr: Array = atlas_raw
+		cells_state[coord] = Vector3i(int(atlas_arr[0]), int(atlas_arr[1]), int(atlas_arr[2]))
+	apply_layer_cells(layer_id, cells_state)
+	request_save()
 
 
 func _on_page_kind_changed(kind: String) -> void:
@@ -264,8 +374,37 @@ func _on_new_map_created(map_name: String, tile_size: Vector2i) -> void:
 	var page: MapPage = AppState.current_project.create_map_page(map_name, tile_size)
 	if page == null:
 		return
+	_broadcast_create_map_page(page)
 	AppState.emit_signal("map_page_modified", page.id)
 	AppState.navigate_to_map_page(page.id)
+
+
+func _broadcast_create_map_page(page: MapPage) -> void:
+	if page == null or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.CREATE_MAP_PAGE, {
+		"map_id": page.id,
+		"name": page.name,
+		"tile_size": [page.tile_size.x, page.tile_size.y],
+		"page": page.to_dict(),
+	}, "")
+
+
+func _broadcast_tileset_upsert(ts: TileSetResource, kind: String) -> void:
+	if ts == null or ts.id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(kind, {
+		"tileset_id": ts.id,
+		"tileset": ts.to_dict(),
+	}, "")
+
+
+func _broadcast_tileset_delete(tileset_id: String) -> void:
+	if tileset_id == "" or not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.DELETE_TILESET, {
+		"tileset_id": tileset_id,
+	}, "")
 
 
 func _on_tileset_import_requested(name_str: String, tres_path: String, godot_root: String) -> void:
@@ -320,6 +459,7 @@ func _on_confirm_dialog_confirmed() -> void:
 			var ts_id: String = String(_confirm_payload)
 			if AppState.current_project != null:
 				AppState.current_project.delete_tileset(ts_id)
+				_broadcast_tileset_delete(ts_id)
 				if AppState.current_map_page != null:
 					for layer: MapLayer in AppState.current_map_page.layers:
 						if layer.tileset_id == ts_id:
@@ -1187,6 +1327,7 @@ func _on_tileset_setup_applied(updated: Dictionary) -> void:
 			var entry: Dictionary = ts.terrain_sets[ts_idx]
 			entry["terrains"] = terrains
 	AppState.current_project.write_tileset(ts)
+	_broadcast_tileset_upsert(ts, OpKinds.UPDATE_TILESET)
 	ts.clear_image_cache()
 	_load_tilesets()
 	_refresh_tileset_palette()

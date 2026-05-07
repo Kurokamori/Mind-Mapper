@@ -9,7 +9,6 @@ theme_override_constants/separation = 6
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
 text = "Block Stack"
-theme_override_font_sizes/font_size = 16
 
 [node name="TitleSection" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -73,5 +72,4 @@ text = "Edit as plain text..."
 [node name="Hint" type="Label" parent="."]
 layout_mode = 2
 autowrap_mode = 2
-theme_override_font_sizes/font_size = 11
 text = "Tab/Shift+Tab in a block to indent/outdent. Ctrl+click the link badge to follow. Drag the colored handle to reorder; drop on another stack to move."

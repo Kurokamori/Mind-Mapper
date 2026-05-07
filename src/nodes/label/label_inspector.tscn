@@ -9,7 +9,6 @@ theme_override_constants/separation = 6
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
 text = "Label"
-theme_override_font_sizes/font_size = 16
 
 [node name="TextRow" type="VBoxContainer" parent="."]
 layout_mode = 2
@@ -79,7 +78,6 @@ text = "Italic"
 [node name="AutoFitLabel" type="Label" parent="."]
 layout_mode = 2
 text = "Auto-fit to content"
-theme_override_font_sizes/font_size = 12
 
 [node name="AutoFitRow" type="HBoxContainer" parent="."]
 layout_mode = 2

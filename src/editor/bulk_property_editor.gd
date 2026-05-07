@@ -17,7 +17,6 @@ static func build_section(items: Array, editor: Node) -> Control:
 	v.add_child(sep)
 	var hdr: Label = Label.new()
 	hdr.text = "%s shared (%d)" % [first.display_name(), items.size()]
-	hdr.add_theme_font_size_override("font_size", 14)
 	v.add_child(hdr)
 	for raw in schema:
 		if typeof(raw) != TYPE_DICTIONARY:

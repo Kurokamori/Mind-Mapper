@@ -69,6 +69,7 @@ static func import_from_tres(project: Project, tileset_name: String, tres_path: 
 	if write_err != OK:
 		result.error_message = "Failed to write tileset (error %d)." % int(write_err)
 		return result
+	_broadcast_tileset_create(ts)
 	result.ok = true
 	result.tileset = ts
 	result.tile_count = ts.atlas_tiles.size()
@@ -118,10 +119,22 @@ static func create_from_image(
 	if write_err != OK:
 		result.error_message = "Failed to write tileset (error %d)." % int(write_err)
 		return result
+	_broadcast_tileset_create(ts)
 	result.ok = true
 	result.tileset = ts
 	result.tile_count = ts.atlas_tiles.size()
 	return result
+
+
+static func _broadcast_tileset_create(ts: TileSetResource) -> void:
+	if ts == null or ts.id == "":
+		return
+	if not OpBus.has_project() or OpBus.is_applying_remote():
+		return
+	OpBus.record_local_change(OpKinds.CREATE_TILESET, {
+		"tileset_id": ts.id,
+		"tileset": ts.to_dict(),
+	}, "")
 
 
 static func _find_first_atlas_image_relative(parse: TresTilesetParser.ParseResult) -> String:

@@ -22,6 +22,7 @@ func bind(item: SoundNode) -> void:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_sizes(self, {"Header": 1.15, "PathLabel": 0.80})
 	if _item == null:
 		return
 	_suppress_signals = true

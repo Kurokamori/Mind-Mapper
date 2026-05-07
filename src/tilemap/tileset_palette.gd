@@ -26,6 +26,7 @@ var _selected_terrain_index: int = -1
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_info_label, 0.85)
 	ThemeManager.theme_applied.connect(_apply_translucent_panel)
 	_apply_translucent_panel()
 	_close_button.pressed.connect(_on_close_pressed)

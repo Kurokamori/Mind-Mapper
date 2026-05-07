@@ -64,7 +64,6 @@ autowrap_mode = 3
 
 [node name="RowStatusLabel" type="Label" parent="Root/VBox/ReportRowTemplate/RowMargin/RowHBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 11
 
 [node name="RowRollbackButton" type="Button" parent="Root/VBox/ReportRowTemplate/RowMargin/RowHBox"]
 layout_mode = 2

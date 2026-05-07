@@ -26,7 +26,6 @@ offset_top = 18.0
 offset_bottom = 46.0
 mouse_filter = 2
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 16
 text = ""
 
 [node name="StageClip" type="Control" parent="."]
@@ -58,7 +57,6 @@ focus_mode = 0
 flat = true
 tooltip_text = "Exit presentation (Esc)"
 text = "X"
-theme_override_font_sizes/font_size = 18
 
 [node name="HintLabel" type="Label" parent="."]
 unique_name_in_owner = true

@@ -21,6 +21,7 @@ func bind(item: RichTextNode) -> void:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_sizes(self, {"Header": 1.15, "HelpLabel": 0.80, "AutoFitLabel": 0.85})
 	if _item == null:
 		return
 	_suppress_signals = true

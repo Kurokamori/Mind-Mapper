@@ -1636,8 +1636,11 @@ func _apply_add_popup_zoom_font() -> void:
 	var zoom_x: float = 1.0
 	if _camera != null:
 		zoom_x = max(_camera.zoom.x, 0.001)
-	var raw: float = float(ADD_POPUP_BASE_FONT_SIZE) / zoom_x
-	var sz: int = int(clamp(round(raw), float(ADD_POPUP_FONT_MIN), float(ADD_POPUP_FONT_MAX)))
+	var base: int = ThemeManager.scaled_font_size(1.0)
+	var lo: int = ThemeManager.scaled_font_size(float(ADD_POPUP_FONT_MIN) / float(ADD_POPUP_BASE_FONT_SIZE))
+	var hi: int = ThemeManager.scaled_font_size(float(ADD_POPUP_FONT_MAX) / float(ADD_POPUP_BASE_FONT_SIZE))
+	var raw: float = float(base) / zoom_x
+	var sz: int = int(clamp(round(raw), float(lo), float(hi)))
 	_add_node_popup.add_theme_font_size_override("font_size", sz)
 
 

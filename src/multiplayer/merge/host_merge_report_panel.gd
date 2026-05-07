@@ -138,6 +138,7 @@ func _add_entry_row(rows_vbox: VBoxContainer, report_id: String, entry: Dictiona
 	var description_label: Label = row.get_node("RowMargin/RowHBox/RowDescriptionLabel") as Label
 	var status_label: Label = row.get_node("RowMargin/RowHBox/RowStatusLabel") as Label
 	var rollback_button: Button = row.get_node("RowMargin/RowHBox/RowRollbackButton") as Button
+	ThemeManager.apply_relative_font_size(status_label, 0.80)
 	description_label.text = _entry_description(entry)
 	status_label.text = _entry_status_text(entry)
 	rollback_button.disabled = bool(entry.get("rolled_back", false)) or not bool(entry.get("can_rollback", true))

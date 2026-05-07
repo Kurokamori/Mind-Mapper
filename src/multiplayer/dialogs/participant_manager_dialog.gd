@@ -16,6 +16,7 @@ extends AcceptDialog
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_discovery_hint, 0.80)
 	title = "Participants"
 	min_size = Vector2(620, 460)
 	add_cancel_button("Close")

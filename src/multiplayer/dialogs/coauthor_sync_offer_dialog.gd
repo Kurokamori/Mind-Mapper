@@ -19,6 +19,8 @@ var _friend_lobby_id: int = 0
 
 func _ready() -> void:
 	close_requested.connect(_on_close_requested)
+	ThemeManager.apply_relative_font_sizes(self, {"Root/VBox/HeaderLabel": 1.15})
+	ThemeManager.apply_relative_font_size(_divergence_label, 0.80)
 	_accept_button.pressed.connect(_on_accept_pressed)
 	_dismiss_button.pressed.connect(_on_dismiss_pressed)
 	_disable_button.pressed.connect(_on_disable_pressed)

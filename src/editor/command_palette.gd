@@ -17,6 +17,7 @@ var _ignore_next_text_changed: bool = false
 
 func _ready() -> void:
 	visible = false
+	ThemeManager.apply_relative_font_size(_hint_label, 0.80)
 	_query_edit.text_changed.connect(_on_query_changed)
 	_query_edit.text_submitted.connect(_on_query_submitted)
 	_query_edit.gui_input.connect(_on_query_gui_input)

@@ -17,6 +17,10 @@ const KIND_OPLOG_REQUEST: String = "oplog_request"
 const KIND_OPLOG_RESPONSE: String = "oplog_response"
 const KIND_BOARD_REQUEST: String = "board_request"
 const KIND_BOARD_RESPONSE: String = "board_response"
+const KIND_MAP_REQUEST: String = "map_request"
+const KIND_MAP_RESPONSE: String = "map_response"
+const KIND_TILESET_REQUEST: String = "tileset_request"
+const KIND_TILESET_RESPONSE: String = "tileset_response"
 const KIND_PRESENCE: String = "presence"
 const KIND_HEARTBEAT: String = "heartbeat"
 const KIND_PING_MARKER: String = "ping_marker"
@@ -47,6 +51,7 @@ static func envelope(kind: String, payload: Variant) -> Dictionary:
 static func channel_for(kind: String) -> int:
 	match kind:
 		KIND_OP, KIND_OP_BATCH, KIND_OPLOG_REQUEST, KIND_OPLOG_RESPONSE, KIND_BOARD_REQUEST, KIND_BOARD_RESPONSE, \
+		KIND_MAP_REQUEST, KIND_MAP_RESPONSE, KIND_TILESET_REQUEST, KIND_TILESET_RESPONSE, \
 		KIND_MERGE_PREFLIGHT, KIND_MERGE_PREFLIGHT_RESPONSE, KIND_MERGE_FINALIZE:
 			return CHANNEL_OPS
 		KIND_PRESENCE, KIND_HEARTBEAT, KIND_PING_MARKER:

@@ -36,7 +36,6 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-theme_override_font_sizes/font_size = 14
 text = "Comments"
 
 [node name="ShowResolvedButton" type="CheckButton" parent="Margin/VBox/Header"]

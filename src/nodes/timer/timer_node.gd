@@ -32,6 +32,9 @@ var _state_initialized: bool = false
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_label, 0.92)
+	ThemeManager.apply_relative_font_size(_time_label, 2.15)
+	ThemeManager.apply_relative_font_size(_target_label, 0.80)
 	if not _state_initialized:
 		_refresh_remaining_from_state()
 		_state_initialized = true

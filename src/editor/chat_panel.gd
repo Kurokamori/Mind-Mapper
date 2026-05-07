@@ -20,6 +20,7 @@ var _ready_done: bool = false
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_status_label, 0.80)
 	_close_button.pressed.connect(_on_close_pressed)
 	_send_button.pressed.connect(_on_send_pressed)
 	_input.text_submitted.connect(_on_input_submitted)

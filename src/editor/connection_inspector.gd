@@ -24,6 +24,9 @@ func bind(connection: Connection, editor: Node) -> void:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_sizes(self, {"Header": 1.15})
+	ThemeManager.apply_relative_font_size(_from_label, 0.80)
+	ThemeManager.apply_relative_font_size(_to_label, 0.80)
 	if _connection == null:
 		return
 	_populate_style_options()

@@ -36,7 +36,6 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-theme_override_font_sizes/font_size = 14
 text = "Chat"
 
 [node name="ChatCloseButton" type="Button" parent="Margin/VBox/Header" unique_id=771154773]
@@ -70,7 +69,6 @@ autowrap_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.55)
-theme_override_font_sizes/font_size = 11
 text = "Join or host a session to chat."
 horizontal_alignment = 1
 autowrap_mode = 2

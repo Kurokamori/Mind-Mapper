@@ -35,7 +35,6 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-theme_override_font_sizes/font_size = 14
 text = "Boards"
 
 [node name="NewRootButton" type="Button" parent="Margin/VBox/Header" unique_id=1544568429]

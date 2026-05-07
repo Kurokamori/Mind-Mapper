@@ -16,6 +16,8 @@ func bind(item: BoardItem, editor: Node) -> void:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_status_label, 0.80)
+	ThemeManager.apply_relative_font_sizes(self, {"Hint": 0.72})
 	_set_button.pressed.connect(_on_set_pressed)
 	_follow_button.pressed.connect(_on_follow_pressed)
 	_clear_button.pressed.connect(_on_clear_pressed)

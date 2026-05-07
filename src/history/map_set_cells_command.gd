@@ -25,6 +25,7 @@ func do() -> void:
 	if _editor == null:
 		return
 	_editor.apply_layer_cells(_layer_id, _after_cells)
+	_record(_after_cells, _before_cells)
 	_editor.request_save()
 
 
@@ -32,8 +33,45 @@ func undo() -> void:
 	if _editor == null:
 		return
 	_editor.apply_layer_cells(_layer_id, _before_cells)
+	_record(_before_cells, _after_cells)
 	_editor.request_save()
 
 
 func description() -> String:
 	return "Paint cells"
+
+
+func _record(state_after: Dictionary, state_before: Dictionary) -> void:
+	if AppState.current_map_page == null:
+		return
+	var cells_payload: Array = []
+	var keys: Dictionary = {}
+	for k_v: Variant in state_after.keys():
+		keys[k_v] = true
+	for k_v: Variant in state_before.keys():
+		keys[k_v] = true
+	for coord_v: Variant in keys.keys():
+		var coord: Vector2i = coord_v
+		if state_after.has(coord):
+			var atlas_v: Variant = state_after[coord]
+			if typeof(atlas_v) == TYPE_VECTOR3I:
+				var atlas: Vector3i = atlas_v
+				cells_payload.append({
+					"coord": [coord.x, coord.y],
+					"atlas": [atlas.x, atlas.y, atlas.z],
+				})
+			else:
+				cells_payload.append({
+					"coord": [coord.x, coord.y],
+					"erased": true,
+				})
+		else:
+			cells_payload.append({
+				"coord": [coord.x, coord.y],
+				"erased": true,
+			})
+	OpBus.record_local_change(OpKinds.MAP_SET_LAYER_CELLS, {
+		"map_id": AppState.current_map_page.id,
+		"layer_id": _layer_id,
+		"cells": cells_payload,
+	}, AppState.current_map_page.id)

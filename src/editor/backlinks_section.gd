@@ -14,6 +14,7 @@ func bind(item: BoardItem, editor: Node) -> void:
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_empty_label, 0.80)
 	_refresh()
 	if not ProjectIndex.index_changed.is_connected(_refresh):
 		ProjectIndex.index_changed.connect(_refresh)

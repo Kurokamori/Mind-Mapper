@@ -12,14 +12,12 @@ layout_mode = 2
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
 text = "Link"
-theme_override_font_sizes/font_size = 14
 
 [node name="StatusLabel" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
 autowrap_mode = 2
 text = "No link"
-theme_override_font_sizes/font_size = 11
 
 [node name="ButtonsRow" type="HBoxContainer" parent="."]
 layout_mode = 2
@@ -44,4 +42,3 @@ text = "Clear"
 layout_mode = 2
 autowrap_mode = 2
 text = "Tip: Ctrl+click an item with a link to follow it."
-theme_override_font_sizes/font_size = 10

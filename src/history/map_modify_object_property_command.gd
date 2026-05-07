@@ -19,13 +19,32 @@ func _init(editor: Node, object_id: String, key: String, from_value: Variant, to
 func do() -> void:
 	if _editor != null:
 		_editor.apply_object_property(_object_id, _key, _to_value)
+		_record(_to_value)
 		_editor.request_save()
 
 
 func undo() -> void:
 	if _editor != null:
 		_editor.apply_object_property(_object_id, _key, _from_value)
+		_record(_from_value)
 		_editor.request_save()
+
+
+func _record(value: Variant) -> void:
+	if AppState.current_map_page == null or _object_id == "":
+		return
+	var serialized: Variant = value
+	if typeof(value) == TYPE_VECTOR2:
+		serialized = [(value as Vector2).x, (value as Vector2).y]
+	elif typeof(value) == TYPE_COLOR:
+		var c: Color = value
+		serialized = [c.r, c.g, c.b, c.a]
+	OpBus.record_local_change(OpKinds.MAP_SET_OBJECT_PROPERTY, {
+		"map_id": AppState.current_map_page.id,
+		"object_id": _object_id,
+		"key": _key,
+		"value": serialized,
+	}, AppState.current_map_page.id)
 
 
 func description() -> String:

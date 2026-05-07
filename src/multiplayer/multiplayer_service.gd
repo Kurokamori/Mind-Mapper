@@ -64,6 +64,8 @@ var _has_cursor: bool = false
 var _has_selection_rect: bool = false
 var _has_viewport_rect: bool = false
 var _board_request_outstanding: Dictionary = {}
+var _map_request_outstanding: Dictionary = {}
+var _tileset_request_outstanding: Dictionary = {}
 var _local_presence: PresenceState = null
 var _pending_auto_host: Dictionary = {}
 var _pending_auto_join: Dictionary = {}
@@ -347,6 +349,8 @@ func leave_session() -> void:
 	_session_host_stable_id = ""
 	_local_presence = null
 	_board_request_outstanding.clear()
+	_map_request_outstanding.clear()
+	_tileset_request_outstanding.clear()
 	_host_merge_ledger.clear()
 	if _merge_session != null:
 		_merge_session.cancel()
@@ -699,6 +703,28 @@ func request_board(board_id: String) -> void:
 	_active_adapter.send_to_peer(NetworkAdapter.HOST_NETWORK_ID, NetworkMessage.KIND_BOARD_REQUEST, {"board_id": board_id})
 
 
+func request_map_page(map_id: String) -> void:
+	if not is_in_session() or _active_adapter == null or map_id == "":
+		return
+	if _map_request_outstanding.has(map_id):
+		return
+	_map_request_outstanding[map_id] = true
+	if _is_session_host:
+		return
+	_active_adapter.send_to_peer(NetworkAdapter.HOST_NETWORK_ID, NetworkMessage.KIND_MAP_REQUEST, {"map_id": map_id})
+
+
+func request_tileset(tileset_id: String) -> void:
+	if not is_in_session() or _active_adapter == null or tileset_id == "":
+		return
+	if _tileset_request_outstanding.has(tileset_id):
+		return
+	_tileset_request_outstanding[tileset_id] = true
+	if _is_session_host:
+		return
+	_active_adapter.send_to_peer(NetworkAdapter.HOST_NETWORK_ID, NetworkMessage.KIND_TILESET_REQUEST, {"tileset_id": tileset_id})
+
+
 func _on_project_opened(project: Project) -> void:
 	_project = project
 	_ensure_manifest_loaded()
@@ -909,6 +935,14 @@ func _on_message_received(from_network_id: int, kind: String, payload: Variant, 
 			_handle_board_request(from_network_id, payload)
 		NetworkMessage.KIND_BOARD_RESPONSE:
 			_handle_board_response(from_network_id, payload)
+		NetworkMessage.KIND_MAP_REQUEST:
+			_handle_map_request(from_network_id, payload)
+		NetworkMessage.KIND_MAP_RESPONSE:
+			_handle_map_response(from_network_id, payload)
+		NetworkMessage.KIND_TILESET_REQUEST:
+			_handle_tileset_request(from_network_id, payload)
+		NetworkMessage.KIND_TILESET_RESPONSE:
+			_handle_tileset_response(from_network_id, payload)
 		NetworkMessage.KIND_PRESENCE:
 			_handle_presence(from_network_id, payload)
 		NetworkMessage.KIND_HEARTBEAT:
@@ -1018,6 +1052,45 @@ func _notify_remote_board_topology(op: Op) -> void:
 				var fallback: String = _project.root_board_id
 				if fallback != "":
 					AppState.navigate_to_board(fallback)
+		OpKinds.CREATE_MAP_PAGE, OpKinds.RENAME_MAP_PAGE:
+			var map_id: String = String(op.payload.get("map_id", ""))
+			if map_id == "":
+				return
+			AppState.emit_signal("map_page_modified", map_id)
+			if AppState.current_map_page != null and AppState.current_map_page.id == map_id and op.kind == OpKinds.RENAME_MAP_PAGE:
+				AppState.current_map_page.name = String(op.payload.get("name", AppState.current_map_page.name))
+				AppState.emit_signal("navigation_changed")
+		OpKinds.DELETE_MAP_PAGE:
+			var deleted_map_id: String = String(op.payload.get("map_id", ""))
+			if deleted_map_id == "":
+				return
+			AppState.emit_signal("map_page_modified", deleted_map_id)
+			if AppState.current_map_page != null and AppState.current_map_page.id == deleted_map_id and _project != null:
+				AppState.current_map_page = null
+				if _project.root_board_id != "":
+					AppState.navigate_to_board(_project.root_board_id)
+		OpKinds.CREATE_TILESET, OpKinds.UPDATE_TILESET:
+			var tileset_id: String = String(op.payload.get("tileset_id", ""))
+			if tileset_id == "" or _asset_transfer == null:
+				return
+			var ts: TileSetResource = _project.read_tileset(tileset_id) if _project != null else null
+			if ts != null and ts.image_asset_name != "":
+				var asset_name: String = AssetTransferService.make_tileset_asset_name(tileset_id, ts.image_asset_name)
+				if not _asset_transfer.has_local_asset(asset_name):
+					_asset_transfer.request_unknown_assets([asset_name], _resolve_op_origin_network_id(op))
+			AppState.notify_tileset_received(tileset_id)
+		OpKinds.DELETE_TILESET:
+			var deleted_tileset_id: String = String(op.payload.get("tileset_id", ""))
+			if deleted_tileset_id != "":
+				AppState.notify_tileset_received(deleted_tileset_id)
+		OpKinds.SET_MAP_PROPERTY, OpKinds.MAP_INSERT_LAYER, OpKinds.MAP_REMOVE_LAYER, \
+		OpKinds.MAP_REORDER_LAYER, OpKinds.MAP_SET_LAYER_PROPERTY, OpKinds.MAP_SET_LAYER_CELLS, \
+		OpKinds.MAP_ADD_OBJECT, OpKinds.MAP_REMOVE_OBJECT, OpKinds.MAP_MOVE_OBJECT, OpKinds.MAP_SET_OBJECT_PROPERTY:
+			var content_map_id: String = op.board_id
+			if content_map_id == "":
+				content_map_id = String(op.payload.get("map_id", ""))
+			if content_map_id != "":
+				AppState.emit_signal("map_page_modified", content_map_id)
 
 
 func _register_message_sender(from_network_id: int, _kind: String, _payload: Variant) -> void:
@@ -1077,7 +1150,33 @@ func _handle_hello_ack(_from_network_id: int, payload: Variant) -> void:
 		_replay_missing_manifest_ops(remote_manifest)
 		emit_signal("participants_changed")
 		notify_permissions_maybe_changed()
+	_apply_remote_project_manifest(d.get("project_manifest", null))
 	_start_client_merge_session()
+
+
+func _apply_remote_project_manifest(raw: Variant) -> void:
+	if typeof(raw) != TYPE_DICTIONARY or _project == null:
+		return
+	var pm: Dictionary = raw
+	var board_index_raw: Variant = pm.get("board_index", {})
+	if typeof(board_index_raw) == TYPE_DICTIONARY:
+		_project.board_index = (board_index_raw as Dictionary).duplicate(true)
+	var map_index_raw: Variant = pm.get("map_page_index", {})
+	if typeof(map_index_raw) == TYPE_DICTIONARY:
+		_project.map_page_index = (map_index_raw as Dictionary).duplicate(true)
+	var tileset_index_raw: Variant = pm.get("tileset_index", {})
+	if typeof(tileset_index_raw) == TYPE_DICTIONARY:
+		_project.tileset_index = (tileset_index_raw as Dictionary).duplicate(true)
+	var pname: String = String(pm.get("name", _project.name))
+	if pname != "":
+		_project.name = pname
+	_project.write_manifest()
+	for board_id_v: Variant in _project.board_index.keys():
+		AppState.emit_signal("board_modified", String(board_id_v))
+	for map_id_v: Variant in _project.map_page_index.keys():
+		AppState.emit_signal("map_page_modified", String(map_id_v))
+	for tileset_id_v: Variant in _project.tileset_index.keys():
+		AppState.notify_tileset_received(String(tileset_id_v))
 
 
 func _handle_roster(_from_network_id: int, payload: Variant) -> void:
@@ -1223,6 +1322,76 @@ func _handle_board_response(_from_network_id: int, payload: Variant) -> void:
 	_board_request_outstanding.erase(board_id)
 
 
+func _handle_map_request(from_network_id: int, payload: Variant) -> void:
+	if _project == null or _active_adapter == null or typeof(payload) != TYPE_DICTIONARY:
+		return
+	var map_id: String = String((payload as Dictionary).get("map_id", ""))
+	var page: MapPage = _project.read_map_page(map_id)
+	if page == null:
+		_active_adapter.send_to_peer(from_network_id, NetworkMessage.KIND_MAP_RESPONSE, {"map_id": map_id, "missing": true})
+		return
+	_active_adapter.send_to_peer(from_network_id, NetworkMessage.KIND_MAP_RESPONSE, {
+		"map_id": map_id,
+		"page": page.to_dict(),
+	})
+
+
+func _handle_map_response(_from_network_id: int, payload: Variant) -> void:
+	if _project == null or typeof(payload) != TYPE_DICTIONARY:
+		return
+	var map_id: String = String((payload as Dictionary).get("map_id", ""))
+	if (payload as Dictionary).get("missing", false):
+		_map_request_outstanding.erase(map_id)
+		return
+	var page_raw: Variant = (payload as Dictionary).get("page", null)
+	if typeof(page_raw) == TYPE_DICTIONARY:
+		var page: MapPage = MapPage.from_dict(page_raw)
+		page.id = map_id
+		_project.write_map_page(page)
+		var tileset_ids: Array[String] = page.tilesets_used()
+		for ts_id: String in tileset_ids:
+			if not FileAccess.file_exists(_project.tileset_manifest_path(ts_id)):
+				request_tileset(ts_id)
+		AppState.apply_remote_map_page_snapshot(page)
+	_map_request_outstanding.erase(map_id)
+
+
+func _handle_tileset_request(from_network_id: int, payload: Variant) -> void:
+	if _project == null or _active_adapter == null or typeof(payload) != TYPE_DICTIONARY:
+		return
+	var tileset_id: String = String((payload as Dictionary).get("tileset_id", ""))
+	var ts: TileSetResource = _project.read_tileset(tileset_id)
+	if ts == null:
+		_active_adapter.send_to_peer(from_network_id, NetworkMessage.KIND_TILESET_RESPONSE, {"tileset_id": tileset_id, "missing": true})
+		return
+	_active_adapter.send_to_peer(from_network_id, NetworkMessage.KIND_TILESET_RESPONSE, {
+		"tileset_id": tileset_id,
+		"tileset": ts.to_dict(),
+	})
+	if ts.image_asset_name != "" and _asset_transfer != null:
+		var asset_name: String = AssetTransferService.make_tileset_asset_name(ts.id, ts.image_asset_name)
+		_asset_transfer.handle_query_request(from_network_id, [asset_name])
+
+
+func _handle_tileset_response(_from_network_id: int, payload: Variant) -> void:
+	if _project == null or typeof(payload) != TYPE_DICTIONARY:
+		return
+	var tileset_id: String = String((payload as Dictionary).get("tileset_id", ""))
+	if (payload as Dictionary).get("missing", false):
+		_tileset_request_outstanding.erase(tileset_id)
+		return
+	var ts_raw: Variant = (payload as Dictionary).get("tileset", null)
+	if typeof(ts_raw) == TYPE_DICTIONARY:
+		var ts: TileSetResource = TileSetResource.from_dict(ts_raw)
+		_project.write_tileset(ts)
+		if ts.image_asset_name != "" and _asset_transfer != null:
+			var asset_name: String = AssetTransferService.make_tileset_asset_name(ts.id, ts.image_asset_name)
+			if not _asset_transfer.has_local_asset(asset_name):
+				_asset_transfer.request_unknown_assets([asset_name], NetworkAdapter.HOST_NETWORK_ID)
+		AppState.notify_tileset_received(tileset_id)
+	_tileset_request_outstanding.erase(tileset_id)
+
+
 func _request_root_board_if_missing() -> void:
 	if _project == null or _is_session_host:
 		return
@@ -1364,8 +1533,19 @@ func _send_hello_ack(to_network_id: int, _peer_ident: PeerIdentity) -> void:
 	if _active_adapter == null:
 		return
 	var manifest_dict: Dictionary = _manifest.to_dict() if _manifest != null else {}
+	var project_manifest: Dictionary = {}
+	if _project != null:
+		project_manifest = {
+			"id": _project.id,
+			"name": _project.name,
+			"root_board_id": _project.root_board_id,
+			"board_index": _project.board_index.duplicate(true),
+			"map_page_index": _project.map_page_index.duplicate(true),
+			"tileset_index": _project.tileset_index.duplicate(true),
+		}
 	_active_adapter.send_to_peer(to_network_id, NetworkMessage.KIND_HELLO_ACK, {
 		"manifest": manifest_dict,
+		"project_manifest": project_manifest,
 	})
 
 
@@ -1569,6 +1749,12 @@ func _collect_asset_names_from_board(board: Board) -> Array:
 func _notify_asset_received(asset_name: String) -> void:
 	if _editor != null and _editor.has_method("on_asset_streamed"):
 		_editor.call("on_asset_streamed", asset_name)
+	if asset_name.begins_with(AssetTransferService.TILESET_PREFIX):
+		var rest: String = asset_name.substr(AssetTransferService.TILESET_PREFIX.length())
+		var slash_idx: int = rest.find("/")
+		if slash_idx > 0:
+			var tileset_id: String = rest.substr(0, slash_idx)
+			AppState.notify_tileset_received(tileset_id)
 
 
 func _start_client_merge_session() -> void:

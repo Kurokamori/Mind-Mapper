@@ -26,6 +26,9 @@ const MENU_TOGGLE_OVERLAY: int = 6
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_size(_state_label, 0.85)
+	ThemeManager.apply_relative_font_size(_backend_label, 0.72)
+	ThemeManager.apply_relative_font_size(_participant_count_label, 0.72)
 	if _menu_button == null:
 		return
 	var popup: PopupMenu = _menu_button.get_popup()

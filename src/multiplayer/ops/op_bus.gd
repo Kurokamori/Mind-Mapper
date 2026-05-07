@@ -10,6 +10,7 @@ var _oplog: OpLog = null
 var _applier: OpApplier = null
 var _lamport_clock: int = 0
 var _editor: Node = null
+var _map_editor: Node = null
 var _seen_op_ids: Dictionary = {}
 var _suppress_local_apply: bool = false
 var _applying_remote_depth: int = 0
@@ -55,6 +56,14 @@ func bind_editor(editor: Node) -> void:
 
 func unbind_editor() -> void:
 	_editor = null
+
+
+func bind_map_editor(editor: Node) -> void:
+	_map_editor = editor
+
+
+func unbind_map_editor() -> void:
+	_map_editor = null
 
 
 func current_project() -> Project:
@@ -169,6 +178,11 @@ func _resolve_board_id(kind: String, board_id: String) -> String:
 			return board_id
 		if AppState.current_board != null:
 			return AppState.current_board.id
+	elif scope == OpKinds.SCOPE_MAP:
+		if board_id != "":
+			return board_id
+		if AppState.current_map_page != null:
+			return AppState.current_map_page.id
 	return ""
 
 
@@ -210,6 +224,14 @@ func _apply_remote(op: Op) -> bool:
 	if op.scope == OpKinds.SCOPE_MANIFEST:
 		MultiplayerService.apply_manifest_op(op)
 		ok = true
+	elif op.scope == OpKinds.SCOPE_MAP:
+		var on_current_map: bool = AppState.current_project != null and AppState.current_map_page != null and op.board_id == AppState.current_map_page.id
+		if on_current_map and _map_editor != null and _map_editor.has_method("apply_remote_map_op"):
+			_map_editor.call("apply_remote_map_op", op)
+			ok = true
+		else:
+			var result_map: Dictionary = _applier.apply_to_project(op)
+			ok = bool(result_map.get("applied", false))
 	else:
 		var on_current_board: bool = AppState.current_project != null and AppState.current_board != null and op.board_id == AppState.current_board.id
 		if on_current_board and _editor != null and _editor.has_method("apply_remote_op"):

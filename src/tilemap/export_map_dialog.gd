@@ -17,6 +17,7 @@ signal export_requested(output_dir: String, godot_root: String, mode: String)
 func _ready() -> void:
 	add_cancel_button("Cancel")
 	confirmed.connect(_on_confirmed)
+	ThemeManager.apply_relative_font_size(_info_label, 0.85)
 	_output_browse.pressed.connect(_on_output_browse)
 	_root_browse.pressed.connect(_on_root_browse)
 	_output_dialog.dir_selected.connect(_on_output_chosen)

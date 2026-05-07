@@ -21,6 +21,10 @@ var _live_lobbies_by_project_id: Dictionary = {}
 
 
 func _ready() -> void:
+	ThemeManager.apply_relative_font_sizes(self, {
+		"Margins/VBox/Title": 2.30,
+		"Margins/VBox/SectionHeader": 1.30,
+	})
 	_name_dialog.add_cancel_button("Cancel")
 	_new_button.pressed.connect(_on_new_pressed)
 	_open_button.pressed.connect(_on_open_pressed)

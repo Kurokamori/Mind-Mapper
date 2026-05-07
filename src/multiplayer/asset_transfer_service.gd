@@ -7,6 +7,11 @@ const TRANSFER_STATE_PENDING: String = "pending"
 const TRANSFER_STATE_RECEIVING: String = "receiving"
 const TRANSFER_STATE_DONE: String = "done"
 const TRANSFER_STATE_FAILED: String = "failed"
+const TILESET_PREFIX: String = "tileset:"
+
+
+static func make_tileset_asset_name(tileset_id: String, filename: String) -> String:
+	return "%s%s/%s" % [TILESET_PREFIX, tileset_id, filename]
 
 var _project: Project = null
 var _adapter_proxy: Callable = Callable()
@@ -36,11 +41,29 @@ func has_local_asset(asset_name: String) -> bool:
 		return false
 	if _local_inventory.has(asset_name):
 		return true
-	var path: String = _project.resolve_asset_path(asset_name)
+	var path: String = _resolve_asset_name_path(asset_name)
+	if path == "":
+		return false
 	var exists: bool = FileAccess.file_exists(path)
 	if exists:
 		_local_inventory[asset_name] = true
 	return exists
+
+
+func _resolve_asset_name_path(asset_name: String) -> String:
+	if _project == null or asset_name == "":
+		return ""
+	if asset_name.begins_with(TILESET_PREFIX):
+		var rest: String = asset_name.substr(TILESET_PREFIX.length())
+		var slash_idx: int = rest.find("/")
+		if slash_idx <= 0:
+			return ""
+		var tileset_id: String = rest.substr(0, slash_idx)
+		var filename: String = rest.substr(slash_idx + 1)
+		if tileset_id == "" or filename == "":
+			return ""
+		return _project.tileset_dir(tileset_id).path_join(filename)
+	return _project.resolve_asset_path(asset_name)
 
 
 func register_local_asset(asset_name: String) -> void:
@@ -77,7 +100,10 @@ func handle_request(from_network_id: int, asset_name: String) -> void:
 	if not has_local_asset(asset_name):
 		_adapter_proxy.call(from_network_id, NetworkMessage.KIND_ASSET_DENY, {"asset_name": asset_name, "reason": "not_found"})
 		return
-	var path: String = _project.resolve_asset_path(asset_name)
+	var path: String = _resolve_asset_name_path(asset_name)
+	if path == "":
+		_adapter_proxy.call(from_network_id, NetworkMessage.KIND_ASSET_DENY, {"asset_name": asset_name, "reason": "unknown_path"})
+		return
 	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		_adapter_proxy.call(from_network_id, NetworkMessage.KIND_ASSET_DENY, {"asset_name": asset_name, "reason": "open_failed"})
@@ -128,15 +154,16 @@ func handle_chunk(from_network_id: int, payload: Dictionary) -> Dictionary:
 		var bytes: PackedByteArray = Marshalls.base64_to_raw(String(piece))
 		assembled.append_array(bytes)
 	if _project != null:
-		var path: String = _project.resolve_asset_path(asset_name)
-		var dir: String = path.get_base_dir()
-		if not DirAccess.dir_exists_absolute(dir):
-			DirAccess.make_dir_recursive_absolute(dir)
-		var f: FileAccess = FileAccess.open(path, FileAccess.WRITE)
-		if f != null:
-			f.store_buffer(assembled)
-			f.close()
-			register_local_asset(asset_name)
+		var path: String = _resolve_asset_name_path(asset_name)
+		if path != "":
+			var dir: String = path.get_base_dir()
+			if not DirAccess.dir_exists_absolute(dir):
+				DirAccess.make_dir_recursive_absolute(dir)
+			var f: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+			if f != null:
+				f.store_buffer(assembled)
+				f.close()
+				register_local_asset(asset_name)
 	entry["state"] = TRANSFER_STATE_DONE
 	_incoming.erase(asset_name)
 	return {"completed": true, "asset_name": asset_name}

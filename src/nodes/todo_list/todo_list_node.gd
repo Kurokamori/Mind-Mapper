@@ -44,6 +44,7 @@ var _drop_indicator_index: int = -1
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_title_label, 1.15)
 	ThemeManager.theme_applied.connect(_refresh_visuals)
 	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _refresh_visuals())
 	_layout()

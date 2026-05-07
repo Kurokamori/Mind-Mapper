@@ -47,6 +47,7 @@ var _pre_edit_title: String = ""
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_zoom_value_label, 0.80)
 	ThemeManager.theme_applied.connect(_refresh_visuals)
 	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _refresh_visuals())
 	_ensure_preview()

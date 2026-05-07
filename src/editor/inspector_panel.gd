@@ -19,6 +19,7 @@ var _edit_mode_enabled: bool = true
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_title_label, 1.30)
 	SelectionBus.selection_changed.connect(_on_selection_changed)
 	_close_button.pressed.connect(_on_close_pressed)
 	ThemeManager.theme_applied.connect(_apply_translucent_panel)

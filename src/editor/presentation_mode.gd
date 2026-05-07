@@ -21,6 +21,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	visible = true
+	ThemeManager.apply_relative_font_size(_board_label, 1.15)
+	ThemeManager.apply_relative_font_size(_close_button, 1.30)
 	_close_button.pressed.connect(_on_close_pressed)
 
 

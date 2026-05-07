@@ -44,6 +44,7 @@ var _drop_highlighted: bool = false
 
 func _ready() -> void:
 	super._ready()
+	ThemeManager.apply_relative_font_size(_count_label, 0.80)
 	ThemeManager.theme_applied.connect(_refresh_visuals)
 	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _refresh_visuals())
 	_ensure_preview()
