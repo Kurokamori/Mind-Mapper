@@ -28,6 +28,21 @@ func record_op_forward() -> void:
 	_emit_op(_to_value)
 
 
+func rollback_local() -> void:
+	if _editor == null:
+		return
+	var c: Connection = _editor.find_connection_by_id(_connection_id)
+	if c == null:
+		return
+	c.apply_property(_key, _from_value)
+	if _editor.has_method("notify_connection_updated"):
+		_editor.notify_connection_updated(c)
+
+
+func primary_op_kind() -> String:
+	return OpKinds.SET_CONNECTION_PROPERTY
+
+
 func _apply(value: Variant) -> void:
 	if _editor == null:
 		return

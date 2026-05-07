@@ -70,19 +70,19 @@ func resolved_header_fg_color() -> Color:
 
 
 func resolved_card_bg_color() -> Color:
-	return card_bg_color if card_bg_color_custom else TodoCardRow.NORMAL_BG
+	return card_bg_color if card_bg_color_custom else ThemeManager.node_card_bg_color()
 
 
 func resolved_card_fg_color() -> Color:
-	return card_fg_color if card_fg_color_custom else TodoCardRow.NORMAL_FG
+	return card_fg_color if card_fg_color_custom else ThemeManager.node_card_fg_color()
 
 
 func resolved_completed_bg_color() -> Color:
-	return completed_bg_color if completed_bg_color_custom else resolved_card_bg_color().darkened(0.2)
+	return completed_bg_color if completed_bg_color_custom else ThemeManager.node_card_completed_bg_color()
 
 
 func resolved_completed_fg_color() -> Color:
-	return completed_fg_color if completed_fg_color_custom else resolved_card_fg_color().lerp(Color(0.5, 0.5, 0.5), 0.55)
+	return completed_fg_color if completed_fg_color_custom else ThemeManager.node_card_completed_fg_color()
 
 
 func default_size() -> Vector2:
@@ -175,7 +175,7 @@ func _rebuild_cards() -> void:
 		row.details_requested.connect(_on_card_details_requested)
 		row.child_drop.connect(_on_card_child_drop)
 		row.child_drop_into_self.connect(_on_card_child_drop_into_self)
-		_cards_container.add_child(row)
+		_cards_container.add_child.call_deferred(row)
 	_position_drop_indicator(-1)
 
 

@@ -29,10 +29,13 @@ const SAVE_DEBOUNCE_SEC: float = 0.5
 @onready var _host_dialog: HostSessionDialog = %HostSessionDialog
 @onready var _join_dialog: JoinSessionDialog = %JoinSessionDialog
 @onready var _participant_dialog: ParticipantManagerDialog = %ParticipantManagerDialog
+@onready var _merge_resolution_dialog: MergeResolutionDialog = %MergeResolutionDialog
+@onready var _host_merge_report_panel: HostMergeReportPanel = %HostMergeReportPanel
 @onready var _new_map_dialog: NewMapDialog = %NewMapDialog
 @onready var _import_tileset_dialog: ImportTilesetDialog = %ImportTilesetDialog
 @onready var _new_tileset_image_dialog: NewTilesetFromImageDialog = %NewTilesetFromImageDialog
 @onready var _tileset_info_dialog: AcceptDialog = %TilesetInfoDialog
+@onready var _comments_panel: CommentsPanel = %CommentsPanel
 
 var _pending_image_path: String = ""
 var _pending_sound_path: String = ""
@@ -58,6 +61,11 @@ var _has_pending_add_pos: bool = false
 var _pending_connect_source_id: String = ""
 var _pending_connect_source_anchor: String = ""
 var _add_popup_selection_active: bool = false
+var _item_context_menu: PopupMenu = null
+var _item_context_menu_target_item_id: String = ""
+var _item_context_menu_card_ids: Array = []
+var _board_comments: Array = []
+var _comments_button_state: bool = false
 
 const PORT_DRAG_SNAP_PX: float = 28.0
 const ENVELOPE_MAX_PASSES: int = 8
@@ -138,6 +146,14 @@ func _ready() -> void:
 	if _join_dialog != null:
 		_join_dialog.join_confirmed.connect(_on_join_confirmed)
 	MultiplayerService.session_log.connect(_on_session_log)
+	MultiplayerService.local_permissions_changed.connect(_on_local_permissions_changed)
+	_apply_local_permissions(MultiplayerService.local_can_edit())
+	_wire_merge_dialogs()
+	if _comments_panel != null:
+		_comments_panel.bind_editor(self)
+		_comments_panel.close_requested.connect(_on_comments_panel_close_requested)
+		_comments_panel.jump_to_target_requested.connect(_on_comment_jump_requested)
+	_build_item_context_menu()
 
 
 func _refresh_tag_filter_menu() -> void:
@@ -165,6 +181,7 @@ func _on_board_changed(board: Board) -> void:
 	if AppState.active_tag_filter != "":
 		_apply_tag_filter(AppState.active_tag_filter)
 	_envelope_groups()
+	_load_comments_from_board(board)
 
 
 func _load_connections_from_board(board: Board) -> void:
@@ -183,6 +200,7 @@ func _spawn_item_from_dict(d: Dictionary) -> BoardItem:
 	if inst == null:
 		return null
 	inst.board_id = AppState.current_board.id if AppState.current_board != null else ""
+	inst.read_only = is_local_read_only()
 	_items_root.add_child(inst)
 	_items_by_id[inst.item_id] = inst
 	_wire_item(inst)
@@ -190,6 +208,39 @@ func _spawn_item_from_dict(d: Dictionary) -> BoardItem:
 	if _minimap != null:
 		_minimap.notify_items_changed()
 	return inst
+
+
+func is_local_read_only() -> bool:
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root == null or not root.has_node("MultiplayerService"):
+		return false
+	return not MultiplayerService.local_can_edit()
+
+
+func _on_local_permissions_changed(can_edit: bool) -> void:
+	_apply_local_permissions(can_edit)
+
+
+func _apply_local_permissions(can_edit: bool) -> void:
+	var ro: bool = not can_edit
+	for it in all_items():
+		if it.is_editing():
+			it.end_edit()
+		it.read_only = ro
+		if ro and it.is_selected():
+			it.set_selected(false)
+		it.queue_redraw()
+	if ro:
+		_clear_pending_add_state()
+		_set_connect_tool_active(false)
+		if _connection_layer != null:
+			_connection_layer.cancel_pending()
+	if _toolbar != null and _toolbar.has_method("set_edit_mode_enabled"):
+		_toolbar.set_edit_mode_enabled(can_edit)
+	if _inspector_panel != null and _inspector_panel.has_method("set_edit_mode_enabled"):
+		_inspector_panel.set_edit_mode_enabled(can_edit)
+	if _comments_panel != null:
+		_comments_panel.set_read_only(_comments_read_only_for_permissions(can_edit))
 
 
 func _apply_group_render_order(inst: BoardItem) -> void:
@@ -220,6 +271,7 @@ func remove_item_by_id(id: String) -> void:
 	item.queue_free()
 	if _minimap != null:
 		_minimap.notify_items_changed()
+	_drop_comments_referencing_item(id)
 
 
 func find_item_by_id(id: String) -> BoardItem:
@@ -243,6 +295,7 @@ func _wire_item(item: BoardItem) -> void:
 	item.link_followed.connect(_on_item_link_followed)
 	item.navigate_requested.connect(_on_item_navigate_requested)
 	item.dragging.connect(_on_item_dragging)
+	item.drag_ended.connect(_on_item_drag_ended)
 	item.item_rect_changed.connect(_on_item_rect_changed)
 	item.port_drag_started.connect(_on_item_port_drag_started)
 
@@ -333,6 +386,11 @@ func _input(event: InputEvent) -> void:
 		if rc_blocking is GroupNode and _is_world_pos_on_group_body(rc_blocking as GroupNode, world_pos):
 			rc_blocking = null
 		if rc_blocking != null:
+			_show_item_context_menu(rc_blocking, screen_pos)
+			get_viewport().set_input_as_handled()
+			return
+		if is_local_read_only():
+			get_viewport().set_input_as_handled()
 			return
 		_commit_active_edits()
 		_clear_pending_add_state()
@@ -350,8 +408,9 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	if _connection_layer != null:
+		var ro_local: bool = is_local_read_only()
 		var wp_hit: Dictionary = _connection_layer.hit_test_waypoint(world_pos)
-		if not wp_hit.is_empty():
+		if not wp_hit.is_empty() and not ro_local:
 			if mb.shift_pressed:
 				_connection_layer.remove_selected_waypoint(world_pos)
 			else:
@@ -360,7 +419,7 @@ func _input(event: InputEvent) -> void:
 			return
 		var hit: Connection = _connection_layer.hit_test(world_pos)
 		if hit != null:
-			if mb.alt_pressed:
+			if mb.alt_pressed and not ro_local:
 				_connection_layer.add_waypoint_at(world_pos)
 				get_viewport().set_input_as_handled()
 				return
@@ -760,6 +819,11 @@ func _on_item_moved(item: BoardItem, _from: Vector2, _to: Vector2) -> void:
 	request_save()
 
 
+func _on_item_drag_ended(_item: BoardItem) -> void:
+	_end_drag_session()
+	_clear_drop_highlight()
+
+
 func _on_item_resized(item: BoardItem, from_size: Vector2, to_size: Vector2) -> void:
 	History.push_already_done(ModifyPropertyCommand.new(self, item.item_id, "size", from_size, to_size))
 	request_save()
@@ -1079,6 +1143,8 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			UserPrefs.set_minimap_visible(visible_minimap)
 		EditorToolbar.ACTION_TOGGLE_TIMER_TRAY:
 			_toggle_timer_tray(bool(payload))
+		EditorToolbar.ACTION_TOGGLE_COMMENTS:
+			_toggle_comments_panel(bool(payload))
 		EditorToolbar.ACTION_UNDO:
 			History.undo()
 		EditorToolbar.ACTION_REDO:
@@ -1967,7 +2033,7 @@ func _perform_save() -> void:
 	var connection_dicts: Array = []
 	if _connection_layer != null:
 		connection_dicts = _connection_layer.get_connection_dicts()
-	AppState.save_current_board(dicts, connection_dicts)
+	AppState.save_current_board(dicts, connection_dicts, _board_comments.duplicate(true))
 
 
 func add_connection(c: Connection) -> void:
@@ -2170,6 +2236,16 @@ func apply_remote_op(op: Op) -> void:
 			if c != null:
 				c.apply_property(String(op.payload.get("key", "")), op.payload.get("value", null))
 				notify_connection_updated(c)
+		OpKinds.CREATE_COMMENT:
+			var raw: Variant = op.payload.get("comment_dict", null)
+			if typeof(raw) == TYPE_DICTIONARY:
+				apply_comment_create_locally(raw as Dictionary)
+		OpKinds.DELETE_COMMENT:
+			apply_comment_delete_locally(String(op.payload.get("comment_id", "")))
+		OpKinds.SET_COMMENT_PROPERTY:
+			var key: String = String(op.payload.get("key", ""))
+			var raw_value: Variant = op.payload.get("value", null)
+			apply_comment_property_locally(String(op.payload.get("comment_id", "")), key, _deserialize_comment_property_value(key, raw_value))
 		_:
 			OpBus.applier().apply_to_project(op)
 	if _connection_layer != null:
@@ -2278,7 +2354,10 @@ func _on_manage_participants_requested() -> void:
 
 
 func _on_leave_session_requested() -> void:
+	var was_guest: bool = MultiplayerService.is_guest_session_role()
 	MultiplayerService.leave_session()
+	if was_guest:
+		emit_signal("back_to_projects_requested")
 
 
 func _on_follow_camera_requested(stable_id: String) -> void:
@@ -2341,3 +2420,344 @@ func handle_canvas_ping(world_pos: Vector2) -> void:
 	if not MultiplayerService.is_in_session():
 		return
 	MultiplayerService.send_ping_marker(world_pos)
+
+
+func _toggle_comments_panel(visible_state: bool) -> void:
+	if _comments_panel == null:
+		return
+	_comments_panel.visible = visible_state
+	_comments_button_state = visible_state
+	if _toolbar != null and _toolbar.has_method("set_comments_pressed"):
+		_toolbar.set_comments_pressed(visible_state)
+
+
+func _on_comments_panel_close_requested() -> void:
+	_toggle_comments_panel(false)
+
+
+func _load_comments_from_board(board: Board) -> void:
+	_board_comments.clear()
+	if board != null:
+		for entry_v: Variant in board.comments:
+			if typeof(entry_v) != TYPE_DICTIONARY:
+				continue
+			_board_comments.append(CommentData.normalize((entry_v as Dictionary).duplicate(true)))
+	if _comments_panel != null:
+		_comments_panel.set_comments(_board_comments)
+
+
+func current_board_comments() -> Array:
+	return _board_comments.duplicate(true)
+
+
+func add_comment_for_item(item_id: String, card_id: String = "") -> void:
+	if item_id == "":
+		return
+	if not _can_emit_comment_kind(OpKinds.CREATE_COMMENT):
+		return
+	var stable_id: String = ""
+	var display: String = "Player"
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root != null and root.has_node("KeypairService"):
+		KeypairService.ensure_ready()
+		stable_id = KeypairService.stable_id()
+		display = KeypairService.display_name()
+	var draft: Dictionary = CommentData.make_default(item_id, card_id, stable_id, display)
+	History.push(CreateCommentCommand.new(self, draft))
+	if _comments_panel != null:
+		_toggle_comments_panel(true)
+
+
+func modify_comment_property(comment_id: String, key: String, from_value: Variant, to_value: Variant) -> void:
+	if comment_id == "" or key == "":
+		return
+	if not _can_emit_comment_kind(OpKinds.SET_COMMENT_PROPERTY):
+		return
+	History.push(ModifyCommentPropertyCommand.new(self, comment_id, key, from_value, to_value))
+
+
+func delete_comment(comment_id: String) -> void:
+	if comment_id == "":
+		return
+	if not _can_emit_comment_kind(OpKinds.DELETE_COMMENT):
+		return
+	var snapshot: Dictionary = CommentData.find_comment(_board_comments, comment_id)
+	if snapshot.is_empty():
+		return
+	History.push(DeleteCommentCommand.new(self, comment_id, snapshot))
+
+
+func apply_comment_create_locally(comment_dict: Dictionary) -> void:
+	var normalized: Dictionary = CommentData.normalize(comment_dict.duplicate(true))
+	var comment_id: String = String(normalized.get(CommentData.FIELD_ID, ""))
+	if comment_id == "":
+		return
+	var idx: int = CommentData.find_index(_board_comments, comment_id)
+	if idx < 0:
+		_board_comments.append(normalized)
+	else:
+		_board_comments[idx] = normalized
+	if _comments_panel != null:
+		_comments_panel.update_comment(normalized)
+
+
+func apply_comment_delete_locally(comment_id: String) -> void:
+	if comment_id == "":
+		return
+	var idx: int = CommentData.find_index(_board_comments, comment_id)
+	if idx >= 0:
+		_board_comments.remove_at(idx)
+	if _comments_panel != null:
+		_comments_panel.remove_comment(comment_id)
+
+
+func apply_comment_property_locally(comment_id: String, key: String, value: Variant) -> void:
+	if comment_id == "" or key == "":
+		return
+	if not CommentData.is_settable_key(key):
+		return
+	var idx: int = CommentData.find_index(_board_comments, comment_id)
+	if idx < 0:
+		return
+	var entry: Dictionary = (_board_comments[idx] as Dictionary).duplicate(true)
+	if key == CommentData.FIELD_COLOR and typeof(value) == TYPE_COLOR:
+		entry[key] = CommentData.serialize_color_value(value)
+	else:
+		entry[key] = value
+	entry[CommentData.FIELD_LAST_EDITED_UNIX] = int(Time.get_unix_time_from_system())
+	_board_comments[idx] = entry
+	if _comments_panel != null:
+		_comments_panel.update_comment(entry)
+
+
+func _drop_comments_referencing_item(item_id: String) -> void:
+	if item_id == "":
+		return
+	var dropped: Array[String] = []
+	for i in range(_board_comments.size() - 1, -1, -1):
+		var entry: Dictionary = _board_comments[i]
+		if String(entry.get(CommentData.FIELD_TARGET_ITEM_ID, "")) == item_id:
+			dropped.append(String(entry.get(CommentData.FIELD_ID, "")))
+			_board_comments.remove_at(i)
+	if _comments_panel != null:
+		for cid: String in dropped:
+			_comments_panel.remove_comment(cid)
+
+
+static func _deserialize_comment_property_value(key: String, raw: Variant) -> Variant:
+	if key == CommentData.FIELD_COLOR:
+		return CommentData.deserialize_color_value(raw)
+	return raw
+
+
+func comment_target_item_label(item_id: String) -> String:
+	if item_id == "":
+		return ""
+	var item: BoardItem = find_item_by_id(item_id)
+	if item == null:
+		return ""
+	var label: String = item.display_name()
+	if label == "" or label == "Item":
+		return item.type_id.capitalize() if item.type_id != "" else "Item"
+	return label
+
+
+func comment_target_card_label(item_id: String, card_id: String) -> String:
+	if item_id == "" or card_id == "":
+		return ""
+	var item: BoardItem = find_item_by_id(item_id)
+	if item == null:
+		return ""
+	var d: Dictionary = item.to_dict()
+	var rows_raw: Variant = d.get("rows", null)
+	if typeof(rows_raw) == TYPE_ARRAY:
+		for row_v: Variant in (rows_raw as Array):
+			if typeof(row_v) != TYPE_DICTIONARY:
+				continue
+			if String((row_v as Dictionary).get("id", "")) == card_id:
+				var t: String = String((row_v as Dictionary).get("text", ""))
+				return _truncate_label(t if t != "" else card_id)
+	var cards_raw: Variant = d.get("cards", null)
+	if typeof(cards_raw) == TYPE_ARRAY:
+		var found: Dictionary = TodoCardData.find_card(cards_raw as Array, card_id)
+		if not found.is_empty():
+			var t: String = String(found.get("text", ""))
+			return _truncate_label(t if t != "" else card_id)
+	return _truncate_label(card_id)
+
+
+static func _truncate_label(text: String) -> String:
+	var trimmed: String = text.strip_edges()
+	if trimmed.length() <= 32:
+		return trimmed
+	return "%s…" % trimmed.substr(0, 31)
+
+
+func _build_item_context_menu() -> void:
+	if _item_context_menu != null:
+		return
+	_item_context_menu = PopupMenu.new()
+	_item_context_menu.name = "ItemContextMenu"
+	add_child(_item_context_menu)
+	_item_context_menu.id_pressed.connect(_on_item_context_menu_id_pressed)
+
+
+func _show_item_context_menu(item: BoardItem, screen_pos: Vector2) -> void:
+	if item == null or _item_context_menu == null:
+		return
+	_item_context_menu.clear()
+	_item_context_menu_target_item_id = item.item_id
+	_item_context_menu_card_ids.clear()
+	var can_comment: bool = _can_emit_comment_kind(OpKinds.CREATE_COMMENT)
+	_item_context_menu.add_item("Add comment", 1)
+	_item_context_menu.set_item_disabled(_item_context_menu.get_item_index(1), not can_comment)
+	var card_entries: Array = _collect_commentable_card_entries(item)
+	if not card_entries.is_empty():
+		_item_context_menu.add_separator("Comment on…")
+		for i in range(card_entries.size()):
+			var entry: Dictionary = card_entries[i]
+			var card_id: String = String(entry.get("id", ""))
+			var label: String = String(entry.get("label", card_id))
+			_item_context_menu_card_ids.append(card_id)
+			var menu_id: int = 100 + i
+			_item_context_menu.add_item(label, menu_id)
+			_item_context_menu.set_item_disabled(_item_context_menu.get_item_index(menu_id), not can_comment)
+	_item_context_menu.add_separator()
+	_item_context_menu.add_item("Show comments panel", 2)
+	var window: Window = get_window()
+	var window_pos: Vector2i = window.position if window != null else Vector2i.ZERO
+	_item_context_menu.position = Vector2i(int(window_pos.x + screen_pos.x), int(window_pos.y + screen_pos.y))
+	_item_context_menu.popup()
+
+
+func _on_item_context_menu_id_pressed(id: int) -> void:
+	if id == 1:
+		add_comment_for_item(_item_context_menu_target_item_id, "")
+		return
+	if id == 2:
+		_toggle_comments_panel(true)
+		return
+	if id >= 100:
+		var card_idx: int = id - 100
+		if card_idx >= 0 and card_idx < _item_context_menu_card_ids.size():
+			add_comment_for_item(_item_context_menu_target_item_id, String(_item_context_menu_card_ids[card_idx]))
+
+
+func _collect_commentable_card_entries(item: BoardItem) -> Array:
+	var out: Array = []
+	if item == null:
+		return out
+	var d: Dictionary = item.to_dict()
+	var rows_raw: Variant = d.get("rows", null)
+	if typeof(rows_raw) == TYPE_ARRAY:
+		for row_v: Variant in (rows_raw as Array):
+			if typeof(row_v) != TYPE_DICTIONARY:
+				continue
+			var rd: Dictionary = row_v
+			var rid: String = String(rd.get("id", ""))
+			if rid == "":
+				continue
+			var text: String = String(rd.get("text", ""))
+			out.append({"id": rid, "label": _truncate_label(text if text != "" else "Row")})
+	var cards_raw: Variant = d.get("cards", null)
+	if typeof(cards_raw) == TYPE_ARRAY:
+		_collect_card_entries_recursive(cards_raw as Array, "", out)
+	return out
+
+
+func _collect_card_entries_recursive(cards: Array, prefix: String, out: Array) -> void:
+	for c_v: Variant in cards:
+		if typeof(c_v) != TYPE_DICTIONARY:
+			continue
+		var c: Dictionary = c_v
+		var cid: String = String(c.get("id", ""))
+		if cid == "":
+			continue
+		var text: String = String(c.get("text", ""))
+		var label_text: String = _truncate_label(text if text != "" else "Card")
+		var label: String = label_text if prefix == "" else "%s › %s" % [prefix, label_text]
+		out.append({"id": cid, "label": label})
+		var sub: Variant = c.get("subcards", null)
+		if typeof(sub) == TYPE_ARRAY:
+			_collect_card_entries_recursive(sub as Array, label_text, out)
+
+
+func _can_emit_comment_kind(kind: String) -> bool:
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root == null or not root.has_node("MultiplayerService"):
+		return true
+	return MultiplayerService.local_can_emit(kind)
+
+
+func _comments_read_only_for_permissions(_can_edit: bool) -> bool:
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root == null or not root.has_node("MultiplayerService"):
+		return false
+	return not MultiplayerService.local_can_emit(OpKinds.SET_COMMENT_PROPERTY)
+
+
+func _on_comment_jump_requested(item_id: String, _card_id: String) -> void:
+	if item_id == "":
+		return
+	var target: BoardItem = find_item_by_id(item_id)
+	if target == null:
+		return
+	SelectionBus.set_single(target)
+	if _camera != null:
+		_camera.position = target.position + target.size * 0.5
+
+
+func _wire_merge_dialogs() -> void:
+	if _merge_resolution_dialog == null or _host_merge_report_panel == null:
+		return
+	MultiplayerService.merge_dialog_requested.connect(_on_merge_dialog_requested)
+	MultiplayerService.merge_dialog_close_requested.connect(_on_merge_dialog_close_requested)
+	MultiplayerService.merge_report_received.connect(_on_merge_report_received)
+	MultiplayerService.merge_report_entry_rolled_back.connect(_on_merge_report_entry_rolled_back)
+	MultiplayerService.merge_report_fully_rolled_back.connect(_on_merge_report_fully_rolled_back)
+	_merge_resolution_dialog.merge_confirmed.connect(_on_merge_resolution_confirmed)
+	_merge_resolution_dialog.merge_cancelled.connect(_on_merge_resolution_cancelled)
+	_host_merge_report_panel.rollback_individual_requested.connect(_on_host_rollback_individual_requested)
+	_host_merge_report_panel.rollback_all_requested.connect(_on_host_rollback_all_requested)
+	_host_merge_report_panel.report_dismissed.connect(_on_host_report_dismissed)
+
+
+func _on_merge_dialog_requested(conflicts: Array, non_conflicting_local_count: int, non_conflicting_remote_count: int, host_display_name: String) -> void:
+	_merge_resolution_dialog.setup(conflicts, non_conflicting_local_count, non_conflicting_remote_count, host_display_name)
+	_merge_resolution_dialog.popup_centered_clamped(Vector2i(900, 620))
+
+
+func _on_merge_dialog_close_requested() -> void:
+	_merge_resolution_dialog.hide()
+
+
+func _on_merge_resolution_confirmed(resolved_conflicts: Array) -> void:
+	MultiplayerService.handle_merge_user_resolution(resolved_conflicts)
+
+
+func _on_merge_resolution_cancelled() -> void:
+	MultiplayerService.handle_merge_user_cancel()
+
+
+func _on_merge_report_received(report: Dictionary) -> void:
+	_host_merge_report_panel.add_report(report)
+
+
+func _on_merge_report_entry_rolled_back(report_id: String, op_id: String) -> void:
+	_host_merge_report_panel.mark_op_rolled_back(report_id, op_id)
+
+
+func _on_merge_report_fully_rolled_back(report_id: String) -> void:
+	_host_merge_report_panel.mark_report_rolled_back(report_id)
+
+
+func _on_host_rollback_individual_requested(report_id: String, op_id: String) -> void:
+	MultiplayerService.handle_host_rollback_individual(report_id, op_id)
+
+
+func _on_host_rollback_all_requested(report_id: String) -> void:
+	MultiplayerService.handle_host_rollback_all(report_id)
+
+
+func _on_host_report_dismissed(report_id: String) -> void:
+	MultiplayerService.handle_host_dismiss_report(report_id)

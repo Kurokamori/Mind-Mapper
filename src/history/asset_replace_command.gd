@@ -26,6 +26,19 @@ func record_op_forward() -> void:
 	_emit_op(_to_state)
 
 
+func rollback_local() -> void:
+	var item: BoardItem = _editor.find_item_by_id(_item_id) if _editor != null else null
+	if item == null:
+		return
+	item.apply_property("source_mode", int(_from_state.get("source_mode", 0)))
+	item.apply_property("source_path", String(_from_state.get("source_path", "")))
+	item.apply_property("asset_name", String(_from_state.get("asset_name", "")))
+
+
+func primary_op_kind() -> String:
+	return OpKinds.SET_ITEM_PROPERTY
+
+
 func _apply(state: Dictionary) -> void:
 	var item: BoardItem = _editor.find_item_by_id(_item_id)
 	if item == null:

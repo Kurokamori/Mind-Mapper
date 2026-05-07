@@ -58,6 +58,12 @@ func _apply_to_board(op: Op) -> Dictionary:
 			changed = _op_set_connection_property(board, op)
 		OpKinds.SET_BOARD_PROPERTY:
 			changed = _op_set_board_property(board, op)
+		OpKinds.CREATE_COMMENT:
+			changed = _op_create_comment(board, op)
+		OpKinds.DELETE_COMMENT:
+			changed = _op_delete_comment(board, op)
+		OpKinds.SET_COMMENT_PROPERTY:
+			changed = _op_set_comment_property(board, op)
 		_:
 			return {"applied": false, "reason": "unknown_kind"}
 	if changed:
@@ -114,8 +120,10 @@ func _op_delete_item(board: Board, op: Op) -> bool:
 			board.items.remove_at(i)
 			_add_tombstone(board, "item:%s" % item_id)
 			_remove_connections_referencing_item(board, item_id)
+			_remove_comments_referencing_item(board, item_id)
 			return true
 	_add_tombstone(board, "item:%s" % item_id)
+	_remove_comments_referencing_item(board, item_id)
 	return false
 
 
@@ -445,6 +453,77 @@ func _is_tombstoned(board: Board, key: String) -> bool:
 
 func _add_tombstone(board: Board, key: String) -> void:
 	pass
+
+
+func _op_create_comment(board: Board, op: Op) -> bool:
+	var comment_raw: Variant = op.payload.get("comment_dict", null)
+	if typeof(comment_raw) != TYPE_DICTIONARY:
+		return false
+	var comment_dict: Dictionary = CommentData.normalize((comment_raw as Dictionary).duplicate(true))
+	var comment_id: String = String(comment_dict.get(CommentData.FIELD_ID, ""))
+	if comment_id == "":
+		return false
+	if _is_tombstoned(board, "comment:%s" % comment_id):
+		return false
+	if CommentData.find_index(board.comments, comment_id) >= 0:
+		return false
+	board.comments.append(comment_dict)
+	return true
+
+
+func _op_delete_comment(board: Board, op: Op) -> bool:
+	var comment_id: String = String(op.payload.get("comment_id", ""))
+	if comment_id == "":
+		return false
+	var idx: int = CommentData.find_index(board.comments, comment_id)
+	if idx < 0:
+		_add_tombstone(board, "comment:%s" % comment_id)
+		return false
+	board.comments.remove_at(idx)
+	_add_tombstone(board, "comment:%s" % comment_id)
+	return true
+
+
+func _op_set_comment_property(board: Board, op: Op) -> bool:
+	var comment_id: String = String(op.payload.get("comment_id", ""))
+	var key: String = String(op.payload.get("key", ""))
+	if comment_id == "" or key == "":
+		return false
+	if not (op.payload as Dictionary).has("value"):
+		return false
+	if not CommentData.is_settable_key(key):
+		return false
+	var idx: int = CommentData.find_index(board.comments, comment_id)
+	if idx < 0:
+		return false
+	var entry: Dictionary = (board.comments[idx] as Dictionary).duplicate(true)
+	var raw_value: Variant = op.payload["value"]
+	if key == CommentData.FIELD_COLOR:
+		if typeof(raw_value) == TYPE_COLOR:
+			entry[key] = CommentData.serialize_color_value(raw_value)
+		elif typeof(raw_value) == TYPE_ARRAY:
+			entry[key] = (raw_value as Array).duplicate()
+		else:
+			return false
+	else:
+		entry[key] = raw_value
+	entry[CommentData.FIELD_LAST_EDITED_UNIX] = int(Time.get_unix_time_from_system())
+	board.comments[idx] = entry
+	return true
+
+
+func _remove_comments_referencing_item(board: Board, item_id: String) -> void:
+	if item_id == "":
+		return
+	for i in range(board.comments.size() - 1, -1, -1):
+		var entry: Variant = board.comments[i]
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		if String((entry as Dictionary).get(CommentData.FIELD_TARGET_ITEM_ID, "")) == item_id:
+			var cid: String = String((entry as Dictionary).get(CommentData.FIELD_ID, ""))
+			board.comments.remove_at(i)
+			if cid != "":
+				_add_tombstone(board, "comment:%s" % cid)
 
 
 func _remove_connections_referencing_item(board: Board, item_id: String) -> void:

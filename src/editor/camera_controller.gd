@@ -1,8 +1,8 @@
 class_name EditorCameraController
 extends Camera2D
 
-const MIN_ZOOM: float = 0.1
-const MAX_ZOOM: float = 6.0
+const MIN_ZOOM: float = 0.01
+const MAX_ZOOM: float = 10.0
 const ZOOM_STEP: float = 1.1
 
 var _panning: bool = false

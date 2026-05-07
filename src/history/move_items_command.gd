@@ -34,6 +34,20 @@ func record_op_forward() -> void:
 	_emit_op(true)
 
 
+func rollback_local() -> void:
+	if _editor == null:
+		return
+	for e in _entries:
+		var item: BoardItem = _editor.find_item_by_id(String(e.get("id", "")))
+		if item != null:
+			var from_arr: Array = e.get("from", [0, 0])
+			item.position = Vector2(float(from_arr[0]), float(from_arr[1]))
+
+
+func primary_op_kind() -> String:
+	return OpKinds.MOVE_ITEMS
+
+
 func _emit_op(forward: bool) -> void:
 	var board_id: String = AppState.current_board.id if AppState.current_board != null else ""
 	var entries_for_op: Array = []

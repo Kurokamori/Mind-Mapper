@@ -33,5 +33,9 @@ func undo() -> void:
 	_editor.request_save()
 
 
+func primary_op_kind() -> String:
+	return OpKinds.CREATE_ITEM
+
+
 func description() -> String:
 	return "Add items"

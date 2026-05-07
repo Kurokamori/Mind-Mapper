@@ -31,6 +31,9 @@ const KIND_BOARD_HASH: String = "board_hash"
 const KIND_DESYNC_RESYNC: String = "desync_resync"
 const KIND_KICK: String = "kick"
 const KIND_GUEST_POLICY: String = "guest_policy"
+const KIND_MERGE_PREFLIGHT: String = "merge_preflight"
+const KIND_MERGE_PREFLIGHT_RESPONSE: String = "merge_preflight_response"
+const KIND_MERGE_FINALIZE: String = "merge_finalize"
 
 
 static func envelope(kind: String, payload: Variant) -> Dictionary:
@@ -42,7 +45,8 @@ static func envelope(kind: String, payload: Variant) -> Dictionary:
 
 static func channel_for(kind: String) -> int:
 	match kind:
-		KIND_OP, KIND_OP_BATCH, KIND_OPLOG_REQUEST, KIND_OPLOG_RESPONSE, KIND_BOARD_REQUEST, KIND_BOARD_RESPONSE:
+		KIND_OP, KIND_OP_BATCH, KIND_OPLOG_REQUEST, KIND_OPLOG_RESPONSE, KIND_BOARD_REQUEST, KIND_BOARD_RESPONSE, \
+		KIND_MERGE_PREFLIGHT, KIND_MERGE_PREFLIGHT_RESPONSE, KIND_MERGE_FINALIZE:
 			return CHANNEL_OPS
 		KIND_PRESENCE, KIND_HEARTBEAT, KIND_PING_MARKER:
 			return CHANNEL_PRESENCE

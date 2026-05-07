@@ -36,6 +36,16 @@ func record_op_forward() -> void:
 	_record_value(_to_value)
 
 
+func rollback_local() -> void:
+	var item: BoardItem = _editor.find_item_by_id(_item_id) if _editor != null else null
+	if item != null:
+		item.apply_property(_key, _from_value)
+
+
+func primary_op_kind() -> String:
+	return OpKinds.SET_ITEM_PROPERTY
+
+
 func _record_value(value: Variant) -> void:
 	var board_id: String = AppState.current_board.id if AppState.current_board != null else ""
 	OpBus.record_local_change(OpKinds.SET_ITEM_PROPERTY, {

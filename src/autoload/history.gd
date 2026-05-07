@@ -54,9 +54,13 @@ func clear() -> void:
 
 
 func push(command: HistoryCommand) -> void:
-	if command == null or _bound_page_id == "":
-		if command != null:
-			command.do()
+	if command == null:
+		return
+	if not _local_can_perform(command):
+		_log_blocked(command)
+		return
+	if _bound_page_id == "":
+		command.do()
 		return
 	command.do()
 	var undo_stack: Array = _per_page_undo.get(_bound_page_id, [])
@@ -69,9 +73,14 @@ func push(command: HistoryCommand) -> void:
 
 
 func push_already_done(command: HistoryCommand) -> void:
-	if command == null or _bound_page_id == "":
-		if command != null:
-			command.record_op_forward()
+	if command == null:
+		return
+	if not _local_can_perform(command):
+		command.rollback_local()
+		_log_blocked(command)
+		return
+	if _bound_page_id == "":
+		command.record_op_forward()
 		return
 	command.record_op_forward()
 	var undo_stack: Array = _per_page_undo.get(_bound_page_id, [])
@@ -103,7 +112,11 @@ func undo() -> void:
 	var undo_stack: Array = _per_page_undo.get(_bound_page_id, [])
 	if undo_stack.is_empty():
 		return
-	var cmd: HistoryCommand = undo_stack.pop_back()
+	var cmd: HistoryCommand = undo_stack.back()
+	if not _local_can_perform(cmd):
+		_log_blocked(cmd)
+		return
+	undo_stack.pop_back()
 	cmd.undo()
 	var redo_stack: Array = _per_page_redo.get(_bound_page_id, [])
 	redo_stack.append(cmd)
@@ -118,10 +131,37 @@ func redo() -> void:
 	var redo_stack: Array = _per_page_redo.get(_bound_page_id, [])
 	if redo_stack.is_empty():
 		return
-	var cmd: HistoryCommand = redo_stack.pop_back()
+	var cmd: HistoryCommand = redo_stack.back()
+	if not _local_can_perform(cmd):
+		_log_blocked(cmd)
+		return
+	redo_stack.pop_back()
 	cmd.do()
 	var undo_stack: Array = _per_page_undo.get(_bound_page_id, [])
 	undo_stack.append(cmd)
 	_per_page_undo[_bound_page_id] = undo_stack
 	_per_page_redo[_bound_page_id] = redo_stack
 	emit_signal("changed")
+
+
+func local_can_perform_kind(kind: String) -> bool:
+	if kind == "":
+		return true
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root == null or not root.has_node("MultiplayerService"):
+		return true
+	return MultiplayerService.local_can_emit(kind)
+
+
+func _local_can_perform(command: HistoryCommand) -> bool:
+	if command == null:
+		return false
+	return local_can_perform_kind(command.primary_op_kind())
+
+
+func _log_blocked(command: HistoryCommand) -> void:
+	var kind: String = command.primary_op_kind()
+	var root: Node = get_tree().root if get_tree() != null else null
+	if root != null and root.has_node("MultiplayerService"):
+		MultiplayerService.emit_signal("session_log", "warning", "Edit blocked: your role does not permit '%s' on this project." % (kind if kind != "" else command.description()))
+	push_warning("History: command blocked by guest policy (kind=%s)" % kind)

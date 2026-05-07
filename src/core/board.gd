@@ -8,6 +8,7 @@ var name: String = "Board"
 var parent_board_id: String = ""
 var items: Array = []
 var connections: Array = []
+var comments: Array = []
 var background_image_asset: String = ""
 var background_image_mode: int = 0
 var background_color_override: Color = Color(0.0, 0.0, 0.0, 0.0)
@@ -24,6 +25,9 @@ static func from_dict(d: Dictionary) -> Board:
 	var conns_raw: Variant = d.get("connections", [])
 	if typeof(conns_raw) == TYPE_ARRAY:
 		b.connections = conns_raw.duplicate(true)
+	var comments_raw: Variant = d.get("comments", [])
+	if typeof(comments_raw) == TYPE_ARRAY:
+		b.comments = comments_raw.duplicate(true)
 	b.background_image_asset = String(d.get("background_image_asset", ""))
 	b.background_image_mode = int(d.get("background_image_mode", 0))
 	var bg_raw: Variant = d.get("background_color_override", null)
@@ -41,6 +45,7 @@ func to_dict() -> Dictionary:
 		"parent_board_id": parent_board_id,
 		"items": items.duplicate(true),
 		"connections": connections.duplicate(true),
+		"comments": comments.duplicate(true),
 		"background_image_asset": background_image_asset,
 		"background_image_mode": background_image_mode,
 		"background_color_override": [

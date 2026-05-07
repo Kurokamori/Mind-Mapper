@@ -6,7 +6,7 @@ const MODE_DOCK_LEFT: String = "dock_left"
 const MODE_DOCK_RIGHT: String = "dock_right"
 const MODE_DOCK_BOTTOM: String = "dock_bottom"
 
-const TOP_RESERVED_PX: float = 160.0
+const TOP_RESERVED_PX: float = 140.0
 const BOTTOM_RESERVED_PX: float = 8.0
 const SIDE_RESERVED_PX: float = 0.0
 const DOCK_SNAP_DISTANCE_PX: float = 32.0

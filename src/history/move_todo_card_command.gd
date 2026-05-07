@@ -40,6 +40,26 @@ func record_op_forward() -> void:
 	_emit_op(_source_after, _target_after)
 
 
+func rollback_local() -> void:
+	if _editor == null:
+		return
+	if _source_list_id == _target_list_id:
+		var only: BoardItem = _editor.find_item_by_id(_source_list_id)
+		if only != null:
+			only.apply_property("cards", _source_before)
+		return
+	var s: BoardItem = _editor.find_item_by_id(_source_list_id)
+	if s != null:
+		s.apply_property("cards", _source_before)
+	var t: BoardItem = _editor.find_item_by_id(_target_list_id)
+	if t != null:
+		t.apply_property("cards", _target_before)
+
+
+func primary_op_kind() -> String:
+	return OpKinds.SET_ITEM_PROPERTY
+
+
 func _apply(src: Array, tgt: Array) -> void:
 	if _source_list_id == _target_list_id:
 		var only: BoardItem = _editor.find_item_by_id(_source_list_id)

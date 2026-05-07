@@ -53,7 +53,7 @@ func _make_row(entry: Dictionary) -> Control:
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)
 	var time_label: Label = Label.new()
-	time_label.text = _format_seconds(float(entry.get("seconds_remaining", 0.0)))
+	time_label.text = TimerRegistry.format_duration(float(entry.get("seconds_remaining", 0.0)), false)
 	row.add_child(time_label)
 	var jump: Button = Button.new()
 	jump.text = "Jump"
@@ -68,16 +68,6 @@ func _make_row(entry: Dictionary) -> Control:
 	)
 	row.add_child(jump)
 	return row
-
-
-func _format_seconds(s: float) -> String:
-	var total: int = int(s)
-	var h: int = total / 3600
-	var m: int = (total % 3600) / 60
-	var sec: int = total % 60
-	if h > 0:
-		return "%d:%02d:%02d" % [h, m, sec]
-	return "%02d:%02d" % [m, sec]
 
 
 func _find_editor() -> Node:

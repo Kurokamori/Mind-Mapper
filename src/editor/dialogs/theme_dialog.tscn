@@ -8,8 +8,10 @@
 oversampling_override = 1.0
 title = "Theme & Fonts"
 position = Vector2i(0, 36)
-size = Vector2i(750, 740)
+size = Vector2i(905, 752)
+wrap_controls = true
 popup_window = true
+max_size = Vector2i(1000, 752)
 script = ExtResource("1_theme_dlg")
 
 [node name="Panel" type="Panel" parent="." unique_id=2139725196]
@@ -23,6 +25,8 @@ grow_vertical = 2
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -4.5
+offset_right = 4.5
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 16
@@ -73,7 +77,6 @@ text = "Imported"
 
 [node name="ImportedSection" type="VBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=2055808400]
 unique_name_in_owner = true
-visible = false
 layout_mode = 2
 theme_override_constants/separation = 4
 
@@ -146,15 +149,11 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="BoardImageModeRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=171347186]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="BoardImageModeLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/BoardImageModeRow" unique_id=1292173761]
+[node name="BoardImageModeLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/BoardImageRow" unique_id=1292173761]
 layout_mode = 2
 text = "Image mode"
 
-[node name="BoardImageMode" type="OptionButton" parent="CenterContainer/HBoxContainer/VBox/BoardImageModeRow" unique_id=1663295912]
+[node name="BoardImageMode" type="OptionButton" parent="CenterContainer/HBoxContainer/VBox/BoardImageRow" unique_id=1663295912]
 unique_name_in_owner = true
 layout_mode = 2
 

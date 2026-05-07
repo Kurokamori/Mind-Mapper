@@ -27,6 +27,10 @@ const SET_BOARD_PROPERTY: String = "set_board_property"
 
 const REPLACE_ASSET: String = "replace_asset"
 
+const CREATE_COMMENT: String = "create_comment"
+const DELETE_COMMENT: String = "delete_comment"
+const SET_COMMENT_PROPERTY: String = "set_comment_property"
+
 const ADD_PARTICIPANT: String = "add_participant"
 const REMOVE_PARTICIPANT: String = "remove_participant"
 const TRANSFER_OWNERSHIP: String = "transfer_ownership"
@@ -39,6 +43,7 @@ static func scope_for_kind(kind: String) -> String:
 		CREATE_ITEM, DELETE_ITEM, MOVE_ITEMS, SET_ITEM_PROPERTY, REORDER_ITEMS, REPARENT_ITEMS, \
 		SET_BLOCK_STACK_ROW, SET_TODO_CARD, MOVE_TODO_CARD, \
 		CREATE_CONNECTION, DELETE_CONNECTION, SET_CONNECTION_PROPERTY, \
+		CREATE_COMMENT, DELETE_COMMENT, SET_COMMENT_PROPERTY, \
 		REPLACE_ASSET, SET_BOARD_PROPERTY:
 			return SCOPE_BOARD
 		CREATE_BOARD, RENAME_BOARD, REPARENT_BOARD, DELETE_BOARD:
@@ -61,6 +66,14 @@ static func is_structural(kind: String) -> bool:
 	match kind:
 		CREATE_ITEM, DELETE_ITEM, CREATE_CONNECTION, DELETE_CONNECTION, \
 		CREATE_BOARD, DELETE_BOARD, REPARENT_BOARD:
+			return true
+		_:
+			return false
+
+
+static func is_comment_kind(kind: String) -> bool:
+	match kind:
+		CREATE_COMMENT, DELETE_COMMENT, SET_COMMENT_PROPERTY:
 			return true
 		_:
 			return false

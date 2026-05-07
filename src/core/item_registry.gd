@@ -50,7 +50,7 @@ func default_payload(type_id: String) -> Dictionary:
 		TYPE_RICH_TEXT: return {"bbcode_text": "[b]Rich[/b] text"}
 		TYPE_PRIMITIVE: return {"shape": 0}
 		TYPE_GROUP: return {"title": "Group"}
-		TYPE_TIMER: return {"initial_duration_sec": 600.0, "label_text": "Timer"}
+		TYPE_TIMER: return {"initial_duration_sec": 600.0, "label_text": "Timer", "mode": "duration", "target_unix": 0}
 		TYPE_TODO_LIST: return {"title": "List", "cards": []}
 		TYPE_BLOCK_STACK: return {"title": "Blocks", "blocks": []}
 		TYPE_URL: return {"url": "https://example.com", "title": "Untitled link"}

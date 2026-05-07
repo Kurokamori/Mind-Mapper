@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://b8merge0002p"]
+
+[ext_resource type="Script" path="res://src/multiplayer/merge/host_merge_report_panel.gd" id="1_host_report"]
+
+[node name="HostMergeReportPanel" type="Window"]
+title = "Co-author Merge Reports"
+position = Vector2i(160, 160)
+size = Vector2i(720, 480)
+min_size = Vector2i(560, 320)
+visible = false
+script = ExtResource("1_host_report")
+
+[node name="Root" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EmptyLabel" type="Label" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No merge reports."
+horizontal_alignment = 1
+
+[node name="ReportTabs" type="TabContainer" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ReportTabTemplate" type="VBoxContainer" parent="Root/VBox/ReportTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="ReportRowTemplate" type="PanelContainer" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+
+[node name="RowMargin" type="MarginContainer" parent="Root/VBox/ReportRowTemplate"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="RowHBox" type="HBoxContainer" parent="Root/VBox/ReportRowTemplate/RowMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RowDescriptionLabel" type="Label" parent="Root/VBox/ReportRowTemplate/RowMargin/RowHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+
+[node name="RowStatusLabel" type="Label" parent="Root/VBox/ReportRowTemplate/RowMargin/RowHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="RowRollbackButton" type="Button" parent="Root/VBox/ReportRowTemplate/RowMargin/RowHBox"]
+layout_mode = 2
+text = "Roll back"
+
+[node name="ButtonRow" type="HBoxContainer" parent="Root/VBox"]
+layout_mode = 2
+alignment = 2
+
+[node name="CloseButton" type="Button" parent="Root/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Close"

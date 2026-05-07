@@ -69,6 +69,14 @@ func resolved_header_fg_color() -> Color:
 	return header_fg_color if header_fg_color_custom else ThemeManager.heading_fg("block")
 
 
+func resolved_block_bg_color() -> Color:
+	return ThemeManager.node_card_bg_color()
+
+
+func resolved_block_fg_color() -> Color:
+	return ThemeManager.node_card_fg_color()
+
+
 func default_size() -> Vector2:
 	return Vector2(380, 360)
 
@@ -118,7 +126,18 @@ func _refresh_visuals() -> void:
 		_title_label.add_theme_color_override("font_color", fg)
 	if _title_edit != null:
 		_title_edit.add_theme_color_override("font_color", fg)
+	_apply_block_palette()
 	queue_redraw()
+
+
+func _apply_block_palette() -> void:
+	if _blocks_container == null:
+		return
+	var bg: Color = resolved_block_bg_color()
+	var fg: Color = resolved_block_fg_color()
+	for child in _blocks_container.get_children():
+		if child is BlockRow:
+			(child as BlockRow).set_palette(bg, fg)
 
 
 func _rebuild_blocks() -> void:
@@ -133,6 +152,8 @@ func _rebuild_blocks() -> void:
 		var row_scene: PackedScene = preload("res://src/nodes/block_stack/block_row.tscn")
 		var row: BlockRow = row_scene.instantiate()
 		row.bind(item_id, b)
+		row.palette_bg = resolved_block_bg_color()
+		row.palette_fg = resolved_block_fg_color()
 		row.text_changed.connect(_on_block_text_changed)
 		row.indent_requested.connect(_on_block_indent_requested)
 		row.delete_requested.connect(_on_block_delete_requested)
@@ -144,7 +165,7 @@ func _rebuild_blocks() -> void:
 		if bid == _selected_block_id:
 			row.highlighted = true
 			found_selected = true
-		_blocks_container.add_child(row)
+		_blocks_container.add_child.call_deferred(row)
 	if not found_selected:
 		_selected_block_id = ""
 	_position_drop_indicator(-1)

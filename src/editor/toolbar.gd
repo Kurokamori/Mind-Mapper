@@ -11,6 +11,7 @@ const ACTION_TOGGLE_INSPECTOR: String = "toggle_inspector"
 const ACTION_TOGGLE_OUTLINER: String = "toggle_outliner"
 const ACTION_TOGGLE_MINIMAP: String = "toggle_minimap"
 const ACTION_TOGGLE_TIMER_TRAY: String = "toggle_timer_tray"
+const ACTION_TOGGLE_COMMENTS: String = "toggle_comments"
 const ACTION_OPEN_PALETTE: String = "open_palette"
 const ACTION_UNDO: String = "undo"
 const ACTION_REDO: String = "redo"
@@ -84,6 +85,7 @@ const SETTINGS_ACTION_OPEN_TODOS: String = "settings_open_todos"
 @onready var _outliner_button: Button = %OutlinerButton
 @onready var _minimap_button: Button = %MinimapButton
 @onready var _timer_tray_button: Button = %TimerTrayButton
+@onready var _comments_button: Button = %CommentsButton
 @onready var _tag_filter_button: MenuButton = %TagFilterButton
 @onready var _group_button: Button = %GroupButton
 @onready var _present_button: Button = %PresentButton
@@ -99,6 +101,7 @@ var _last_saved_unix: int = 0
 var _status_timer: Timer
 var _current_tags: PackedStringArray = PackedStringArray()
 var _selected_tag_filter: String = ""
+var _edit_mode_enabled: bool = true
 
 
 func _ready() -> void:
@@ -111,6 +114,7 @@ func _ready() -> void:
 	_outliner_button.toggled.connect(_on_outliner_toggled)
 	_minimap_button.toggled.connect(_on_minimap_toggled)
 	_timer_tray_button.toggled.connect(_on_timer_tray_toggled)
+	_comments_button.toggled.connect(_on_comments_toggled)
 	_group_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_GROUP, null))
 	_present_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_PRESENT, null))
 	_populate_export_menu()
@@ -141,6 +145,33 @@ func _ready() -> void:
 	_status_timer.start()
 	ThemeManager.theme_applied.connect(_refresh_save_status)
 	_refresh_save_status()
+
+
+func set_edit_mode_enabled(enabled: bool) -> void:
+	_edit_mode_enabled = enabled
+	var disabled: bool = not enabled
+	if _add_menu_button != null:
+		_add_menu_button.disabled = disabled
+	if _group_button != null:
+		_group_button.disabled = disabled
+	if _arrange_button != null:
+		_arrange_button.disabled = disabled
+	if _align_button != null:
+		_align_button.disabled = disabled
+	if _templates_button != null:
+		_templates_button.disabled = disabled
+	if _import_button != null:
+		_import_button.disabled = disabled
+	if _tilesets_button != null:
+		_tilesets_button.disabled = disabled
+	if _save_button != null:
+		_save_button.disabled = disabled
+	if _undo_button != null and disabled:
+		_undo_button.disabled = true
+	if _redo_button != null and disabled:
+		_redo_button.disabled = true
+	if not disabled:
+		_refresh_history_buttons()
 
 
 func _populate_add_menu() -> void:
@@ -423,6 +454,10 @@ func _on_timer_tray_toggled(pressed: bool) -> void:
 	emit_signal("action_requested", ACTION_TOGGLE_TIMER_TRAY, pressed)
 
 
+func _on_comments_toggled(pressed: bool) -> void:
+	emit_signal("action_requested", ACTION_TOGGLE_COMMENTS, pressed)
+
+
 func set_inspector_pressed(pressed: bool) -> void:
 	if _inspector_button == null:
 		return
@@ -449,6 +484,13 @@ func set_timer_tray_pressed(pressed: bool) -> void:
 		return
 	if _timer_tray_button.button_pressed != pressed:
 		_timer_tray_button.set_pressed_no_signal(pressed)
+
+
+func set_comments_pressed(pressed: bool) -> void:
+	if _comments_button == null:
+		return
+	if _comments_button.button_pressed != pressed:
+		_comments_button.set_pressed_no_signal(pressed)
 
 func _refresh_snap() -> void:
 	_refresh_snap_menu_checks()
@@ -493,9 +535,9 @@ func _refresh_align() -> void:
 
 func _refresh_history_buttons() -> void:
 	if _undo_button != null:
-		_undo_button.disabled = not History.can_undo()
+		_undo_button.disabled = (not _edit_mode_enabled) or (not History.can_undo())
 	if _redo_button != null:
-		_redo_button.disabled = not History.can_redo()
+		_redo_button.disabled = (not _edit_mode_enabled) or (not History.can_redo())
 
 
 func _on_project_opened(project: Project) -> void:

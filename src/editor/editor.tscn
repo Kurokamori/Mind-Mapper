@@ -5,22 +5,25 @@
 [ext_resource type="Script" uid="uid://d2w7rj3bi1c2b" path="res://src/editor/camera_controller.gd" id="3_camera"]
 [ext_resource type="Script" uid="uid://c30dm8lwbwb8r" path="res://src/editor/marquee.gd" id="4_marquee"]
 [ext_resource type="PackedScene" uid="uid://ddrrtk0yof547" path="res://src/editor/toolbar.tscn" id="5_toolbar"]
-[ext_resource type="PackedScene" path="res://src/editor/inspector_panel.tscn" id="6_inspector"]
+[ext_resource type="PackedScene" uid="uid://dijqmka664urx" path="res://src/editor/inspector_panel.tscn" id="6_inspector"]
 [ext_resource type="PackedScene" uid="uid://byfpgmymru6pi" path="res://src/editor/breadcrumb_bar.tscn" id="7_bc"]
-[ext_resource type="PackedScene" path="res://src/editor/auxilary/add_node_popup.tscn" id="14_addpopup"]
 [ext_resource type="PackedScene" path="res://src/editor/link_picker.tscn" id="8_lp"]
 [ext_resource type="Script" uid="uid://d4artmehmwrw3" path="res://src/editor/alignment_guides.gd" id="9_align"]
 [ext_resource type="PackedScene" path="res://src/editor/connection_layer.tscn" id="10_conn"]
-[ext_resource type="PackedScene" path="res://src/editor/board_outliner.tscn" id="11_outliner"]
+[ext_resource type="PackedScene" uid="uid://bturem1p2q4fu" path="res://src/editor/board_outliner.tscn" id="11_outliner"]
 [ext_resource type="PackedScene" path="res://src/editor/minimap.tscn" id="12_minimap"]
 [ext_resource type="PackedScene" path="res://src/editor/command_palette.tscn" id="13_palette"]
-[ext_resource type="PackedScene" path="res://src/multiplayer/presence/presence_overlay.tscn" id="20_presence_overlay"]
-[ext_resource type="PackedScene" path="res://src/multiplayer/dialogs/host_session_dialog.tscn" id="22_host_dialog"]
-[ext_resource type="PackedScene" path="res://src/multiplayer/dialogs/join_session_dialog.tscn" id="23_join_dialog"]
-[ext_resource type="PackedScene" path="res://src/multiplayer/dialogs/participant_manager_dialog.tscn" id="24_pm_dialog"]
+[ext_resource type="PackedScene" path="res://src/editor/auxilary/add_node_popup.tscn" id="14_addpopup"]
+[ext_resource type="PackedScene" uid="uid://cn86kyh62bvfc" path="res://src/multiplayer/presence/presence_overlay.tscn" id="20_presence_overlay"]
+[ext_resource type="PackedScene" uid="uid://b8mphost0001" path="res://src/multiplayer/dialogs/host_session_dialog.tscn" id="22_host_dialog"]
+[ext_resource type="PackedScene" uid="uid://b8mpjoin0001" path="res://src/multiplayer/dialogs/join_session_dialog.tscn" id="23_join_dialog"]
+[ext_resource type="PackedScene" uid="uid://cn62kfhcgbvfc" path="res://src/multiplayer/dialogs/participant_manager_dialog.tscn" id="24_pm_dialog"]
+[ext_resource type="PackedScene" uid="uid://b8merge0001r" path="res://src/multiplayer/merge/merge_resolution_dialog.tscn" id="25_merge_dlg"]
+[ext_resource type="PackedScene" uid="uid://b8merge0002p" path="res://src/multiplayer/merge/host_merge_report_panel.tscn" id="26_merge_rp"]
 [ext_resource type="PackedScene" path="res://src/tilemap/new_map_dialog.tscn" id="30_new_map"]
 [ext_resource type="PackedScene" path="res://src/tilemap/import_tileset_dialog.tscn" id="31_import_ts"]
 [ext_resource type="PackedScene" path="res://src/tilemap/new_tileset_from_image_dialog.tscn" id="32_new_ts"]
+[ext_resource type="PackedScene" path="res://src/editor/comments_panel.tscn" id="40_comments"]
 
 [node name="Editor" type="Control" unique_id=2075924755]
 layout_mode = 3
@@ -58,7 +61,7 @@ mouse_filter = 2
 unique_name_in_owner = true
 script = ExtResource("9_align")
 
-[node name="PresenceOverlay" parent="World" instance=ExtResource("20_presence_overlay")]
+[node name="PresenceOverlay" parent="World" unique_id=1821695044 instance=ExtResource("20_presence_overlay")]
 unique_name_in_owner = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1857419427]
@@ -77,9 +80,9 @@ script = ExtResource("4_marquee")
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer" unique_id=1628254969]
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 165.0
+offset_bottom = 107.0
 grow_horizontal = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 0
 
 [node name="Toolbar" parent="CanvasLayer/VBoxContainer" unique_id=393189 instance=ExtResource("5_toolbar")]
 unique_name_in_owner = true
@@ -93,6 +96,9 @@ layout_mode = 2
 unique_name_in_owner = true
 
 [node name="BoardOutliner" parent="CanvasLayer" unique_id=235937358 instance=ExtResource("11_outliner")]
+unique_name_in_owner = true
+
+[node name="CommentsPanel" parent="CanvasLayer" unique_id=2074111111 instance=ExtResource("40_comments")]
 unique_name_in_owner = true
 
 [node name="Minimap" parent="CanvasLayer" unique_id=104751447 instance=ExtResource("12_minimap")]
@@ -144,7 +150,7 @@ dialog_text = "Embed the audio into this project (copies the file) or link to it
 [node name="LinkPicker" parent="." unique_id=1161495053 instance=ExtResource("8_lp")]
 unique_name_in_owner = true
 
-[node name="AddNodePopup" parent="." instance=ExtResource("14_addpopup")]
+[node name="AddNodePopup" parent="." unique_id=861880593 instance=ExtResource("14_addpopup")]
 unique_name_in_owner = true
 
 [node name="ExportDialog" type="FileDialog" parent="." unique_id=860842052]
@@ -155,25 +161,31 @@ ok_button_text = "Save"
 access = 2
 filters = PackedStringArray("*.png ; PNG Image")
 
-[node name="HostSessionDialog" parent="." instance=ExtResource("22_host_dialog")]
+[node name="HostSessionDialog" parent="." unique_id=1549735611 instance=ExtResource("22_host_dialog")]
 unique_name_in_owner = true
 
-[node name="JoinSessionDialog" parent="." instance=ExtResource("23_join_dialog")]
+[node name="JoinSessionDialog" parent="." unique_id=1952118873 instance=ExtResource("23_join_dialog")]
 unique_name_in_owner = true
 
-[node name="ParticipantManagerDialog" parent="." instance=ExtResource("24_pm_dialog")]
+[node name="ParticipantManagerDialog" parent="." unique_id=555697537 instance=ExtResource("24_pm_dialog")]
 unique_name_in_owner = true
 
-[node name="NewMapDialog" parent="." instance=ExtResource("30_new_map")]
+[node name="MergeResolutionDialog" parent="." unique_id=626845386 instance=ExtResource("25_merge_dlg")]
 unique_name_in_owner = true
 
-[node name="ImportTilesetDialog" parent="." instance=ExtResource("31_import_ts")]
+[node name="HostMergeReportPanel" parent="." unique_id=706562302 instance=ExtResource("26_merge_rp")]
 unique_name_in_owner = true
 
-[node name="NewTilesetFromImageDialog" parent="." instance=ExtResource("32_new_ts")]
+[node name="NewMapDialog" parent="." unique_id=1610713250 instance=ExtResource("30_new_map")]
 unique_name_in_owner = true
 
-[node name="TilesetInfoDialog" type="AcceptDialog" parent="."]
+[node name="ImportTilesetDialog" parent="." unique_id=1839351333 instance=ExtResource("31_import_ts")]
+unique_name_in_owner = true
+
+[node name="NewTilesetFromImageDialog" parent="." unique_id=2081026277 instance=ExtResource("32_new_ts")]
+unique_name_in_owner = true
+
+[node name="TilesetInfoDialog" type="AcceptDialog" parent="." unique_id=1140743237]
 unique_name_in_owner = true
 title = "Tilesets"
 size = Vector2i(380, 140)

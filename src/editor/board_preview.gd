@@ -70,6 +70,7 @@ func refresh() -> void:
 		if inst == null:
 			continue
 		inst.read_only = true
+		inst.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inst.apply_dict(d)
 		_items_root.add_child(inst)
 	if _connections_layer != null:

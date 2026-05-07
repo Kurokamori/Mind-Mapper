@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://mcbl18aujjrq"]
+
+[ext_resource type="Script" uid="uid://jf5ljlxdmgtn" path="res://src/editor/comment_card.gd" id="1_card"]
+
+[node name="CommentCard" type="PanelContainer" unique_id=732013667]
+custom_minimum_size = Vector2(0, 96)
+mouse_filter = 1
+script = ExtResource("1_card")
+
+[node name="Margin" type="MarginContainer" parent="." unique_id=401964940]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Margin" unique_id=62179011]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleBox" type="HBoxContainer" parent="Margin/VBox" unique_id=292694941]
+layout_mode = 2
+
+[node name="TitleEdit" type="LineEdit" parent="Margin/VBox/TitleBox" unique_id=1220110427]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Title (optional)"
+
+[node name="HeaderHBox" type="HBoxContainer" parent="Margin/VBox" unique_id=1507262481]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ColorButton" type="ColorPickerButton" parent="Margin/VBox/HeaderHBox" unique_id=1125013001]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 24)
+layout_mode = 2
+focus_mode = 0
+edit_alpha = false
+
+[node name="ResolveButton" type="CheckButton" parent="Margin/VBox/HeaderHBox" unique_id=1280366257]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Mark as resolved"
+focus_mode = 0
+text = "Resolved"
+
+[node name="EditButton" type="Button" parent="Margin/VBox/HeaderHBox" unique_id=1401361074]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Edit body"
+focus_mode = 0
+toggle_mode = true
+text = "Edit"
+
+[node name="DeleteButton" type="Button" parent="Margin/VBox/HeaderHBox" unique_id=1057925909]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Delete this comment"
+focus_mode = 0
+text = "X"
+flat = true
+
+[node name="TargetButton" type="Button" parent="Margin/VBox" unique_id=1075431961]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "On: ..."
+flat = true
+alignment = 0
+
+[node name="BodyView" type="RichTextLabel" parent="Margin/VBox" unique_id=2070858933]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+selection_enabled = true
+
+[node name="BodyEdit" type="TextEdit" parent="Margin/VBox" unique_id=1404513997]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+size_flags_vertical = 3
+placeholder_text = "Body (BBCode supported: [b]bold[/b], [i]italic[/i], [color=red]red[/color], etc.)"
+wrap_mode = 1
+
+[node name="FooterHBox" type="HBoxContainer" parent="Margin/VBox" unique_id=848729557]
+layout_mode = 2
+alignment = 2
+
+[node name="AuthorLabel" type="Label" parent="Margin/VBox/FooterHBox" unique_id=1261275826]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.85)
+theme_override_font_sizes/font_size = 11
+horizontal_alignment = 2

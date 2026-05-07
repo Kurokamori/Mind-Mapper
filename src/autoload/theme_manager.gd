@@ -11,7 +11,7 @@ const RICH_TEXT_VARIANT_SLOTS: Dictionary = {
 }
 const DARK_THEME: Theme = preload("res://assets/ui/resources/dark_theme.tres")
 const LIGHT_THEME: Theme = preload("res://assets/ui/resources/light_theme.tres")
-const PANEL_ALPHA: float = 0.5
+const PANEL_ALPHA: float = 0.75
 
 const DARK_BG: Color = Color(0.085, 0.08, 0.105, 1.0)
 const DARK_PANEL: Color = Color(0.11, 0.105, 0.135, 1.0)
@@ -691,6 +691,24 @@ func node_heading_bg_color() -> Color:
 
 func node_heading_fg_color() -> Color:
 	return node_palette()["node_heading_fg"]
+
+
+func node_card_bg_color() -> Color:
+	return node_bg_color().lerp(node_fg_color(), 0.10)
+
+
+func node_card_fg_color() -> Color:
+	return node_fg_color()
+
+
+func node_card_completed_bg_color() -> Color:
+	if UserPrefs.theme_mode == UserPrefs.THEME_LIGHT:
+		return node_card_bg_color().darkened(0.06)
+	return node_card_bg_color().darkened(0.18)
+
+
+func node_card_completed_fg_color() -> Color:
+	return node_card_fg_color().lerp(node_card_bg_color(), 0.55)
 
 
 func themed_color(dark: Color, light: Color) -> Color:

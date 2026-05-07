@@ -14,6 +14,7 @@ const CONNECTION_INSPECTOR_SCENE: PackedScene = preload("res://src/editor/connec
 var _current_item: BoardItem = null
 var _current_connection: Connection = null
 var _current_connection_set: Array = []
+var _edit_mode_enabled: bool = true
 
 
 func _ready() -> void:
@@ -53,6 +54,7 @@ func show_connection(connection: Connection, editor: Node) -> void:
 	var inspector: ConnectionInspector = CONNECTION_INSPECTOR_SCENE.instantiate()
 	inspector.bind(connection, editor)
 	_content.add_child(inspector)
+	_apply_read_only_to_subtree(_content, not _edit_mode_enabled)
 
 
 func show_connections(connections: Array, editor: Node) -> void:
@@ -70,6 +72,7 @@ func show_connections(connections: Array, editor: Node) -> void:
 	if bulk.has_method("bind"):
 		bulk.bind(connections, editor)
 	_content.add_child(bulk)
+	_apply_read_only_to_subtree(_content, not _edit_mode_enabled)
 
 
 func _render_for(selected: Array) -> void:
@@ -106,6 +109,7 @@ func _render_for(selected: Array) -> void:
 	_attach_tag_section(item)
 	_attach_link_section(item)
 	_attach_backlinks_section(item)
+	_apply_read_only_to_subtree(_content, not _edit_mode_enabled)
 
 
 func _attach_multi_selection_section(selected: Array) -> void:
@@ -151,6 +155,7 @@ func _attach_multi_selection_section(selected: Array) -> void:
 	)
 	_content.add_child(v)
 	_attach_shared_property_groups(selected, editor)
+	_apply_read_only_to_subtree(_content, not _edit_mode_enabled)
 
 
 func _attach_shared_property_groups(selected: Array, editor: Node) -> void:
@@ -306,3 +311,32 @@ func _clear_content() -> void:
 		return
 	for child in _content.get_children():
 		child.queue_free()
+
+
+func set_edit_mode_enabled(enabled: bool) -> void:
+	_edit_mode_enabled = enabled
+	_apply_read_only_to_subtree(_content, not enabled)
+
+
+func _render_for_after_render() -> void:
+	pass
+
+
+func _apply_read_only_to_subtree(root: Node, read_only: bool) -> void:
+	if root == null:
+		return
+	for child in root.get_children():
+		if child is LineEdit:
+			(child as LineEdit).editable = not read_only
+		elif child is TextEdit:
+			(child as TextEdit).editable = not read_only
+		elif child is SpinBox:
+			(child as SpinBox).editable = not read_only
+		elif child is BaseButton:
+			(child as BaseButton).disabled = read_only
+		elif child is ColorPickerButton:
+			(child as ColorPickerButton).disabled = read_only
+		elif child is Slider:
+			(child as Slider).editable = not read_only
+		if child.get_child_count() > 0:
+			_apply_read_only_to_subtree(child, read_only)

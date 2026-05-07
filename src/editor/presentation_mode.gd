@@ -177,6 +177,7 @@ func _render() -> void:
 		if inst == null:
 			continue
 		inst.read_only = true
+		inst.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		inst.position = (it.position - bounds.position) + SLIDE_PADDING
 		_stage.add_child(inst)
 	var conn_overlay: PresentationConnections = PresentationConnections.new()

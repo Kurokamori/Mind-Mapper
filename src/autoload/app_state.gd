@@ -207,12 +207,14 @@ func _set_save_state(state: String, unix_time: int) -> void:
 	emit_signal("save_state_changed", state, unix_time)
 
 
-func save_current_board(items_dicts: Array, connection_dicts: Array = []) -> Error:
+func save_current_board(items_dicts: Array, connection_dicts: Array = [], comment_dicts: Variant = null) -> Error:
 	if current_project == null or current_board == null:
 		return ERR_UNCONFIGURED
 	mark_saving()
 	current_board.items = items_dicts.duplicate(true)
 	current_board.connections = connection_dicts.duplicate(true)
+	if typeof(comment_dicts) == TYPE_ARRAY:
+		current_board.comments = (comment_dicts as Array).duplicate(true)
 	var err: Error = current_project.write_board(current_board)
 	if err == OK:
 		mark_saved()

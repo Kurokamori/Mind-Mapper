@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://ddrrtk0yof547"]
+[gd_scene format=3 uid="uid://ddrrtk0yof547"]
 
 [ext_resource type="Script" uid="uid://cj0trsg7yv02r" path="res://src/editor/toolbar.gd" id="1_toolbar"]
 [ext_resource type="PackedScene" uid="uid://b8mpstrip0001" path="res://src/multiplayer/presence/presence_avatar_strip.tscn" id="2_strip"]
@@ -67,15 +67,57 @@ layout_mode = 2
 focus_mode = 0
 text = "Redo"
 
-[node name="TopRowSpacer" type="Control" parent="VBoxContainer/HBox"]
+[node name="TopRowSpacer" type="Control" parent="VBoxContainer/HBox" unique_id=1211949567]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="PresenceStrip" parent="VBoxContainer/HBox" instance=ExtResource("2_strip")]
+[node name="OutlinerButton" type="Button" parent="VBoxContainer/HBox" unique_id=518926252]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 4
+focus_mode = 0
+toggle_mode = true
+button_pressed = true
+text = "Outliner"
+
+[node name="MinimapButton" type="Button" parent="VBoxContainer/HBox" unique_id=639773856]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+button_pressed = true
+text = "Minimap"
+
+[node name="InspectorButton" type="Button" parent="VBoxContainer/HBox" unique_id=1796293648]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+button_pressed = true
+text = "Inspector"
+
+[node name="TimerTrayButton" type="Button" parent="VBoxContainer/HBox" unique_id=1682036709]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+text = "Timers"
+
+[node name="CommentsButton" type="Button" parent="VBoxContainer/HBox" unique_id=2017203041]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+text = "Comments"
+
+[node name="TopRowSpacer2" type="Control" parent="VBoxContainer/HBox" unique_id=411656773]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="PresenceStrip" parent="VBoxContainer/HBox" unique_id=345247762 instance=ExtResource("2_strip")]
+unique_name_in_owner = true
+layout_mode = 2
 
 [node name="LowerHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=871438227]
 layout_mode = 2
@@ -106,37 +148,6 @@ tooltip_text = "Align / distribute / z-order"
 focus_mode = 0
 text = "Arrange ▾"
 
-[node name="OutlinerButton" type="Button" parent="VBoxContainer/LowerHBox" unique_id=518926252]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-toggle_mode = true
-button_pressed = true
-text = "Outliner"
-
-[node name="MinimapButton" type="Button" parent="VBoxContainer/LowerHBox" unique_id=639773856]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-toggle_mode = true
-button_pressed = true
-text = "Minimap"
-
-[node name="InspectorButton" type="Button" parent="VBoxContainer/LowerHBox" unique_id=1796293648]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-toggle_mode = true
-button_pressed = true
-text = "Inspector"
-
-[node name="TimerTrayButton" type="Button" parent="VBoxContainer/LowerHBox" unique_id=1682036709]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-toggle_mode = true
-text = "Timers"
-
 [node name="TagFilterButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=1443327240]
 unique_name_in_owner = true
 layout_mode = 2
@@ -165,11 +176,11 @@ layout_mode = 2
 focus_mode = 0
 text = "Templates ▾"
 
-[node name="TilesetsButton" type="MenuButton" parent="VBoxContainer/LowerHBox"]
+[node name="TilesetsButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=1603129774]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Map pages and tilesets"
+focus_mode = 0
 text = "Maps & Tilesets ▾"
 
 [node name="ImportButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=910273850]

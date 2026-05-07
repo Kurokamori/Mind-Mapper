@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://src/nodes/timer/timer_node.gd" id="1_timer"]
 
 [node name="TimerNode" type="Control"]
-custom_minimum_size = Vector2(180, 110)
+custom_minimum_size = Vector2(260, 170)
 mouse_filter = 1
 script = ExtResource("1_timer")
 
@@ -11,30 +11,43 @@ script = ExtResource("1_timer")
 mouse_filter = 2
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 mouse_filter = 2
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
 [node name="Label" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
 mouse_filter = 2
 layout_mode = 2
 text = "Timer"
+clip_text = true
 theme_override_font_sizes/font_size = 13
 
 [node name="TimeLabel" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
 mouse_filter = 2
 layout_mode = 2
+size_flags_horizontal = 3
 text = "0:00"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 36
+clip_text = true
+theme_override_font_sizes/font_size = 30
+
+[node name="TargetLabel" type="Label" parent="Margin/VBox"]
+unique_name_in_owner = true
+mouse_filter = 2
+layout_mode = 2
+visible = false
+text = ""
+horizontal_alignment = 1
+clip_text = true
+theme_override_font_sizes/font_size = 11
 
 [node name="ButtonsRow" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
@@ -43,13 +56,13 @@ alignment = 1
 
 [node name="StartButton" type="Button" parent="Margin/VBox/ButtonsRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
 text = "Start"
 
 [node name="ResetButton" type="Button" parent="Margin/VBox/ButtonsRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
+custom_minimum_size = Vector2(86, 0)
 layout_mode = 2
 text = "Reset"
 

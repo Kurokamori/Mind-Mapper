@@ -36,7 +36,19 @@ var block_id: String = ""
 var owner_stack_id: String = ""
 var block_data: Dictionary = {}
 var highlighted: bool = false
+var palette_bg: Color = ROW_BG_BASE
+var palette_fg: Color = Color(0.95, 0.96, 0.98, 1.0)
 var _suppress: bool = false
+
+
+func set_palette(bg: Color, fg: Color) -> void:
+	palette_bg = bg
+	palette_fg = fg
+	if not is_inside_tree():
+		return
+	_apply_highlight_style()
+	if _text_edit != null:
+		_text_edit.add_theme_color_override("font_color", fg)
 
 
 func bind(stack_item_id: String, data: Dictionary) -> void:
@@ -114,13 +126,15 @@ func _apply_selection_state() -> void:
 
 func _apply_highlight_style() -> void:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = ROW_BG_BASE
+	sb.bg_color = palette_bg
 	sb.set_corner_radius_all(4)
 	sb.set_content_margin_all(4)
 	if highlighted:
 		sb.border_color = HIGHLIGHT_BORDER
 		sb.set_border_width_all(2)
 	add_theme_stylebox_override("panel", sb)
+	if _text_edit != null:
+		_text_edit.add_theme_color_override("font_color", palette_fg)
 
 
 func _apply_image_visual() -> void:

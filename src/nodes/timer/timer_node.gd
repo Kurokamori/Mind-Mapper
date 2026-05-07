@@ -6,13 +6,18 @@ const FG_COLOR: Color = Color(0.97, 0.93, 0.85, 1.0)
 const RUNNING_ACCENT: Color = Color(0.95, 0.55, 0.30, 1.0)
 const FINISHED_ACCENT: Color = Color(0.95, 0.30, 0.30, 1.0)
 const TICK_INTERVAL_SEC: float = 0.1
+const MODE_DURATION: String = "duration"
+const MODE_TARGET: String = "target"
 
 @export var initial_duration_sec: float = 600.0
 @export var label_text: String = "Timer"
 @export var sound_asset_name: String = ""
+@export var mode: String = MODE_DURATION
+@export var target_unix: int = 0
 
 @onready var _label: Label = %Label
 @onready var _time_label: Label = %TimeLabel
+@onready var _target_label: Label = %TargetLabel
 @onready var _start_button: Button = %StartButton
 @onready var _reset_button: Button = %ResetButton
 @onready var _tick_timer: Timer = %TickTimer
@@ -21,15 +26,21 @@ const TICK_INTERVAL_SEC: float = 0.1
 var _remaining_sec: float = 0.0
 var _running: bool = false
 var _finished: bool = false
+var _expires_at_unix: int = 0
+var _state_initialized: bool = false
 
 
 func _ready() -> void:
 	super._ready()
-	_remaining_sec = initial_duration_sec
+	if not _state_initialized:
+		_refresh_remaining_from_state()
+		_state_initialized = true
 	_start_button.pressed.connect(_on_start_pressed)
 	_reset_button.pressed.connect(_on_reset_pressed)
 	_tick_timer.wait_time = TICK_INTERVAL_SEC
 	_tick_timer.timeout.connect(_on_tick)
+	if _running and not _finished:
+		_tick_timer.start()
 	_refresh_visuals()
 	_register_with_tray()
 	tree_exiting.connect(_on_tree_exit)
@@ -40,7 +51,7 @@ func _on_tree_exit() -> void:
 
 
 func default_size() -> Vector2:
-	return Vector2(240, 130)
+	return Vector2(320, 190)
 
 
 func display_name() -> String:
@@ -63,6 +74,7 @@ func _refresh_visuals() -> void:
 	if _label != null:
 		_label.text = label_text
 	_update_time_display()
+	_update_target_caption()
 	_update_start_button()
 	queue_redraw()
 	_register_with_tray()
@@ -75,21 +87,18 @@ func _register_with_tray() -> void:
 func _update_time_display() -> void:
 	if _time_label == null:
 		return
-	_time_label.text = _format_time(_remaining_sec)
+	_time_label.text = TimerRegistry.format_duration(_remaining_sec, false)
 
 
-func _format_time(seconds: float) -> String:
-	if seconds < 0.0 or is_nan(seconds):
-		seconds = 0.0
-	var total: int = int(ceil(seconds))
-	@warning_ignore("integer_division")
-	var h: int = total / 3600
-	@warning_ignore("integer_division")
-	var m: int = (total % 3600) / 60
-	var s: int = total % 60
-	if h > 0:
-		return "%d:%02d:%02d" % [h, m, s]
-	return "%d:%02d" % [m, s]
+func _update_target_caption() -> void:
+	if _target_label == null:
+		return
+	if mode == MODE_TARGET and target_unix > 0:
+		_target_label.visible = true
+		_target_label.text = "→ %s" % Time.get_datetime_string_from_unix_time(target_unix, true)
+	else:
+		_target_label.visible = false
+		_target_label.text = ""
 
 
 func _update_start_button() -> void:
@@ -97,6 +106,9 @@ func _update_start_button() -> void:
 		return
 	if _finished:
 		_start_button.text = "Done"
+		_start_button.disabled = true
+	elif mode == MODE_TARGET and target_unix <= 0:
+		_start_button.text = "Set target"
 		_start_button.disabled = true
 	else:
 		_start_button.disabled = false
@@ -106,31 +118,60 @@ func _update_start_button() -> void:
 func _on_start_pressed() -> void:
 	if _finished:
 		return
+	if mode == MODE_TARGET and target_unix <= 0:
+		return
 	_running = not _running
 	if _running:
+		if mode == MODE_TARGET:
+			_remaining_sec = max(0.0, float(target_unix) - Time.get_unix_time_from_system())
+			_expires_at_unix = 0
+		else:
+			_expires_at_unix = int(Time.get_unix_time_from_system()) + int(ceil(_remaining_sec))
 		_tick_timer.start()
 	else:
+		if mode == MODE_DURATION and _expires_at_unix > 0:
+			_remaining_sec = max(0.0, float(_expires_at_unix) - Time.get_unix_time_from_system())
+		_expires_at_unix = 0
 		_tick_timer.stop()
 	_refresh_visuals()
+	_request_save()
 
 
 func _on_reset_pressed() -> void:
 	_running = false
 	_finished = false
+	_expires_at_unix = 0
 	_tick_timer.stop()
-	_remaining_sec = initial_duration_sec
+	_refresh_remaining_from_state()
 	_refresh_visuals()
+	_request_save()
+
+
+func _refresh_remaining_from_state() -> void:
+	if mode == MODE_TARGET:
+		_remaining_sec = max(0.0, float(target_unix) - Time.get_unix_time_from_system())
+	else:
+		_remaining_sec = initial_duration_sec
 
 
 func _on_tick() -> void:
 	if not _running:
 		return
-	_remaining_sec = max(0.0, _remaining_sec - TICK_INTERVAL_SEC)
+	if mode == MODE_TARGET:
+		_remaining_sec = max(0.0, float(target_unix) - Time.get_unix_time_from_system())
+	elif _expires_at_unix > 0:
+		_remaining_sec = max(0.0, float(_expires_at_unix) - Time.get_unix_time_from_system())
+	else:
+		_remaining_sec = max(0.0, _remaining_sec - TICK_INTERVAL_SEC)
 	if _remaining_sec <= 0.0:
 		_running = false
 		_finished = true
+		_expires_at_unix = 0
 		_tick_timer.stop()
 		_play_expiry_sound()
+		_refresh_visuals()
+		_request_save()
+		return
 	_refresh_visuals()
 
 
@@ -167,10 +208,40 @@ func _load_audio(path: String) -> AudioStream:
 
 func set_initial_duration(seconds: float) -> void:
 	initial_duration_sec = max(0.0, seconds)
-	if not _running:
-		_remaining_sec = initial_duration_sec
+	if mode == MODE_DURATION and not _running:
 		_finished = false
+		_remaining_sec = initial_duration_sec
 		_refresh_visuals()
+
+
+func set_mode(new_mode: String) -> void:
+	var normalized: String = new_mode if (new_mode == MODE_DURATION or new_mode == MODE_TARGET) else MODE_DURATION
+	if mode == normalized:
+		return
+	mode = normalized
+	_running = false
+	_finished = false
+	_expires_at_unix = 0
+	if _tick_timer != null:
+		_tick_timer.stop()
+	_refresh_remaining_from_state()
+	_refresh_visuals()
+
+
+func set_target_unix(unix: int) -> void:
+	target_unix = max(0, unix)
+	if mode == MODE_TARGET and not _running:
+		_finished = false
+		_refresh_remaining_from_state()
+		_refresh_visuals()
+
+
+func _snapshot_remaining() -> float:
+	if _running and mode == MODE_DURATION and _expires_at_unix > 0:
+		return max(0.0, float(_expires_at_unix) - Time.get_unix_time_from_system())
+	if _running and mode == MODE_TARGET and target_unix > 0:
+		return max(0.0, float(target_unix) - Time.get_unix_time_from_system())
+	return _remaining_sec
 
 
 func serialize_payload() -> Dictionary:
@@ -178,6 +249,12 @@ func serialize_payload() -> Dictionary:
 		"initial_duration_sec": initial_duration_sec,
 		"label_text": label_text,
 		"sound_asset_name": sound_asset_name,
+		"mode": mode,
+		"target_unix": target_unix,
+		"running": _running,
+		"finished": _finished,
+		"remaining_sec": _snapshot_remaining(),
+		"expires_at_unix": _expires_at_unix,
 	}
 
 
@@ -185,11 +262,45 @@ func deserialize_payload(d: Dictionary) -> void:
 	initial_duration_sec = float(d.get("initial_duration_sec", initial_duration_sec))
 	label_text = String(d.get("label_text", label_text))
 	sound_asset_name = String(d.get("sound_asset_name", sound_asset_name))
-	_remaining_sec = initial_duration_sec
-	_running = false
-	_finished = false
+	var raw_mode: String = String(d.get("mode", MODE_DURATION))
+	mode = raw_mode if (raw_mode == MODE_DURATION or raw_mode == MODE_TARGET) else MODE_DURATION
+	target_unix = int(d.get("target_unix", target_unix))
+	_running = bool(d.get("running", false))
+	_finished = bool(d.get("finished", false))
+	_expires_at_unix = int(d.get("expires_at_unix", 0))
+	var stored_remaining: float = float(d.get("remaining_sec", initial_duration_sec))
+	var now_unix: int = int(Time.get_unix_time_from_system())
+	if _finished:
+		_remaining_sec = 0.0
+		_running = false
+		_expires_at_unix = 0
+	elif mode == MODE_TARGET:
+		if target_unix > 0:
+			_remaining_sec = max(0.0, float(target_unix) - float(now_unix))
+		else:
+			_remaining_sec = stored_remaining
+		if _running and _remaining_sec <= 0.0:
+			_finished = true
+			_running = false
+	else:
+		if _running and _expires_at_unix > 0:
+			_remaining_sec = max(0.0, float(_expires_at_unix) - float(now_unix))
+			if _remaining_sec <= 0.0:
+				_finished = true
+				_running = false
+				_expires_at_unix = 0
+		else:
+			_remaining_sec = stored_remaining
+			_running = false
+			_expires_at_unix = 0
+	_state_initialized = true
 	if _label != null:
 		_refresh_visuals()
+	if _tick_timer != null:
+		if _running and not _finished:
+			_tick_timer.start()
+		else:
+			_tick_timer.stop()
 
 
 func apply_typed_property(key: String, value: Variant) -> void:
@@ -200,7 +311,20 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			label_text = String(value)
 		"sound_asset_name":
 			sound_asset_name = String(value)
+		"mode":
+			set_mode(String(value))
+		"target_unix":
+			set_target_unix(int(value))
 	_refresh_visuals()
+
+
+func _request_save() -> void:
+	var node: Node = get_parent()
+	while node != null:
+		if node.has_method("request_save"):
+			node.request_save()
+			return
+		node = node.get_parent()
 
 
 func build_inspector() -> Control:

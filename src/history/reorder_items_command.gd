@@ -44,5 +44,9 @@ func _record_op() -> void:
 	OpBus.record_local_change(OpKinds.REORDER_ITEMS, {"order": current_order}, board_id)
 
 
+func primary_op_kind() -> String:
+	return OpKinds.REORDER_ITEMS
+
+
 func description() -> String:
 	return "Reorder items"

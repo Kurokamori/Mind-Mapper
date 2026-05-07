@@ -1,0 +1,151 @@
+[gd_scene format=3 uid="uid://b8merge0001r"]
+
+[ext_resource type="Script" path="res://src/multiplayer/merge/merge_resolution_dialog.gd" id="1_merge_dialog"]
+
+[node name="MergeResolutionDialog" type="Window"]
+title = "Resolve Offline Edits"
+position = Vector2i(120, 120)
+size = Vector2i(820, 560)
+min_size = Vector2i(640, 360)
+visible = false
+script = ExtResource("1_merge_dialog")
+
+[node name="Root" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SummaryLabel" type="Label" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "Resolving conflicts…"
+
+[node name="BulkRow" type="HBoxContainer" parent="Root/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="KeepAllMineButton" type="Button" parent="Root/VBox/BulkRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Keep all of mine"
+
+[node name="KeepAllHostButton" type="Button" parent="Root/VBox/BulkRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Keep all of host's"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Root/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ConflictList" type="VBoxContainer" parent="Root/VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="RowTemplate" type="PanelContainer" parent="Root/VBox/ScrollContainer/ConflictList"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+
+[node name="RowVBox" type="VBoxContainer" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TargetLabel" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Target"
+
+[node name="PropertyLabel" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "Property"
+
+[node name="SidesRow" type="HBoxContainer" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LocalPanel" type="PanelContainer" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LocalVBox" type="VBoxContainer" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/LocalPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LocalHeader" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/LocalPanel/LocalVBox"]
+layout_mode = 2
+text = "Your offline edit"
+
+[node name="LocalValueLabel" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/LocalPanel/LocalVBox"]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="LocalMetaLabel" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/LocalPanel/LocalVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="KeepLocalButton" type="Button" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/LocalPanel/LocalVBox"]
+layout_mode = 2
+text = "Keep mine"
+
+[node name="RemotePanel" type="PanelContainer" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RemoteVBox" type="VBoxContainer" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/RemotePanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="RemoteHeader" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/RemotePanel/RemoteVBox"]
+layout_mode = 2
+text = "Host's edit"
+
+[node name="RemoteValueLabel" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/RemotePanel/RemoteVBox"]
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="RemoteMetaLabel" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/RemotePanel/RemoteVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="KeepRemoteButton" type="Button" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox/SidesRow/RemotePanel/RemoteVBox"]
+layout_mode = 2
+text = "Keep host's"
+
+[node name="ResolutionLabel" type="Label" parent="Root/VBox/ScrollContainer/ConflictList/RowTemplate/RowVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "→ Pending"
+
+[node name="StatusLabel" type="Label" parent="Root/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+
+[node name="ButtonRow" type="HBoxContainer" parent="Root/VBox"]
+layout_mode = 2
+alignment = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="Root/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel and Disconnect"
+
+[node name="ConfirmButton" type="Button" parent="Root/VBox/ButtonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Apply Merge"

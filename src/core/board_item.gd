@@ -8,6 +8,7 @@ signal edit_begun(item: BoardItem)
 signal link_followed(item: BoardItem)
 signal navigate_requested(target_kind: String, target_id: String)
 signal dragging(item: BoardItem, world_center: Vector2)
+signal drag_ended(item: BoardItem)
 signal resize_started(item: BoardItem)
 signal resizing(item: BoardItem, current_size: Vector2)
 signal resize_ended(item: BoardItem)
@@ -45,7 +46,7 @@ var item_id: String = ""
 var type_id: String = ""
 var board_id: String = ""
 var link_target: Dictionary = {}
-var read_only: bool = false
+var read_only: bool = false: set = _set_read_only
 var locked: bool = false
 var tags: PackedStringArray = PackedStringArray()
 var dimmed_by_filter: bool = false
@@ -68,10 +69,20 @@ var _highlighted_port: String = ""
 func _ready() -> void:
 	if item_id == "":
 		item_id = Uuid.v4()
-	mouse_filter = Control.MOUSE_FILTER_IGNORE if read_only else Control.MOUSE_FILTER_PASS
+	if mouse_filter != Control.MOUSE_FILTER_IGNORE:
+		mouse_filter = Control.MOUSE_FILTER_STOP if read_only else Control.MOUSE_FILTER_PASS
 	focus_mode = Control.FOCUS_NONE
 	_apply_initial_minimum_size()
 	mouse_exited.connect(_on_mouse_exited_item)
+
+
+func _set_read_only(value: bool) -> void:
+	if read_only == value:
+		return
+	read_only = value
+	if is_inside_tree() and mouse_filter != Control.MOUSE_FILTER_IGNORE:
+		mouse_filter = Control.MOUSE_FILTER_STOP if value else Control.MOUSE_FILTER_PASS
+	queue_redraw()
 
 
 func _on_mouse_exited_item() -> void:
@@ -252,8 +263,6 @@ func _get_cursor_shape(at_position: Vector2 = Vector2.ZERO) -> int:
 
 
 func _gui_input(event: InputEvent) -> void:
-	if read_only:
-		return
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -261,6 +270,11 @@ func _gui_input(event: InputEvent) -> void:
 				var ctrl_or_meta: bool = mb.ctrl_pressed or mb.meta_pressed
 				if ctrl_or_meta and has_link():
 					emit_signal("link_followed", self)
+					accept_event()
+					return
+				if read_only:
+					var additive_ro: bool = mb.shift_pressed
+					emit_signal("selection_requested", self, additive_ro)
 					accept_event()
 					return
 				if mb.double_click and not locked:
@@ -300,6 +314,7 @@ func _gui_input(event: InputEvent) -> void:
 					_drag_active = false
 					if _moved_during_press and position != _drag_start_position:
 						emit_signal("moved", self, _drag_start_position, position)
+					emit_signal("drag_ended", self)
 				accept_event()
 	elif event is InputEventMouseMotion:
 		_update_port_hover(get_local_mouse_position())
@@ -342,19 +357,20 @@ func _draw() -> void:
 		_draw_lock_badge()
 	if tags.size() > 0:
 		_draw_tag_strip()
-	if _selected and not read_only:
+	if _selected:
 		_draw_rounded_outline(SELECTION_OUTLINE_COLOR, int(SELECTION_OUTLINE_WIDTH))
-		var grip_rect := Rect2(
-			Vector2(size.x - RESIZE_GRIP_SIZE, size.y - RESIZE_GRIP_SIZE),
-			Vector2(RESIZE_GRIP_SIZE, RESIZE_GRIP_SIZE),
-		)
-		draw_rect(grip_rect, SELECTION_OUTLINE_COLOR.darkened(0.15), true)
-		draw_line(
-			Vector2(size.x - 2.0, size.y - RESIZE_GRIP_SIZE + 2.0),
-			Vector2(size.x - RESIZE_GRIP_SIZE + 2.0, size.y - 2.0),
-			Color(1, 1, 1, 0.7),
-			1.0,
-		)
+		if not read_only:
+			var grip_rect := Rect2(
+				Vector2(size.x - RESIZE_GRIP_SIZE, size.y - RESIZE_GRIP_SIZE),
+				Vector2(RESIZE_GRIP_SIZE, RESIZE_GRIP_SIZE),
+			)
+			draw_rect(grip_rect, SELECTION_OUTLINE_COLOR.darkened(0.15), true)
+			draw_line(
+				Vector2(size.x - 2.0, size.y - RESIZE_GRIP_SIZE + 2.0),
+				Vector2(size.x - RESIZE_GRIP_SIZE + 2.0, size.y - 2.0),
+				Color(1, 1, 1, 0.7),
+				1.0,
+			)
 	if not read_only and ports_currently_visible():
 		_draw_ports()
 
@@ -584,6 +600,8 @@ func has_tag(tag: String) -> bool:
 
 
 func begin_edit() -> void:
+	if read_only:
+		return
 	if locked:
 		return
 	if _editing:

@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://src/nodes/timer/timer_inspector.gd" id="1_ti"]
 
 [node name="TimerInspector" type="VBoxContainer"]
+custom_minimum_size = Vector2(280, 0)
 script = ExtResource("1_ti")
 theme_override_constants/separation = 6
 
@@ -22,51 +23,290 @@ text = "Label"
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="DurationLabel" type="Label" parent="."]
+[node name="ModeSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ModeLabel" type="Label" parent="ModeSection"]
+layout_mode = 2
+text = "Mode"
+
+[node name="ModeSelect" type="OptionButton" parent="ModeSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DurationPanel" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DurationLabel" type="Label" parent="DurationPanel"]
 layout_mode = 2
 text = "Initial duration"
 
-[node name="DurationRow" type="HBoxContainer" parent="."]
+[node name="DurationRow1" type="HBoxContainer" parent="DurationPanel"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="HoursVBox" type="VBoxContainer" parent="DurationRow"]
+[node name="YearsVBox" type="VBoxContainer" parent="DurationPanel/DurationRow1"]
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="HoursLabel" type="Label" parent="DurationRow/HoursVBox"]
+[node name="YearsLabel" type="Label" parent="DurationPanel/DurationRow1/YearsVBox"]
+layout_mode = 2
+text = "Years"
+theme_override_font_sizes/font_size = 11
+
+[node name="YearsSpin" type="SpinBox" parent="DurationPanel/DurationRow1/YearsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 9999.0
+
+[node name="WeeksVBox" type="VBoxContainer" parent="DurationPanel/DurationRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="WeeksLabel" type="Label" parent="DurationPanel/DurationRow1/WeeksVBox"]
+layout_mode = 2
+text = "Weeks"
+theme_override_font_sizes/font_size = 11
+
+[node name="WeeksSpin" type="SpinBox" parent="DurationPanel/DurationRow1/WeeksVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 9999.0
+
+[node name="DaysVBox" type="VBoxContainer" parent="DurationPanel/DurationRow1"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DaysLabel" type="Label" parent="DurationPanel/DurationRow1/DaysVBox"]
+layout_mode = 2
+text = "Days"
+theme_override_font_sizes/font_size = 11
+
+[node name="DaysSpin" type="SpinBox" parent="DurationPanel/DurationRow1/DaysVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 9999.0
+
+[node name="DurationRow2" type="HBoxContainer" parent="DurationPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HoursVBox" type="VBoxContainer" parent="DurationPanel/DurationRow2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HoursLabel" type="Label" parent="DurationPanel/DurationRow2/HoursVBox"]
 layout_mode = 2
 text = "Hours"
 theme_override_font_sizes/font_size = 11
 
-[node name="HoursSpin" type="SpinBox" parent="DurationRow/HoursVBox"]
+[node name="HoursSpin" type="SpinBox" parent="DurationPanel/DurationRow2/HoursVBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
-max_value = 99.0
+max_value = 9999.0
 
-[node name="MinutesVBox" type="VBoxContainer" parent="DurationRow"]
+[node name="MinutesVBox" type="VBoxContainer" parent="DurationPanel/DurationRow2"]
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="MinutesLabel" type="Label" parent="DurationRow/MinutesVBox"]
+[node name="MinutesLabel" type="Label" parent="DurationPanel/DurationRow2/MinutesVBox"]
 layout_mode = 2
 text = "Minutes"
 theme_override_font_sizes/font_size = 11
 
-[node name="MinutesSpin" type="SpinBox" parent="DurationRow/MinutesVBox"]
+[node name="MinutesSpin" type="SpinBox" parent="DurationPanel/DurationRow2/MinutesVBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
-max_value = 59.0
+max_value = 9999.0
 
-[node name="SecondsVBox" type="VBoxContainer" parent="DurationRow"]
+[node name="SecondsVBox" type="VBoxContainer" parent="DurationPanel/DurationRow2"]
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="SecondsLabel" type="Label" parent="DurationRow/SecondsVBox"]
+[node name="SecondsLabel" type="Label" parent="DurationPanel/DurationRow2/SecondsVBox"]
 layout_mode = 2
 text = "Seconds"
 theme_override_font_sizes/font_size = 11
 
-[node name="SecondsSpin" type="SpinBox" parent="DurationRow/SecondsVBox"]
+[node name="SecondsSpin" type="SpinBox" parent="DurationPanel/DurationRow2/SecondsVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 9999.0
+
+[node name="TargetPanel" type="VBoxContainer" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
+visible = false
+theme_override_constants/separation = 4
+
+[node name="TargetHeader" type="Label" parent="TargetPanel"]
+layout_mode = 2
+text = "Target date / time"
+
+[node name="TargetDateRow" type="HBoxContainer" parent="TargetPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TargetYearVBox" type="VBoxContainer" parent="TargetPanel/TargetDateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TargetYearLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetYearVBox"]
+layout_mode = 2
+text = "Year"
+theme_override_font_sizes/font_size = 11
+
+[node name="TargetYearSpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetYearVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(82, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1970.0
+max_value = 9999.0
+value = 2026.0
+
+[node name="TargetMonthVBox" type="VBoxContainer" parent="TargetPanel/TargetDateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TargetMonthLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetMonthVBox"]
+layout_mode = 2
+text = "Month"
+theme_override_font_sizes/font_size = 11
+
+[node name="TargetMonthSpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetMonthVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 12.0
+value = 1.0
+
+[node name="TargetDayVBox" type="VBoxContainer" parent="TargetPanel/TargetDateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TargetDayLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetDayVBox"]
+layout_mode = 2
+text = "Day"
+theme_override_font_sizes/font_size = 11
+
+[node name="TargetDaySpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetDayVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 31.0
+value = 1.0
+
+[node name="TargetTimeRow" type="HBoxContainer" parent="TargetPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TargetHourVBox" type="VBoxContainer" parent="TargetPanel/TargetTimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TargetHourLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetHourVBox"]
+layout_mode = 2
+text = "Hour"
+theme_override_font_sizes/font_size = 11
+
+[node name="TargetHourSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetHourVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 23.0
+
+[node name="TargetMinuteVBox" type="VBoxContainer" parent="TargetPanel/TargetTimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TargetMinuteLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetMinuteVBox"]
+layout_mode = 2
+text = "Minute"
+theme_override_font_sizes/font_size = 11
+
+[node name="TargetMinuteSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetMinuteVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 59.0
+
+[node name="TargetSecondVBox" type="VBoxContainer" parent="TargetPanel/TargetTimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TargetSecondLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetSecondVBox"]
+layout_mode = 2
+text = "Second"
+theme_override_font_sizes/font_size = 11
+
+[node name="TargetSecondSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetSecondVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 59.0
+
+[node name="TargetQuickRow" type="HBoxContainer" parent="TargetPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NowButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Now"
+
+[node name="PlusHourButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+1h"
+
+[node name="PlusDayButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+1d"
+
+[node name="PlusWeekButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+1w"
+
+[node name="TargetPreview" type="Label" parent="TargetPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+text = ""
+theme_override_font_sizes/font_size = 11

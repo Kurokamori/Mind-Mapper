@@ -1,9 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://bturem1p2q4fu"]
 
-[ext_resource type="Script" path="res://src/editor/board_outliner.gd" id="1_out"]
+[ext_resource type="Script" uid="uid://t40snwautsh3" path="res://src/editor/board_outliner.gd" id="1_out"]
 [ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
 
-[node name="BoardOutliner" type="PanelContainer"]
+[node name="BoardOutliner" type="PanelContainer" unique_id=1529436473]
 custom_minimum_size = Vector2(240, 0)
 script = ExtResource("1_out")
 dock_id = "outliner"
@@ -17,67 +17,70 @@ default_floating_position = Vector2(120, 160)
 default_floating_size = Vector2(260, 420)
 default_dock_size = 240.0
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="." unique_id=1206041468]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="Margin"]
+[node name="VBox" type="VBoxContainer" parent="Margin" unique_id=429398528]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Header" type="HBoxContainer" parent="Margin/VBox"]
+[node name="Header" type="HBoxContainer" parent="Margin/VBox" unique_id=193044987]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="Margin/VBox/Header"]
+[node name="Title" type="Label" parent="Margin/VBox/Header" unique_id=857365437]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-text = "Boards"
 theme_override_font_sizes/font_size = 14
+text = "Boards"
 
-[node name="NewRootButton" type="Button" parent="Margin/VBox/Header"]
+[node name="NewRootButton" type="Button" parent="Margin/VBox/Header" unique_id=1544568429]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Create a new top-level board"
+focus_mode = 0
 text = "+"
 
-[node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
+[node name="CloseButton" type="Button" parent="Margin/VBox/Header" unique_id=533006274]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
-flat = true
 tooltip_text = "Close outliner"
+focus_mode = 0
 text = "X"
+flat = true
 
-[node name="Tree" type="Tree" parent="Margin/VBox"]
+[node name="Tree" type="Tree" parent="Margin/VBox" unique_id=314957899]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-hide_root = true
-allow_rmb_select = true
 allow_reselect = true
-drop_mode_flags = 1
+allow_rmb_select = true
+hide_root = true
 
-[node name="ContextMenu" type="PopupMenu" parent="."]
+[node name="ContextMenu" type="PopupMenu" parent="." unique_id=252021234]
 unique_name_in_owner = true
 size = Vector2i(160, 80)
 
-[node name="GripTop" parent="." instance=ExtResource("2_grip")]
+[node name="GripTop" parent="." unique_id=829346401 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 1
 
-[node name="GripBottom" parent="." instance=ExtResource("2_grip")]
+[node name="GripBottom" parent="." unique_id=511245300 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 2
 
-[node name="GripLeft" parent="." instance=ExtResource("2_grip")]
+[node name="GripLeft" parent="." unique_id=435898030 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 4
 
-[node name="GripRight" parent="." instance=ExtResource("2_grip")]
+[node name="GripRight" parent="." unique_id=815740130 instance=ExtResource("2_grip")]
 top_level = true
+layout_mode = 2
 directions = 8

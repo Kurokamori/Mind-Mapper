@@ -223,6 +223,7 @@ func _populate_tile(world: Node2D, tl: TileLayout) -> void:
 		if inst == null:
 			continue
 		inst.read_only = true
+		inst.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		holder.add_child(inst)
 
 
@@ -1035,17 +1036,24 @@ func _html_equation(d: Dictionary) -> String:
 
 func _html_timer(d: Dictionary) -> String:
 	var label: String = String(d.get("label_text", "Timer"))
-	var dur: float = float(d.get("initial_duration_sec", 0.0))
-	var hh: int = int(dur) / 3600
-	var mm: int = (int(dur) % 3600) / 60
-	var ss: int = int(dur) % 60
+	var mode: String = String(d.get("mode", "duration"))
 	var time: String
-	if hh > 0:
-		time = "%02d:%02d:%02d" % [hh, mm, ss]
+	var caption: String = ""
+	if mode == "target":
+		var target_unix: int = int(d.get("target_unix", 0))
+		if target_unix > 0:
+			caption = Time.get_datetime_string_from_unix_time(target_unix, true)
+			var delta: int = target_unix - int(Time.get_unix_time_from_system())
+			time = TimerRegistry.format_duration(float(max(0, delta)), false)
+		else:
+			time = TimerRegistry.format_duration(0.0, false)
 	else:
-		time = "%02d:%02d" % [mm, ss]
-	return "<div class=\"bi bi-timer\"><div class=\"lbl\">%s</div><div class=\"val\">%s</div></div>" % [
-		_xml_escape(label), time,
+		time = TimerRegistry.format_duration(float(d.get("initial_duration_sec", 0.0)), false)
+	var caption_html: String = ""
+	if caption != "":
+		caption_html = "<div class=\"sub\">→ %s</div>" % _xml_escape(caption)
+	return "<div class=\"bi bi-timer\"><div class=\"lbl\">%s</div><div class=\"val\">%s</div>%s</div>" % [
+		_xml_escape(label), time, caption_html,
 	]
 
 
@@ -1269,6 +1277,7 @@ func _item_css() -> String:
 .bi-timer { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:6px; background:#22252c; border:1px solid #3a3f48; }
 .bi-timer .lbl { font-size:12px; color:#9aa3b0; }
 .bi-timer .val { font-size:24px; font-family:Consolas,monospace; color:#e9eef6; letter-spacing:2px; }
+.bi-timer .sub { font-size:11px; color:#7a818d; }
 .bi-image { padding:0; background:#1a1c20; border:1px solid #3a3f48; display:flex; }
 .bi-image img { width:100%; height:100%; object-fit:contain; display:block; }
 .bi-image .ph { display:flex; height:100%; width:100%; align-items:center; justify-content:center; color:#7a818d; font-size:12px; }
@@ -1767,7 +1776,16 @@ func _emit_item_md(d: Dictionary, sb: String, depth: int) -> String:
 		ItemRegistry.TYPE_EQUATION:
 			sb += "\n$$\n%s\n$$\n\n" % String(d.get("latex", ""))
 		ItemRegistry.TYPE_TIMER:
-			sb += "%s- ⏱ %s (%ds)\n" % [indent, String(d.get("label_text", "Timer")), int(d.get("initial_duration_sec", 0))]
+			var t_label: String = String(d.get("label_text", "Timer"))
+			var t_mode: String = String(d.get("mode", "duration"))
+			if t_mode == "target":
+				var t_unix: int = int(d.get("target_unix", 0))
+				if t_unix > 0:
+					sb += "%s- ⏱ %s → %s\n" % [indent, t_label, Time.get_datetime_string_from_unix_time(t_unix, true)]
+				else:
+					sb += "%s- ⏱ %s (target unset)\n" % [indent, t_label]
+			else:
+				sb += "%s- ⏱ %s (%s)\n" % [indent, t_label, TimerRegistry.format_duration(float(d.get("initial_duration_sec", 0)), false)]
 		ItemRegistry.TYPE_GROUP:
 			sb += "%s- 📦 %s\n" % [indent, String(d.get("title", "Group"))]
 		ItemRegistry.TYPE_IMAGE:

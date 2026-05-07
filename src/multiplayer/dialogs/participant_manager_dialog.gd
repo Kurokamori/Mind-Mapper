@@ -38,7 +38,9 @@ func _refresh() -> void:
 		var stable_id: String = String(entry.get("stable_id", ""))
 		var display_name: String = String(entry.get("display_name", "Player"))
 		var role: String = String(entry.get("role", ParticipantsManifest.ROLE_CO_AUTHOR))
-		var label: String = "%s — %s — %s" % [display_name, role, stable_id]
+		var connected: bool = bool(entry.get("connected", false))
+		var status: String = "online" if connected else "offline"
+		var label: String = "%s — %s — %s — %s" % [display_name, role, status, stable_id]
 		_list.add_item(label)
 		var idx: int = _list.item_count - 1
 		_list.set_item_metadata(idx, entry)

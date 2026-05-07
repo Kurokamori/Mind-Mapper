@@ -1,8 +1,10 @@
 extends Node
 
-const KEYPAIR_PRIVATE_PATH: String = "user://multiplayer_identity.private.pem"
-const KEYPAIR_PUBLIC_PATH: String = "user://multiplayer_identity.public.pem"
-const IDENTITY_PATH: String = "user://multiplayer_identity.json"
+const KEYPAIR_PRIVATE_BASENAME: String = "multiplayer_identity.private.pem"
+const KEYPAIR_PUBLIC_BASENAME: String = "multiplayer_identity.public.pem"
+const IDENTITY_BASENAME: String = "multiplayer_identity.json"
+const IDENTITY_SUFFIX_FLAG: String = "--identity-suffix"
+const IDENTITY_SUFFIX_ENV: String = "MM_IDENTITY_SUFFIX"
 const RSA_BITS: int = 2048
 const SIG_HASH_TYPE: int = HashingContext.HASH_SHA256
 
@@ -13,13 +15,77 @@ var _public_key_pem: String = ""
 var _public_key_fingerprint: String = ""
 var _stable_id: String = ""
 var _display_name: String = ""
+var _identity_suffix: String = ""
+var _keypair_private_path: String = ""
+var _keypair_public_path: String = ""
+var _identity_path: String = ""
 var _ready_done: bool = false
 
 
 func _ready() -> void:
 	_crypto = Crypto.new()
+	_identity_suffix = _resolve_identity_suffix()
+	_keypair_private_path = _build_user_path(KEYPAIR_PRIVATE_BASENAME, _identity_suffix)
+	_keypair_public_path = _build_user_path(KEYPAIR_PUBLIC_BASENAME, _identity_suffix)
+	_identity_path = _build_user_path(IDENTITY_BASENAME, _identity_suffix)
 	_load_or_generate()
 	_ready_done = true
+
+
+func identity_suffix() -> String:
+	return _identity_suffix
+
+
+func _resolve_identity_suffix() -> String:
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var from_args: String = _extract_flag_value(args, IDENTITY_SUFFIX_FLAG)
+	if from_args == "":
+		var all_args: PackedStringArray = OS.get_cmdline_args()
+		from_args = _extract_flag_value(all_args, IDENTITY_SUFFIX_FLAG)
+	if from_args != "":
+		return _sanitize_suffix(from_args)
+	var from_env: String = OS.get_environment(IDENTITY_SUFFIX_ENV)
+	if from_env != "":
+		return _sanitize_suffix(from_env)
+	return ""
+
+
+func _extract_flag_value(args: PackedStringArray, flag: String) -> String:
+	var prefix: String = "%s=" % flag
+	var count: int = args.size()
+	for i: int in range(count):
+		var token: String = args[i]
+		if token == flag:
+			if i + 1 < count:
+				return args[i + 1]
+			return ""
+		if token.begins_with(prefix):
+			return token.substr(prefix.length())
+	return ""
+
+
+func _sanitize_suffix(raw: String) -> String:
+	var trimmed: String = raw.strip_edges()
+	if trimmed == "":
+		return ""
+	var allowed: String = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+	var out: String = ""
+	for i: int in range(trimmed.length()):
+		var ch: String = trimmed.substr(i, 1)
+		if allowed.find(ch) != -1:
+			out += ch
+	return out
+
+
+func _build_user_path(basename: String, suffix: String) -> String:
+	if suffix == "":
+		return "user://%s" % basename
+	var dot_index: int = basename.rfind(".")
+	if dot_index <= 0:
+		return "user://%s.%s" % [basename, suffix]
+	var stem: String = basename.substr(0, dot_index)
+	var ext: String = basename.substr(dot_index)
+	return "user://%s.%s%s" % [stem, suffix, ext]
 
 
 func is_ready() -> bool:
@@ -105,7 +171,7 @@ func _hash(bytes: PackedByteArray) -> PackedByteArray:
 
 
 func _load_or_generate() -> void:
-	if FileAccess.file_exists(KEYPAIR_PRIVATE_PATH) and FileAccess.file_exists(KEYPAIR_PUBLIC_PATH):
+	if FileAccess.file_exists(_keypair_private_path) and FileAccess.file_exists(_keypair_public_path):
 		var ok: bool = _load_existing()
 		if ok:
 			_load_identity()
@@ -115,8 +181,8 @@ func _load_or_generate() -> void:
 
 
 func _load_existing() -> bool:
-	var private_text: String = _read_text(KEYPAIR_PRIVATE_PATH)
-	var public_text: String = _read_text(KEYPAIR_PUBLIC_PATH)
+	var private_text: String = _read_text(_keypair_private_path)
+	var public_text: String = _read_text(_keypair_public_path)
 	if private_text == "" or public_text == "":
 		return false
 	_private_key = CryptoKey.new()
@@ -136,19 +202,19 @@ func _generate_new() -> void:
 	_private_key = _crypto.generate_rsa(RSA_BITS)
 	_public_key_pem = _private_key.save_to_string(true)
 	var private_pem: String = _private_key.save_to_string(false)
-	_write_text(KEYPAIR_PRIVATE_PATH, private_pem)
-	_write_text(KEYPAIR_PUBLIC_PATH, _public_key_pem)
+	_write_text(_keypair_private_path, private_pem)
+	_write_text(_keypair_public_path, _public_key_pem)
 	_public_key = CryptoKey.new()
 	_public_key.load_from_string(_public_key_pem, true)
 	_public_key_fingerprint = fingerprint_for_pem(_public_key_pem)
 
 
 func _load_identity() -> void:
-	if not FileAccess.file_exists(IDENTITY_PATH):
+	if not FileAccess.file_exists(_identity_path):
 		_initialize_identity_from_fingerprint()
 		_save_identity()
 		return
-	var f: FileAccess = FileAccess.open(IDENTITY_PATH, FileAccess.READ)
+	var f: FileAccess = FileAccess.open(_identity_path, FileAccess.READ)
 	if f == null:
 		_initialize_identity_from_fingerprint()
 		return
@@ -179,7 +245,7 @@ func _save_identity() -> void:
 		"display_name": _display_name,
 		"public_key_fingerprint": _public_key_fingerprint,
 	}
-	var f: FileAccess = FileAccess.open(IDENTITY_PATH, FileAccess.WRITE)
+	var f: FileAccess = FileAccess.open(_identity_path, FileAccess.WRITE)
 	if f == null:
 		return
 	f.store_string(JSON.stringify(data, "\t"))
