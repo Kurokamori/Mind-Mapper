@@ -37,3 +37,37 @@ layout_mode = 2
 min_value = 8.0
 max_value = 96.0
 value = 22.0
+
+[node name="ModeRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ModeLabel" type="Label" parent="ModeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Display"
+
+[node name="ModeOption" type="OptionButton" parent="ModeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="PreviewSection" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="PreviewLabel" type="Label" parent="PreviewSection"]
+layout_mode = 2
+text = "Preview"
+
+[node name="FormattedPreview" type="RichTextLabel" parent="PreviewSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 3
+
+[node name="SolvedPreview" type="Label" parent="PreviewSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Solved: —"
+autowrap_mode = 3

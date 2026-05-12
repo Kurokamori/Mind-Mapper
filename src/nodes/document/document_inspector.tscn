@@ -1,0 +1,171 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/document/document_inspector.gd" id="1_di"]
+
+[node name="DocumentInspector" type="VBoxContainer"]
+script = ExtResource("1_di")
+theme_override_constants/separation = 6
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+text = "Document"
+
+[node name="HelpLabel" type="Label" parent="."]
+layout_mode = 2
+autowrap_mode = 2
+text = "Stored as Markdown. Double-click the node or use the button below to open the full editor."
+
+[node name="TitleRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="TitleRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Title"
+
+[node name="TitleEdit" type="LineEdit" parent="TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OpenEditorButton" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Open Document Editor…"
+
+[node name="WordCountLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 words • 0 characters"
+
+[node name="SizesHeader" type="Label" parent="."]
+layout_mode = 2
+text = "Font sizes"
+
+[node name="SizesGrid" type="GridContainer" parent="."]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 4
+
+[node name="BodyLabel" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Body"
+
+[node name="FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 48.0
+value = 14.0
+
+[node name="TitleSizeLabel" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Title"
+
+[node name="TitleFontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 64.0
+value = 18.0
+
+[node name="H1Label" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "H1"
+
+[node name="H1FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 96.0
+value = 28.0
+
+[node name="H2Label" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "H2"
+
+[node name="H2FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 96.0
+value = 24.0
+
+[node name="H3Label" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "H3"
+
+[node name="H3FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 96.0
+value = 20.0
+
+[node name="H4Label" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "H4"
+
+[node name="H4FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 96.0
+value = 18.0
+
+[node name="H5Label" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "H5"
+
+[node name="H5FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 96.0
+value = 16.0
+
+[node name="H6Label" type="Label" parent="SizesGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "H6"
+
+[node name="H6FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 8.0
+max_value = 96.0
+value = 15.0
+
+[node name="BgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="BgLabel" type="Label" parent="BgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Background"
+
+[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+
+[node name="FgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="FgLabel" type="Label" parent="FgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Default text"
+
+[node name="FgPicker" type="ColorPickerButton" parent="FgRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2

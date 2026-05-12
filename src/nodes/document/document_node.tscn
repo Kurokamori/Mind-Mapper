@@ -1,0 +1,33 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/document/document_node.gd" id="1_doc"]
+
+[node name="DocumentNode" type="Control"]
+custom_minimum_size = Vector2(200, 140)
+mouse_filter = 1
+script = ExtResource("1_doc")
+
+[node name="TitleLabel" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 4.0
+offset_right = 310.0
+offset_bottom = 24.0
+mouse_filter = 2
+text = "Untitled Document"
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="Preview" type="RichTextLabel" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 30.0
+offset_right = 310.0
+offset_bottom = 252.0
+mouse_filter = 2
+bbcode_enabled = true
+fit_content = false
+scroll_active = true
+autowrap_mode = 3

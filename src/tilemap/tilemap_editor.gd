@@ -225,11 +225,11 @@ func _on_map_page_changed(page: MapPage) -> void:
 		_selected_layer_id = (page.layers[0] as MapLayer).id
 	else:
 		_selected_layer_id = ""
-	_camera.position = page.camera_position
 	if page.camera_zoom > 0.0:
 		_camera.zoom = Vector2(page.camera_zoom, page.camera_zoom)
 	else:
 		_camera.zoom = Vector2.ONE
+	_apply_initial_map_camera_position(page)
 	_refresh_layer_panel()
 	_refresh_tileset_palette()
 	_toolbar.highlight_tool(_brush.tool)
@@ -239,6 +239,74 @@ func _on_map_page_changed(page: MapPage) -> void:
 func _apply_background_color(page: MapPage) -> void:
 	if _bg != null:
 		_bg.color = page.background_color
+
+
+func _compute_map_content_bbox(page: MapPage) -> Rect2:
+	var has_any: bool = false
+	var min_p: Vector2 = Vector2.ZERO
+	var max_p: Vector2 = Vector2.ZERO
+	for entry_v: Variant in page.objects:
+		if typeof(entry_v) != TYPE_DICTIONARY:
+			continue
+		var d: Dictionary = entry_v
+		var pos_raw: Variant = d.get("position", null)
+		var size_raw: Variant = d.get("size", null)
+		if typeof(pos_raw) != TYPE_ARRAY or (pos_raw as Array).size() < 2:
+			continue
+		var pos_arr: Array = pos_raw
+		var obj_pos: Vector2 = Vector2(float(pos_arr[0]), float(pos_arr[1]))
+		var obj_size: Vector2 = Vector2(128.0, 64.0)
+		if typeof(size_raw) == TYPE_ARRAY and (size_raw as Array).size() >= 2:
+			var size_arr: Array = size_raw
+			obj_size = Vector2(float(size_arr[0]), float(size_arr[1]))
+		var p0: Vector2 = obj_pos
+		var p1: Vector2 = obj_pos + obj_size
+		if not has_any:
+			min_p = p0
+			max_p = p1
+			has_any = true
+		else:
+			min_p.x = min(min_p.x, p0.x)
+			min_p.y = min(min_p.y, p0.y)
+			max_p.x = max(max_p.x, p1.x)
+			max_p.y = max(max_p.y, p1.y)
+	var tile_w: float = float(page.tile_size.x)
+	var tile_h: float = float(page.tile_size.y)
+	for layer_v: Variant in page.layers:
+		var layer: MapLayer = layer_v
+		if layer == null or layer.cells.is_empty():
+			continue
+		var used: Rect2i = layer.used_rect()
+		if used.size.x <= 0 or used.size.y <= 0:
+			continue
+		var p0: Vector2 = Vector2(float(used.position.x) * tile_w, float(used.position.y) * tile_h)
+		var p1: Vector2 = p0 + Vector2(float(used.size.x) * tile_w, float(used.size.y) * tile_h)
+		if not has_any:
+			min_p = p0
+			max_p = p1
+			has_any = true
+		else:
+			min_p.x = min(min_p.x, p0.x)
+			min_p.y = min(min_p.y, p0.y)
+			max_p.x = max(max_p.x, p1.x)
+			max_p.y = max(max_p.y, p1.y)
+	if not has_any:
+		return Rect2()
+	return Rect2(min_p, max_p - min_p)
+
+
+func _apply_initial_map_camera_position(page: MapPage) -> void:
+	if _camera == null:
+		return
+	var bbox: Rect2 = _compute_map_content_bbox(page)
+	if bbox.size == Vector2.ZERO:
+		_camera.position = page.camera_position
+		return
+	var saved_in_content: bool = bbox.grow(max(bbox.size.x, bbox.size.y) * 0.5).has_point(page.camera_position)
+	if saved_in_content:
+		_camera.position = page.camera_position
+	else:
+		_camera.position = bbox.position + bbox.size * 0.5
 
 
 func _clear_layer_renderers() -> void:

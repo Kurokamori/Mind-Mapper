@@ -41,6 +41,8 @@ const SAVE_DEBOUNCE_SEC: float = 0.5
 
 var _pending_image_path: String = ""
 var _pending_sound_path: String = ""
+var _pending_batch_image_paths: PackedStringArray = PackedStringArray()
+var _pending_batch_sound_paths: PackedStringArray = PackedStringArray()
 var _pending_link_target_item: BoardItem = null
 var _pending_link_callback: Callable = Callable()
 var _drop_target_pinboard: PinboardNode = null
@@ -192,6 +194,41 @@ func _on_board_changed(board: Board) -> void:
 		_apply_tag_filter(AppState.active_tag_filter)
 	_envelope_groups()
 	_load_comments_from_board(board)
+	_focus_camera_on_board_content()
+
+
+func _compute_items_bbox() -> Rect2:
+	var has_any: bool = false
+	var min_p: Vector2 = Vector2.ZERO
+	var max_p: Vector2 = Vector2.ZERO
+	for item_v: Variant in _items_by_id.values():
+		var item: BoardItem = item_v
+		if item == null:
+			continue
+		var p0: Vector2 = item.position
+		var p1: Vector2 = item.position + item.size
+		if not has_any:
+			min_p = p0
+			max_p = p1
+			has_any = true
+		else:
+			min_p.x = min(min_p.x, p0.x)
+			min_p.y = min(min_p.y, p0.y)
+			max_p.x = max(max_p.x, p1.x)
+			max_p.y = max(max_p.y, p1.y)
+	if not has_any:
+		return Rect2()
+	return Rect2(min_p, max_p - min_p)
+
+
+func _focus_camera_on_board_content() -> void:
+	if _camera == null:
+		return
+	if _items_by_id.is_empty():
+		_camera.position = Vector2.ZERO
+		return
+	var bbox: Rect2 = _compute_items_bbox()
+	_camera.position = bbox.position + bbox.size * 0.5
 
 
 func _load_connections_from_board(board: Board) -> void:
@@ -1578,6 +1615,16 @@ func _open_open_todos_board() -> void:
 
 
 func _open_import_dialog(mode: String) -> void:
+	match mode:
+		EditorToolbar.IMPORT_MODE_DOCUMENT:
+			_open_document_import_dialog()
+			return
+		EditorToolbar.IMPORT_MODE_IMAGE:
+			_open_image_import_dialog()
+			return
+		EditorToolbar.IMPORT_MODE_SOUND:
+			_open_sound_import_dialog()
+			return
 	var dlg: FileDialog = FileDialog.new()
 	dlg.access = FileDialog.ACCESS_FILESYSTEM
 	dlg.file_mode = FileDialog.FILE_MODE_OPEN_FILE
@@ -1602,6 +1649,230 @@ func _open_import_dialog(mode: String) -> void:
 	)
 	dlg.canceled.connect(func() -> void: dlg.queue_free())
 	dlg.popup_centered_ratio(0.7)
+
+
+func _open_document_import_dialog() -> void:
+	var dlg: FileDialog = FileDialog.new()
+	dlg.access = FileDialog.ACCESS_FILESYSTEM
+	dlg.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+	dlg.title = "Import Document(s)"
+	dlg.filters = PackedStringArray([
+		"*.md, *.markdown ; Markdown",
+		"*.txt ; Plain Text",
+		"*.rtf ; Rich Text Format",
+		"*.docx ; Word Document",
+		"*.pdf ; PDF",
+	])
+	add_child(dlg)
+	dlg.files_selected.connect(func(paths: PackedStringArray) -> void:
+		_handle_document_batch_import(paths)
+		dlg.queue_free()
+	)
+	dlg.canceled.connect(func() -> void: dlg.queue_free())
+	dlg.popup_centered_ratio(0.7)
+
+
+func _open_image_import_dialog() -> void:
+	var dlg: FileDialog = FileDialog.new()
+	dlg.access = FileDialog.ACCESS_FILESYSTEM
+	dlg.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+	dlg.title = "Import Image(s)"
+	dlg.filters = PackedStringArray([
+		"*.png ; PNG Image",
+		"*.jpg, *.jpeg ; JPEG Image",
+		"*.webp ; WebP Image",
+		"*.bmp ; BMP Image",
+		"*.tga ; TGA Image",
+		"*.svg ; SVG Image",
+	])
+	add_child(dlg)
+	dlg.files_selected.connect(func(paths: PackedStringArray) -> void:
+		_on_batch_image_files_selected(paths)
+		dlg.queue_free()
+	)
+	dlg.canceled.connect(func() -> void: dlg.queue_free())
+	dlg.popup_centered_ratio(0.7)
+
+
+func _open_sound_import_dialog() -> void:
+	var dlg: FileDialog = FileDialog.new()
+	dlg.access = FileDialog.ACCESS_FILESYSTEM
+	dlg.file_mode = FileDialog.FILE_MODE_OPEN_FILES
+	dlg.title = "Import Sound(s)"
+	dlg.filters = PackedStringArray([
+		"*.mp3 ; MP3",
+		"*.ogg ; Ogg Vorbis",
+		"*.wav ; WAV",
+	])
+	add_child(dlg)
+	dlg.files_selected.connect(func(paths: PackedStringArray) -> void:
+		_on_batch_sound_files_selected(paths)
+		dlg.queue_free()
+	)
+	dlg.canceled.connect(func() -> void: dlg.queue_free())
+	dlg.popup_centered_ratio(0.7)
+
+
+func _on_batch_image_files_selected(paths: PackedStringArray) -> void:
+	if paths.size() == 0:
+		return
+	if AppState.current_board == null:
+		return
+	_pending_batch_image_paths = paths.duplicate()
+	_embed_choice_popup.popup_centered()
+
+
+func _on_batch_sound_files_selected(paths: PackedStringArray) -> void:
+	if paths.size() == 0:
+		return
+	if AppState.current_board == null:
+		return
+	_pending_batch_sound_paths = paths.duplicate()
+	_embed_sound_popup.popup_centered()
+
+
+func _handle_document_batch_import(paths: PackedStringArray) -> void:
+	if paths.size() == 0:
+		return
+	if AppState.current_board == null:
+		return
+	var anchor: Vector2 = _add_anchor_world()
+	var size_v: Vector2 = Vector2(320, 260)
+	var item_dicts: Array = []
+	for i in range(paths.size()):
+		var path: String = paths[i]
+		var result: DocumentImporter.ImportResult = DocumentImporter.import_to_markdown(path)
+		var title_text: String = path.get_file().get_basename()
+		if title_text == "":
+			title_text = "Untitled Document"
+		var markdown_text: String = ""
+		if result.ok:
+			markdown_text = result.markdown
+			if markdown_text.strip_edges() == "":
+				markdown_text = "# %s\n" % title_text
+		else:
+			markdown_text = "# %s\n\n*(Import failed: %s)*\n" % [title_text, result.error_message]
+		var pos: Vector2 = _grid_position_for_batch(anchor, i, paths.size(), size_v, 24.0)
+		var d: Dictionary = {
+			"id": Uuid.v4(),
+			"type": ItemRegistry.TYPE_DOCUMENT,
+			"position": [pos.x, pos.y],
+			"size": [size_v.x, size_v.y],
+			"title": title_text,
+			"markdown_text": markdown_text,
+			"font_size": DocumentNode.DEFAULT_FONT_SIZE,
+		}
+		item_dicts.append(d)
+	if item_dicts.size() == 0:
+		return
+	History.push(AddItemsCommand.new(self, item_dicts))
+	_after_batch_added(item_dicts)
+
+
+func _finalize_batch_image_add(embed: bool) -> void:
+	var paths: PackedStringArray = _pending_batch_image_paths.duplicate()
+	_pending_batch_image_paths = PackedStringArray()
+	if paths.size() == 0:
+		return
+	if AppState.current_board == null:
+		return
+	var anchor: Vector2 = _add_anchor_world()
+	var size_v: Vector2 = Vector2(240, 180)
+	var item_dicts: Array = []
+	for i in range(paths.size()):
+		var path: String = paths[i]
+		var pos: Vector2 = _grid_position_for_batch(anchor, i, paths.size(), size_v, 24.0)
+		var d: Dictionary = {
+			"id": Uuid.v4(),
+			"type": ItemRegistry.TYPE_IMAGE,
+			"position": [pos.x, pos.y],
+			"size": [size_v.x, size_v.y],
+		}
+		if embed and AppState.current_project != null:
+			var copied: String = AppState.current_project.copy_asset_into_project(path)
+			if copied != "":
+				d["source_mode"] = ImageNode.SourceMode.EMBEDDED
+				d["asset_name"] = copied
+				d["source_path"] = ""
+			else:
+				d["source_mode"] = ImageNode.SourceMode.LINKED
+				d["source_path"] = path
+				d["asset_name"] = ""
+		else:
+			d["source_mode"] = ImageNode.SourceMode.LINKED
+			d["source_path"] = path
+			d["asset_name"] = ""
+		item_dicts.append(d)
+	if item_dicts.size() == 0:
+		return
+	History.push(AddItemsCommand.new(self, item_dicts))
+	_after_batch_added(item_dicts)
+
+
+func _finalize_batch_sound_add(embed: bool) -> void:
+	var paths: PackedStringArray = _pending_batch_sound_paths.duplicate()
+	_pending_batch_sound_paths = PackedStringArray()
+	if paths.size() == 0:
+		return
+	if AppState.current_board == null:
+		return
+	var anchor: Vector2 = _add_anchor_world()
+	var size_v: Vector2 = Vector2(280, 110)
+	var item_dicts: Array = []
+	for i in range(paths.size()):
+		var path: String = paths[i]
+		var pos: Vector2 = _grid_position_for_batch(anchor, i, paths.size(), size_v, 24.0)
+		var d: Dictionary = {
+			"id": Uuid.v4(),
+			"type": ItemRegistry.TYPE_SOUND,
+			"position": [pos.x, pos.y],
+			"display_label": path.get_file(),
+		}
+		if embed and AppState.current_project != null:
+			var copied: String = AppState.current_project.copy_asset_into_project(path)
+			if copied != "":
+				d["source_mode"] = SoundNode.SourceMode.EMBEDDED
+				d["asset_name"] = copied
+				d["source_path"] = ""
+			else:
+				d["source_mode"] = SoundNode.SourceMode.LINKED
+				d["source_path"] = path
+				d["asset_name"] = ""
+		else:
+			d["source_mode"] = SoundNode.SourceMode.LINKED
+			d["source_path"] = path
+			d["asset_name"] = ""
+		item_dicts.append(d)
+	if item_dicts.size() == 0:
+		return
+	History.push(AddItemsCommand.new(self, item_dicts))
+	_after_batch_added(item_dicts)
+
+
+func _after_batch_added(item_dicts: Array) -> void:
+	var items: Array = []
+	for d_v: Variant in item_dicts:
+		var d: Dictionary = d_v
+		var item: BoardItem = find_item_by_id(String(d["id"]))
+		if item != null:
+			items.append(item)
+	if items.size() > 0:
+		SelectionBus.set_many(items)
+	_clear_pending_add_state()
+
+
+func _grid_position_for_batch(anchor: Vector2, index: int, count: int, item_size: Vector2, gap: float) -> Vector2:
+	var clamped_count: int = max(1, count)
+	var cols: int = clampi(clamped_count, 1, 4)
+	@warning_ignore("integer_division")
+	var row: int = index / cols
+	var col: int = index % cols
+	var rows: int = int(ceil(float(clamped_count) / float(cols)))
+	var total_w: float = float(cols) * (item_size.x + gap) - gap
+	var total_h: float = float(rows) * (item_size.y + gap) - gap
+	var origin_x: float = anchor.x - total_w / 2.0
+	var origin_y: float = anchor.y - total_h / 2.0
+	return Vector2(origin_x + float(col) * (item_size.x + gap), origin_y + float(row) * (item_size.y + gap))
 
 
 func _handle_add(type_id: String) -> void:
@@ -1854,6 +2125,9 @@ func _on_link_image_chosen() -> void:
 
 
 func _finalize_image_add(embed: bool) -> void:
+	if _pending_batch_image_paths.size() > 0:
+		_finalize_batch_image_add(embed)
+		return
 	if _pending_image_path == "":
 		return
 	var path: String = _pending_image_path
@@ -1897,6 +2171,9 @@ func _on_link_sound_chosen() -> void:
 
 
 func _finalize_sound_add(embed: bool) -> void:
+	if _pending_batch_sound_paths.size() > 0:
+		_finalize_batch_sound_add(embed)
+		return
 	if _pending_sound_path == "":
 		return
 	var path: String = _pending_sound_path
@@ -2730,10 +3007,8 @@ func _show_item_context_menu(item: BoardItem, screen_pos: Vector2) -> void:
 			_item_context_menu.set_item_disabled(_item_context_menu.get_item_index(menu_id), not can_comment)
 	_item_context_menu.add_separator()
 	_item_context_menu.add_item("Show comments panel", 2)
-	var window: Window = get_window()
-	var window_pos: Vector2i = window.position if window != null else Vector2i.ZERO
-	_item_context_menu.position = Vector2i(int(window_pos.x + screen_pos.x), int(window_pos.y + screen_pos.y))
-	_item_context_menu.popup()
+	_item_context_menu.reset_size()
+	_item_context_menu.popup(Rect2i(Vector2i(int(round(screen_pos.x)), int(round(screen_pos.y))), Vector2i.ZERO))
 
 
 func _on_item_context_menu_id_pressed(id: int) -> void:

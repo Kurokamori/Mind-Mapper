@@ -1,0 +1,264 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/document/document_editor_dialog.gd" id="1_dde"]
+
+[node name="DocumentEditorDialog" type="Window"]
+title = "Document Editor"
+initial_position = 2
+size = Vector2i(960, 660)
+script = ExtResource("1_dde")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Root" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeadingLabel" type="Label" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Document Editor"
+
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleHintLabel" type="Label" parent="Margin/Root/TitleRow"]
+layout_mode = 2
+text = "Title"
+
+[node name="TitleEdit" type="LineEdit" parent="Margin/Root/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Document title"
+
+[node name="ToolbarScroll" type="ScrollContainer" parent="Margin/Root"]
+layout_mode = 2
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="Toolbar" type="HBoxContainer" parent="Margin/Root/ToolbarScroll"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="BoldButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Bold (Markdown **text**)"
+text = "B"
+
+[node name="ItalicButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Italic (Markdown *text*)"
+text = "I"
+
+[node name="StrikeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Strikethrough (Markdown ~~text~~)"
+text = "S"
+
+[node name="InlineCodeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Inline code (`code`)"
+text = "</>"
+
+[node name="Sep1" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="H1Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Heading 1"
+text = "H1"
+
+[node name="H2Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Heading 2"
+text = "H2"
+
+[node name="H3Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Heading 3"
+text = "H3"
+
+[node name="Sep2" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="ULButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Bulleted list"
+text = "• List"
+
+[node name="OLButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Numbered list"
+text = "1. List"
+
+[node name="QuoteButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Blockquote"
+text = "❝"
+
+[node name="CodeBlockButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Fenced code block"
+text = "{ }"
+
+[node name="Sep3" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="LinkButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Insert link"
+text = "🔗"
+
+[node name="ImageButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Insert image"
+text = "🖼"
+
+[node name="HRButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Horizontal rule"
+text = "—"
+
+[node name="Sep4" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="ImportButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Import document from file (txt, md, rtf, docx, pdf)"
+text = "Import…"
+
+[node name="NormalizeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Convert any BBCode in the source to Markdown"
+text = "Normalize"
+
+[node name="Split" type="HSplitContainer" parent="Margin/Root"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+split_offset = 460
+
+[node name="SourcePane" type="VBoxContainer" parent="Margin/Root/Split"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="SourceHeading" type="Label" parent="Margin/Root/Split/SourcePane"]
+layout_mode = 2
+text = "Source (Markdown / BBCode)"
+
+[node name="SourceEdit" type="TextEdit" parent="Margin/Root/Split/SourcePane"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+wrap_mode = 1
+placeholder_text = "# Heading\n\nWrite **Markdown** here. BBCode is also accepted; click Normalize to convert it on demand."
+
+[node name="PreviewPane" type="VBoxContainer" parent="Margin/Root/Split"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="PreviewHeading" type="Label" parent="Margin/Root/Split/PreviewPane"]
+layout_mode = 2
+text = "Preview"
+
+[node name="PreviewScroll" type="ScrollContainer" parent="Margin/Root/Split/PreviewPane"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="PreviewLabel" type="RichTextLabel" parent="Margin/Root/Split/PreviewPane/PreviewScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 3
+
+[node name="StatusRow" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="StatusLabel" type="Label" parent="Margin/Root/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+
+[node name="CancelButton" type="Button" parent="Margin/Root/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"
+
+[node name="OkButton" type="Button" parent="Margin/Root/StatusRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Save"
+
+[node name="ImportDialog" type="FileDialog" parent="."]
+unique_name_in_owner = true
+title = "Import Document"
+initial_position = 2
+size = Vector2i(720, 520)
+ok_button_text = "Open"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.md, *.markdown ; Markdown", "*.txt ; Plain Text", "*.rtf ; Rich Text Format", "*.docx ; Word Document", "*.pdf ; PDF")

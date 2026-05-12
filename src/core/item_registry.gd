@@ -18,6 +18,7 @@ const TYPE_CODE: String = "code"
 const TYPE_TABLE: String = "table"
 const TYPE_EQUATION: String = "equation"
 const TYPE_STICKY: String = "sticky"
+const TYPE_DOCUMENT: String = "document"
 
 var _scenes: Dictionary = {}
 
@@ -41,6 +42,7 @@ func _ready() -> void:
 	_scenes[TYPE_TABLE] = preload("res://src/nodes/table/table_node.tscn")
 	_scenes[TYPE_EQUATION] = preload("res://src/nodes/equation/equation_node.tscn")
 	_scenes[TYPE_STICKY] = preload("res://src/nodes/sticky/sticky_node.tscn")
+	_scenes[TYPE_DOCUMENT] = preload("res://src/nodes/document/document_node.tscn")
 
 
 func default_payload(type_id: String) -> Dictionary:
@@ -58,6 +60,7 @@ func default_payload(type_id: String) -> Dictionary:
 		TYPE_TABLE: return {"rows": 3, "cols": 3, "cells": []}
 		TYPE_EQUATION: return {"latex": "E = mc^2"}
 		TYPE_STICKY: return {"text": "Sticky note", "color_index": 0}
+		TYPE_DOCUMENT: return {"title": "Untitled Document", "markdown_text": "# Document\n\nDouble-click to open the editor.\n", "font_size": 14}
 	return {}
 
 

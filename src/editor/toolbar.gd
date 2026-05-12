@@ -45,6 +45,11 @@ const IMPORT_MODE_MARKDOWN: String = "markdown"
 const IMPORT_MODE_JSON: String = "json"
 const IMPORT_MODE_FREEMIND: String = "freemind"
 const IMPORT_MODE_XMIND: String = "xmind"
+const IMPORT_MODE_DOCUMENT: String = "document"
+const IMPORT_MODE_IMAGE: String = "image"
+const IMPORT_MODE_SOUND: String = "sound"
+
+const IMPORT_MENU_SEPARATOR_TOKEN: String = "__sep__"
 
 const ARRANGE_ALIGN_LEFT: String = "align_left"
 const ARRANGE_ALIGN_RIGHT: String = "align_right"
@@ -252,10 +257,22 @@ func _populate_import_menu() -> void:
 		[IMPORT_MODE_JSON, "Project JSON…"],
 		[IMPORT_MODE_FREEMIND, "FreeMind (.mm)…"],
 		[IMPORT_MODE_XMIND, "XMind (.xmind/.xml)…"],
+		[IMPORT_MENU_SEPARATOR_TOKEN, ""],
+		[IMPORT_MODE_DOCUMENT, "Document(s)…"],
+		[IMPORT_MODE_IMAGE, "Image(s)…"],
+		[IMPORT_MODE_SOUND, "Sound(s)…"],
 	]
-	for i in range(entries.size()):
-		popup.add_item(String(entries[i][1]), i)
-		popup.set_item_metadata(i, String(entries[i][0]))
+	var counter: int = 0
+	for entry_v: Variant in entries:
+		var entry: Array = entry_v
+		var token: String = String(entry[0])
+		var label: String = String(entry[1])
+		if token == IMPORT_MENU_SEPARATOR_TOKEN:
+			popup.add_separator()
+		else:
+			popup.add_item(label, counter)
+			popup.set_item_metadata(popup.get_item_index(counter), token)
+			counter += 1
 	if not popup.id_pressed.is_connected(_on_import_menu_id_pressed):
 		popup.id_pressed.connect(_on_import_menu_id_pressed)
 

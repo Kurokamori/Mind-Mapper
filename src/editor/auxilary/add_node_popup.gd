@@ -23,6 +23,7 @@ static func entries() -> Array:
 		[ItemRegistry.TYPE_TEXT, "Text"],
 		[ItemRegistry.TYPE_LABEL, "Label"],
 		[ItemRegistry.TYPE_RICH_TEXT, "Rich Text"],
+		[ItemRegistry.TYPE_DOCUMENT, "Document"],
 		[ItemRegistry.TYPE_STICKY, "Sticky Note"],
 		[ItemRegistry.TYPE_CODE, "Code Block"],
 		[ItemRegistry.TYPE_TABLE, "Table"],

@@ -366,9 +366,9 @@ func _open_map_context_menu(map_id: String) -> void:
 
 
 func _show_context_menu_at_mouse() -> void:
-	_context_menu.position = DisplayServer.mouse_get_position()
+	var mouse_pos: Vector2i = Vector2i(get_viewport().get_mouse_position())
 	_context_menu.reset_size()
-	_context_menu.popup()
+	_context_menu.popup(Rect2i(mouse_pos, Vector2i.ZERO))
 
 
 func _on_context_menu_id_pressed(id: int) -> void:
