@@ -18,6 +18,7 @@ signal merge_report_entry_rolled_back(report_id: String, op_id: String)
 signal merge_report_fully_rolled_back(report_id: String)
 signal chat_message_received(entry: Dictionary)
 signal chat_history_cleared()
+signal live_stroke_received(stable_id: String, payload: Dictionary)
 
 const STATE_IDLE: int = 0
 const STATE_HOSTING: int = 1
@@ -576,6 +577,26 @@ func editing_lock_holder(item_id: String) -> String:
 	return String(_editing_locks[item_id].get("stable_id", ""))
 
 
+func send_live_stroke(payload: Dictionary) -> void:
+	if not is_in_session() or _active_adapter == null:
+		return
+	var enriched: Dictionary = payload.duplicate(true)
+	enriched["stable_id"] = KeypairService.stable_id()
+	if not enriched.has("board_id") and AppState.current_board != null:
+		enriched["board_id"] = AppState.current_board.id
+	_active_adapter.send_to_all(NetworkMessage.KIND_LIVE_STROKE, enriched)
+
+
+func _handle_live_stroke(_from_network_id: int, payload: Variant) -> void:
+	if typeof(payload) != TYPE_DICTIONARY:
+		return
+	var d: Dictionary = payload
+	var stable_id: String = String(d.get("stable_id", ""))
+	if stable_id == "":
+		return
+	emit_signal("live_stroke_received", stable_id, d)
+
+
 func send_ping_marker(world_pos: Vector2) -> void:
 	if not is_in_session() or _active_adapter == null:
 		return
@@ -967,6 +988,8 @@ func _on_message_received(from_network_id: int, kind: String, payload: Variant, 
 			_handle_merge_finalize(from_network_id, payload)
 		NetworkMessage.KIND_CHAT_MESSAGE:
 			_handle_chat_message(from_network_id, payload)
+		NetworkMessage.KIND_LIVE_STROKE:
+			_handle_live_stroke(from_network_id, payload)
 		NetworkMessage.KIND_GUEST_POLICY:
 			pass
 		NetworkMessage.KIND_ASSET_QUERY:
@@ -1026,11 +1049,59 @@ func _on_local_op_emitted(op: Op) -> void:
 func _on_remote_op_applied(op: Op) -> void:
 	if op == null:
 		return
-	if op.payload.has("asset_name"):
-		var asset_name: String = String(op.payload.get("asset_name", ""))
-		if asset_name != "" and _asset_transfer != null and not _asset_transfer.has_local_asset(asset_name):
-			_asset_transfer.request_unknown_assets([asset_name], _resolve_op_origin_network_id(op))
+	var needed: Array = _collect_asset_names_from_op(op)
+	if not needed.is_empty() and _asset_transfer != null:
+		var unknown: Array = []
+		for name_v: Variant in needed:
+			var name: String = String(name_v)
+			if name == "":
+				continue
+			if _asset_transfer.has_local_asset(name):
+				continue
+			unknown.append(name)
+		if not unknown.is_empty():
+			_asset_transfer.request_unknown_assets(unknown, _resolve_op_origin_network_id(op))
 	_notify_remote_board_topology(op)
+
+
+func _collect_asset_names_from_op(op: Op) -> Array:
+	var out: Array = []
+	if op == null:
+		return out
+	var payload: Dictionary = op.payload
+	for direct_key: String in ["asset_name", "background_image_asset", "image_asset", "sound_asset"]:
+		if payload.has(direct_key):
+			out.append(String(payload[direct_key]))
+	match op.kind:
+		OpKinds.CREATE_ITEM:
+			var item_dict_raw: Variant = payload.get("item_dict", null)
+			if typeof(item_dict_raw) == TYPE_DICTIONARY:
+				_collect_asset_names_from_item_dict(item_dict_raw as Dictionary, out)
+		OpKinds.SET_ITEM_PROPERTY:
+			var key: String = String(payload.get("key", ""))
+			if key == "asset_name" or key == "background_image_asset" or key == "image_asset" or key == "sound_asset":
+				out.append(String(payload.get("value", "")))
+		OpKinds.SET_BLOCK_STACK_ROW:
+			var row_raw: Variant = payload.get("row", null)
+			if typeof(row_raw) == TYPE_DICTIONARY:
+				var row_d: Dictionary = row_raw
+				if row_d.has("asset_name"):
+					out.append(String(row_d["asset_name"]))
+		OpKinds.REPLACE_ASSET:
+			if payload.has("new_asset_name"):
+				out.append(String(payload["new_asset_name"]))
+	return out
+
+
+func _collect_asset_names_from_item_dict(d: Dictionary, out: Array) -> void:
+	for key: String in ["asset_name", "background_image_asset", "image_asset", "sound_asset"]:
+		if d.has(key):
+			out.append(String(d[key]))
+	var blocks_raw: Variant = d.get("blocks", null)
+	if typeof(blocks_raw) == TYPE_ARRAY:
+		for b_v: Variant in (blocks_raw as Array):
+			if typeof(b_v) == TYPE_DICTIONARY and (b_v as Dictionary).has("asset_name"):
+				out.append(String((b_v as Dictionary)["asset_name"]))
 
 
 func _notify_remote_board_topology(op: Op) -> void:
@@ -1091,6 +1162,11 @@ func _notify_remote_board_topology(op: Op) -> void:
 				content_map_id = String(op.payload.get("map_id", ""))
 			if content_map_id != "":
 				AppState.emit_signal("map_page_modified", content_map_id)
+		_:
+			if op.scope == OpKinds.SCOPE_BOARD and op.board_id != "":
+				var is_current: bool = AppState.current_board != null and AppState.current_board.id == op.board_id
+				if not is_current:
+					AppState.emit_signal("board_modified", op.board_id)
 
 
 func _register_message_sender(from_network_id: int, _kind: String, _payload: Variant) -> void:
@@ -1127,8 +1203,21 @@ func _handle_hello(from_network_id: int, payload: Variant) -> void:
 	if _is_session_host:
 		_send_hello_ack(from_network_id, peer_ident)
 		_send_roster(from_network_id)
-		_push_board_snapshot_to(from_network_id, _project.root_board_id if _project != null else "")
+		_push_all_board_snapshots_to(from_network_id)
 	emit_signal("participants_changed")
+
+
+func _push_all_board_snapshots_to(to_network_id: int) -> void:
+	if _project == null or _active_adapter == null:
+		return
+	var root_id: String = _project.root_board_id
+	if root_id != "":
+		_push_board_snapshot_to(to_network_id, root_id)
+	for board_id_v: Variant in _project.board_index.keys():
+		var board_id: String = String(board_id_v)
+		if board_id == "" or board_id == root_id:
+			continue
+		_push_board_snapshot_to(to_network_id, board_id)
 
 
 func _handle_hello_ack(_from_network_id: int, payload: Variant) -> void:

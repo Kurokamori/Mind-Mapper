@@ -1,21 +1,22 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://dsx8mgrrcgqq1"]
 
-[ext_resource type="Script" path="res://src/nodes/document/document_editor_dialog.gd" id="1_dde"]
+[ext_resource type="Script" uid="uid://bl7ry6mk4o4uy" path="res://src/nodes/document/document_editor_dialog.gd" id="1_dde"]
 
-[node name="DocumentEditorDialog" type="Window"]
+[node name="DocumentEditorDialog" type="Window" unique_id=1929828209]
+oversampling_override = 1.0
 title = "Document Editor"
 initial_position = 2
 size = Vector2i(960, 660)
 script = ExtResource("1_dde")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=392655468]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="." unique_id=1304016350]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -26,204 +27,208 @@ theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="Root" type="VBoxContainer" parent="Margin"]
+[node name="Root" type="VBoxContainer" parent="Margin" unique_id=1594059186]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="HeadingLabel" type="Label" parent="Margin/Root"]
+[node name="HeadingLabel" type="Label" parent="Margin/Root" unique_id=1707462199]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Document Editor"
 
-[node name="TitleRow" type="HBoxContainer" parent="Margin/Root"]
+[node name="TitleRow" type="HBoxContainer" parent="Margin/Root" unique_id=1525801543]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TitleHintLabel" type="Label" parent="Margin/Root/TitleRow"]
+[node name="TitleHintLabel" type="Label" parent="Margin/Root/TitleRow" unique_id=606274355]
 layout_mode = 2
 text = "Title"
 
-[node name="TitleEdit" type="LineEdit" parent="Margin/Root/TitleRow"]
+[node name="TitleEdit" type="LineEdit" parent="Margin/Root/TitleRow" unique_id=1982766369]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Document title"
 
-[node name="ToolbarScroll" type="ScrollContainer" parent="Margin/Root"]
+[node name="ToolbarScroll" type="ScrollContainer" parent="Margin/Root" unique_id=1307754900]
 layout_mode = 2
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
 
-[node name="Toolbar" type="HBoxContainer" parent="Margin/Root/ToolbarScroll"]
+[node name="Toolbar" type="HBoxContainer" parent="Margin/Root/ToolbarScroll" unique_id=1164075406]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="BoldButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="BoldButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=983091598]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Bold (Markdown **text**)"
+focus_mode = 0
 text = "B"
 
-[node name="ItalicButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="ItalicButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=905016007]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Italic (Markdown *text*)"
+focus_mode = 0
 text = "I"
 
-[node name="StrikeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="StrikeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1848530870]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Strikethrough (Markdown ~~text~~)"
+focus_mode = 0
 text = "S"
 
-[node name="InlineCodeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="InlineCodeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=955528691]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Inline code (`code`)"
+focus_mode = 0
 text = "</>"
 
-[node name="Sep1" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="Sep1" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1102438170]
 layout_mode = 2
 
-[node name="H1Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="H1Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1001886112]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Heading 1"
+focus_mode = 0
 text = "H1"
 
-[node name="H2Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="H2Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1029779377]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Heading 2"
+focus_mode = 0
 text = "H2"
 
-[node name="H3Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="H3Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=92895623]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Heading 3"
+focus_mode = 0
 text = "H3"
 
-[node name="Sep2" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="Sep2" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1524470834]
 layout_mode = 2
 
-[node name="ULButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="ULButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=434733701]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Bulleted list"
+focus_mode = 0
 text = "• List"
 
-[node name="OLButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="OLButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=2060094528]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Numbered list"
+focus_mode = 0
 text = "1. List"
 
-[node name="QuoteButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="QuoteButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=835616761]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Blockquote"
+focus_mode = 0
 text = "❝"
 
-[node name="CodeBlockButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="CodeBlockButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1944267741]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Fenced code block"
+focus_mode = 0
 text = "{ }"
 
-[node name="Sep3" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="Sep3" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1412125801]
 layout_mode = 2
 
-[node name="LinkButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="LinkButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1831780836]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Insert link"
+focus_mode = 0
 text = "🔗"
 
-[node name="ImageButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="ImageButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1776095932]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Insert image"
+focus_mode = 0
 text = "🖼"
 
-[node name="HRButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="HRButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=928709505]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Horizontal rule"
+focus_mode = 0
 text = "—"
 
-[node name="Sep4" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="Sep4" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1566174863]
 layout_mode = 2
 
-[node name="ImportButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="ImportButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1692453899]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Import document from file (txt, md, rtf, docx, pdf)"
+focus_mode = 0
 text = "Import…"
 
-[node name="NormalizeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+[node name="NormalizeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar" unique_id=1952531715]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Convert any BBCode in the source to Markdown"
+focus_mode = 0
 text = "Normalize"
 
-[node name="Split" type="HSplitContainer" parent="Margin/Root"]
+[node name="Split" type="HSplitContainer" parent="Margin/Root" unique_id=1980410631]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+split_offsets = PackedInt32Array(460)
 split_offset = 460
 
-[node name="SourcePane" type="VBoxContainer" parent="Margin/Root/Split"]
+[node name="SourcePane" type="VBoxContainer" parent="Margin/Root/Split" unique_id=92567360]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 4
 
-[node name="SourceHeading" type="Label" parent="Margin/Root/Split/SourcePane"]
+[node name="SourceHeading" type="Label" parent="Margin/Root/Split/SourcePane" unique_id=276395538]
 layout_mode = 2
 text = "Source (Markdown / BBCode)"
 
-[node name="SourceEdit" type="TextEdit" parent="Margin/Root/Split/SourcePane"]
+[node name="SourceEdit" type="TextEdit" parent="Margin/Root/Split/SourcePane" unique_id=1118113005]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-wrap_mode = 1
-placeholder_text = "# Heading\n\nWrite **Markdown** here. BBCode is also accepted; click Normalize to convert it on demand."
+placeholder_text = "# Heading
 
-[node name="PreviewPane" type="VBoxContainer" parent="Margin/Root/Split"]
+Write **Markdown** here. BBCode is also accepted; click Normalize to convert it on demand."
+wrap_mode = 1
+
+[node name="PreviewPane" type="VBoxContainer" parent="Margin/Root/Split" unique_id=1393086465]
+custom_minimum_size = Vector2(350, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 4
 
-[node name="PreviewHeading" type="Label" parent="Margin/Root/Split/PreviewPane"]
+[node name="PreviewHeading" type="Label" parent="Margin/Root/Split/PreviewPane" unique_id=1462153304]
 layout_mode = 2
 text = "Preview"
 
-[node name="PreviewScroll" type="ScrollContainer" parent="Margin/Root/Split/PreviewPane"]
+[node name="PreviewScroll" type="ScrollContainer" parent="Margin/Root/Split/PreviewPane" unique_id=327334192]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 2
 
-[node name="PreviewLabel" type="RichTextLabel" parent="Margin/Root/Split/PreviewPane/PreviewScroll"]
+[node name="PreviewLabel" type="RichTextLabel" parent="Margin/Root/Split/PreviewPane/PreviewScroll" unique_id=1708488581]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -231,31 +236,29 @@ size_flags_vertical = 3
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
-autowrap_mode = 3
 
-[node name="StatusRow" type="HBoxContainer" parent="Margin/Root"]
+[node name="StatusRow" type="HBoxContainer" parent="Margin/Root" unique_id=1631950771]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="StatusLabel" type="Label" parent="Margin/Root/StatusRow"]
+[node name="StatusLabel" type="Label" parent="Margin/Root/StatusRow" unique_id=1403462129]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-text = ""
 
-[node name="CancelButton" type="Button" parent="Margin/Root/StatusRow"]
+[node name="CancelButton" type="Button" parent="Margin/Root/StatusRow" unique_id=1541016548]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Cancel"
 
-[node name="OkButton" type="Button" parent="Margin/Root/StatusRow"]
+[node name="OkButton" type="Button" parent="Margin/Root/StatusRow" unique_id=1130239749]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Save"
 
-[node name="ImportDialog" type="FileDialog" parent="."]
+[node name="ImportDialog" type="FileDialog" parent="." unique_id=1564425567]
 unique_name_in_owner = true
-title = "Import Document"
+title = "Open a File"
 initial_position = 2
 size = Vector2i(720, 520)
 ok_button_text = "Open"

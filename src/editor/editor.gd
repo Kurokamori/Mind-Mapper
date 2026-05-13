@@ -20,6 +20,7 @@ const SAVE_DEBOUNCE_SEC: float = 0.5
 @onready var _embed_sound_popup: ConfirmationDialog = %EmbedSoundPopup
 @onready var _export_dialog: FileDialog = %ExportDialog
 @onready var _connection_layer: ConnectionLayer = %ConnectionLayer
+@onready var _annotation_layer: AnnotationLayer = %AnnotationLayer
 @onready var _board_outliner: BoardOutliner = %BoardOutliner
 @onready var _minimap: Minimap = %Minimap
 @onready var _command_palette: CommandPalette = %CommandPalette
@@ -38,6 +39,9 @@ const SAVE_DEBOUNCE_SEC: float = 0.5
 @onready var _tileset_info_dialog: AcceptDialog = %TilesetInfoDialog
 @onready var _comments_panel: CommentsPanel = %CommentsPanel
 @onready var _chat_panel: ChatPanel = %ChatPanel
+@onready var _top_bar: VBoxContainer = %TopBar
+
+const TOP_BAR_PADDING_PX: float = 4.0
 
 var _pending_image_path: String = ""
 var _pending_sound_path: String = ""
@@ -72,6 +76,21 @@ var _board_comments: Array = []
 var _comments_button_state: bool = false
 var _chat_button_state: bool = false
 var _chat_unread_count: int = 0
+var _annotation_tool: String = "none"
+var _annotation_color: Color = AnnotationStroke.DEFAULT_COLOR
+var _annotation_width: float = AnnotationStroke.DEFAULT_WIDTH
+var _pen_stroke_active: bool = false
+var _pen_stroke_dict: Dictionary = {}
+var _pen_last_emit_msec: int = 0
+var _pen_last_point_world: Vector2 = Vector2.ZERO
+var _eraser_active: bool = false
+var _eraser_pending_snapshots: Array = []
+var _eraser_pending_ids: Dictionary = {}
+
+const ANNOTATION_LIVE_EMIT_INTERVAL_MSEC: int = 33
+const ANNOTATION_MIN_POINT_DISTANCE_PX: float = 1.5
+const ANNOTATION_SELECT_TOLERANCE_PX: float = 6.0
+const ANNOTATION_ERASER_RADIUS_PX: float = 12.0
 
 const PORT_DRAG_SNAP_PX: float = 28.0
 const ENVELOPE_MAX_PASSES: int = 8
@@ -86,6 +105,10 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	_camera.make_current()
 	_toolbar.action_requested.connect(_on_toolbar_action)
+	if _top_bar != null:
+		_top_bar.resized.connect(_refresh_top_reserved)
+		_top_bar.sort_children.connect(_refresh_top_reserved)
+		_refresh_top_reserved.call_deferred()
 	_image_dialog.file_selected.connect(_on_image_chosen)
 	_embed_choice_popup.add_cancel_button("Link")
 	_embed_choice_popup.confirmed.connect(_on_embed_image_confirmed)
@@ -165,7 +188,10 @@ func _ready() -> void:
 		_chat_panel.close_requested.connect(_on_chat_panel_close_requested)
 	MultiplayerService.chat_message_received.connect(_on_chat_message_for_unread)
 	MultiplayerService.chat_history_cleared.connect(_on_chat_history_cleared_for_unread)
+	MultiplayerService.live_stroke_received.connect(_on_live_stroke_received)
 	_build_item_context_menu()
+	_annotation_color = _toolbar.annotation_color()
+	_annotation_width = _toolbar.annotation_width()
 
 
 func _refresh_tag_filter_menu() -> void:
@@ -188,6 +214,8 @@ func _on_board_changed(board: Board) -> void:
 	for item_dict in board.items:
 		_spawn_item_from_dict(item_dict)
 	_load_connections_from_board(board)
+	_load_annotations_from_board(board)
+	_cancel_active_annotation_stroke()
 	if _minimap != null:
 		_minimap.notify_items_changed()
 	if AppState.active_tag_filter != "":
@@ -372,6 +400,9 @@ func _input(event: InputEvent) -> void:
 				_camera.zoom_at_screen(wheel_mb.position, factor)
 				get_viewport().set_input_as_handled()
 				return
+	if _handle_annotation_input(event):
+		get_viewport().set_input_as_handled()
+		return
 	if _marquee.active:
 		if event is InputEventMouseMotion:
 			_marquee.update_drag()
@@ -605,9 +636,15 @@ func _on_item_dragging(item: BoardItem, world_center: Vector2) -> void:
 			if it != item:
 				others.append(Rect2(it.position, it.size))
 		AlignmentGuideService.begin_drag(item, others)
-	if not _drag_followers_starts.is_empty() and _drag_batch_starts.has(item.item_id):
+	if _drag_batch_capturing and _drag_batch_starts.has(item.item_id):
 		var primary_start: Vector2 = _drag_batch_starts[item.item_id]
 		var primary_delta: Vector2 = item.position - primary_start
+		for bid: String in _drag_batch_starts.keys():
+			if bid == item.item_id:
+				continue
+			var bit: BoardItem = _items_by_id.get(bid, null)
+			if bit != null:
+				bit.position = (_drag_batch_starts[bid] as Vector2) + primary_delta
 		for fid: String in _drag_followers_starts.keys():
 			var fit: BoardItem = _items_by_id.get(fid, null)
 			if fit != null:
@@ -1008,6 +1045,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 			return
 		KeybindingService.ACTION_DELETE:
+			if _annotation_layer != null and not _annotation_layer.selected_ids().is_empty():
+				if _delete_selected_annotations():
+					get_viewport().set_input_as_handled()
+				return
 			if _connection_layer != null and not _connection_layer.selected_connections().is_empty():
 				_delete_selected_connection()
 				get_viewport().set_input_as_handled()
@@ -1028,7 +1069,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		KeybindingService.ACTION_LOCK_TOGGLE:
 			_toggle_lock_on_selection(); get_viewport().set_input_as_handled(); return
 	if k.keycode == KEY_ESCAPE:
-		if _connect_tool_active:
+		if _pen_stroke_active or _eraser_active:
+			_cancel_active_annotation_stroke()
+			get_viewport().set_input_as_handled()
+		elif _annotation_tool_active() and _annotation_tool == "select" and _annotation_layer != null and not _annotation_layer.selected_ids().is_empty():
+			_annotation_layer.clear_selection()
+			get_viewport().set_input_as_handled()
+		elif _annotation_tool_active():
+			_set_annotation_tool("none")
+			if _toolbar != null:
+				_toolbar.set_annotation_tool("none")
+			get_viewport().set_input_as_handled()
+		elif _connect_tool_active:
 			_set_connect_tool_active(false)
 			get_viewport().set_input_as_handled()
 		elif _connection_layer != null and not _connection_layer.selected_connections().is_empty():
@@ -1228,6 +1280,13 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			_handle_settings(String(payload))
 		EditorToolbar.ACTION_NEW_MAP_PAGE:
 			_open_new_map_page_dialog()
+		EditorToolbar.ACTION_ANNOTATION_TOOL:
+			_set_annotation_tool(String(payload))
+		EditorToolbar.ACTION_ANNOTATION_COLOR:
+			if typeof(payload) == TYPE_COLOR:
+				_annotation_color = payload
+		EditorToolbar.ACTION_ANNOTATION_WIDTH:
+			_annotation_width = AnnotationStroke.clamp_width(float(payload))
 		EditorToolbar.ACTION_IMPORT_TILESET:
 			_open_import_tileset_dialog()
 		EditorToolbar.ACTION_NEW_TILESET_FROM_IMAGE:
@@ -1635,12 +1694,6 @@ func _open_import_dialog(mode: String) -> void:
 		EditorToolbar.IMPORT_MODE_JSON:
 			dlg.title = "Import Project JSON"
 			dlg.filters = PackedStringArray(["*.json ; JSON"])
-		EditorToolbar.IMPORT_MODE_FREEMIND:
-			dlg.title = "Import FreeMind"
-			dlg.filters = PackedStringArray(["*.mm ; FreeMind"])
-		EditorToolbar.IMPORT_MODE_XMIND:
-			dlg.title = "Import XMind"
-			dlg.filters = PackedStringArray(["*.xmind ; XMind", "*.xml ; XML"])
 	add_child(dlg)
 	dlg.file_selected.connect(func(path: String) -> void:
 		var importer: BoardImporter = BoardImporter.new(self)
@@ -2346,7 +2399,10 @@ func _perform_save() -> void:
 	var connection_dicts: Array = []
 	if _connection_layer != null:
 		connection_dicts = _connection_layer.get_connection_dicts()
-	AppState.save_current_board(dicts, connection_dicts, _board_comments.duplicate(true))
+	var annotation_dicts: Array = []
+	if _annotation_layer != null:
+		annotation_dicts = _annotation_layer.get_strokes()
+	AppState.save_current_board(dicts, connection_dicts, _board_comments.duplicate(true), annotation_dicts)
 
 
 func add_connection(c: Connection) -> void:
@@ -2559,6 +2615,16 @@ func apply_remote_op(op: Op) -> void:
 			var key: String = String(op.payload.get("key", ""))
 			var raw_value: Variant = op.payload.get("value", null)
 			apply_comment_property_locally(String(op.payload.get("comment_id", "")), key, _deserialize_comment_property_value(key, raw_value))
+		OpKinds.CREATE_STROKE:
+			var stroke_raw: Variant = op.payload.get("stroke_dict", null)
+			if typeof(stroke_raw) == TYPE_DICTIONARY:
+				apply_stroke_create_locally(stroke_raw as Dictionary)
+				if _annotation_layer != null:
+					var author_id: String = String((stroke_raw as Dictionary).get(AnnotationStroke.FIELD_AUTHOR_STABLE_ID, ""))
+					if author_id != "":
+						_annotation_layer.clear_live_stroke(author_id)
+		OpKinds.DELETE_STROKE:
+			apply_stroke_delete_locally(String(op.payload.get("stroke_id", "")))
 		_:
 			OpBus.applier().apply_to_project(op)
 	if _connection_layer != null:
@@ -2927,6 +2993,255 @@ func _drop_comments_referencing_item(item_id: String) -> void:
 			_comments_panel.remove_comment(cid)
 
 
+func _load_annotations_from_board(board: Board) -> void:
+	if _annotation_layer == null:
+		return
+	if board == null:
+		_annotation_layer.set_strokes([])
+		_annotation_layer.clear_all_live_strokes()
+		return
+	_annotation_layer.set_strokes(board.annotations)
+	_annotation_layer.clear_all_live_strokes()
+
+
+func apply_stroke_create_locally(stroke_dict: Dictionary) -> void:
+	if _annotation_layer == null:
+		return
+	_annotation_layer.add_stroke(stroke_dict)
+
+
+func apply_stroke_delete_locally(stroke_id: String) -> void:
+	if _annotation_layer == null:
+		return
+	_annotation_layer.remove_stroke(stroke_id)
+
+
+func _on_live_stroke_received(stable_id: String, payload: Dictionary) -> void:
+	if _annotation_layer == null:
+		return
+	if AppState.current_board == null:
+		return
+	var board_id: String = String(payload.get("board_id", ""))
+	if board_id != "" and board_id != AppState.current_board.id:
+		return
+	if stable_id == KeypairService.stable_id():
+		return
+	_annotation_layer.update_live_stroke(stable_id, payload)
+
+
+func _set_annotation_tool(tool_name: String) -> void:
+	if tool_name == _annotation_tool:
+		return
+	if _pen_stroke_active:
+		_cancel_active_annotation_stroke()
+	if _eraser_active:
+		_eraser_active = false
+		_eraser_pending_snapshots.clear()
+		_eraser_pending_ids.clear()
+	if _annotation_layer != null and tool_name != "select":
+		_annotation_layer.clear_selection()
+	_annotation_tool = tool_name
+
+
+func _cancel_active_annotation_stroke() -> void:
+	if _pen_stroke_active:
+		_broadcast_live_stroke(true)
+		_pen_stroke_active = false
+		_pen_stroke_dict = {}
+		if _annotation_layer != null:
+			_annotation_layer.clear_local_in_progress()
+	_eraser_active = false
+	_eraser_pending_snapshots.clear()
+	_eraser_pending_ids.clear()
+
+
+func _annotation_tool_active() -> bool:
+	return _annotation_tool == "pen" or _annotation_tool == "eraser" or _annotation_tool == "select"
+
+
+func _can_emit_annotation() -> bool:
+	if get_tree() == null:
+		return true
+	var root: Node = get_tree().root
+	if root == null or not root.has_node("MultiplayerService"):
+		return true
+	return MultiplayerService.local_can_emit(OpKinds.CREATE_STROKE)
+
+
+func _handle_annotation_input(event: InputEvent) -> bool:
+	if not _annotation_tool_active():
+		return false
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.button_index != MOUSE_BUTTON_LEFT:
+			return false
+		var world_pos: Vector2 = _camera.screen_to_world(mb.position)
+		if mb.pressed:
+			if not _is_visible_canvas_hover():
+				return false
+			match _annotation_tool:
+				"pen":
+					if not _can_emit_annotation():
+						return true
+					_begin_pen_stroke(world_pos)
+				"eraser":
+					if not _can_emit_annotation():
+						return true
+					_eraser_active = true
+					_eraser_pending_snapshots.clear()
+					_eraser_pending_ids.clear()
+					_eraser_apply_at(world_pos)
+				"select":
+					_annotation_select_at(world_pos, mb.shift_pressed)
+			return true
+		else:
+			match _annotation_tool:
+				"pen":
+					if _pen_stroke_active:
+						_commit_pen_stroke()
+						return true
+				"eraser":
+					if _eraser_active:
+						_finalize_eraser()
+						return true
+			return false
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event as InputEventMouseMotion
+		var world_pos: Vector2 = _camera.screen_to_world(motion.position)
+		if _pen_stroke_active:
+			_append_pen_point(world_pos)
+			return true
+		if _eraser_active:
+			_eraser_apply_at(world_pos)
+			return true
+	return false
+
+
+func _begin_pen_stroke(world_pos: Vector2) -> void:
+	var author_id: String = _annotation_author_stable_id()
+	var author_name: String = _annotation_author_display_name()
+	_pen_stroke_dict = AnnotationStroke.make_default(author_id, author_name, _annotation_color, _annotation_width)
+	(_pen_stroke_dict[AnnotationStroke.FIELD_POINTS] as Array).append([world_pos.x, world_pos.y])
+	_pen_stroke_active = true
+	_pen_last_point_world = world_pos
+	_pen_last_emit_msec = 0
+	if _annotation_layer != null:
+		_annotation_layer.set_local_in_progress(_pen_stroke_dict)
+	_broadcast_live_stroke(false)
+
+
+func _append_pen_point(world_pos: Vector2) -> void:
+	if not _pen_stroke_active:
+		return
+	if world_pos.distance_to(_pen_last_point_world) < ANNOTATION_MIN_POINT_DISTANCE_PX:
+		return
+	(_pen_stroke_dict[AnnotationStroke.FIELD_POINTS] as Array).append([world_pos.x, world_pos.y])
+	_pen_last_point_world = world_pos
+	if _annotation_layer != null:
+		_annotation_layer.set_local_in_progress(_pen_stroke_dict)
+	var now_msec: int = Time.get_ticks_msec()
+	if now_msec - _pen_last_emit_msec >= ANNOTATION_LIVE_EMIT_INTERVAL_MSEC:
+		_pen_last_emit_msec = now_msec
+		_broadcast_live_stroke(false)
+
+
+func _commit_pen_stroke() -> void:
+	if not _pen_stroke_active:
+		return
+	var finalized: Dictionary = _pen_stroke_dict.duplicate(true)
+	_broadcast_live_stroke(true)
+	_pen_stroke_active = false
+	_pen_stroke_dict = {}
+	if _annotation_layer != null:
+		_annotation_layer.clear_local_in_progress()
+	var points: Array = finalized.get(AnnotationStroke.FIELD_POINTS, []) as Array
+	if points.is_empty():
+		return
+	if not _can_emit_annotation():
+		return
+	History.push(AddStrokesCommand.new(self, [finalized]))
+
+
+func _broadcast_live_stroke(finished: bool) -> void:
+	if not MultiplayerService.is_in_session():
+		return
+	if _pen_stroke_dict.is_empty():
+		return
+	var payload: Dictionary = _pen_stroke_dict.duplicate(true)
+	payload["finished"] = finished
+	if AppState.current_board != null:
+		payload["board_id"] = AppState.current_board.id
+	MultiplayerService.send_live_stroke(payload)
+
+
+func _eraser_apply_at(world_pos: Vector2) -> void:
+	if _annotation_layer == null:
+		return
+	var radius_world: float = ANNOTATION_ERASER_RADIUS_PX / max(_camera.zoom.x, 0.0001)
+	var ids: Array = _annotation_layer.strokes_intersecting_circle(world_pos, radius_world)
+	for id_v: Variant in ids:
+		var id: String = String(id_v)
+		if _eraser_pending_ids.has(id):
+			continue
+		var snap: Dictionary = _annotation_layer.get_stroke(id)
+		if snap.is_empty():
+			continue
+		_eraser_pending_ids[id] = true
+		_eraser_pending_snapshots.append(snap)
+		_annotation_layer.remove_stroke(id)
+
+
+func _finalize_eraser() -> void:
+	var snapshots: Array = _eraser_pending_snapshots.duplicate(true)
+	_eraser_active = false
+	_eraser_pending_snapshots.clear()
+	_eraser_pending_ids.clear()
+	if snapshots.is_empty():
+		return
+	for snap_v: Variant in snapshots:
+		apply_stroke_create_locally(snap_v as Dictionary)
+	if not _can_emit_annotation():
+		return
+	History.push(RemoveStrokesCommand.new(self, snapshots))
+
+
+func _annotation_select_at(world_pos: Vector2, additive: bool) -> void:
+	if _annotation_layer == null:
+		return
+	var tolerance_world: float = ANNOTATION_SELECT_TOLERANCE_PX / max(_camera.zoom.x, 0.0001)
+	var hit_id: String = _annotation_layer.hit_test(world_pos, tolerance_world)
+	if hit_id == "":
+		if not additive:
+			_annotation_layer.clear_selection()
+		return
+	_annotation_layer.toggle_selected(hit_id, additive)
+
+
+func _annotation_author_stable_id() -> String:
+	if get_tree() != null and get_tree().root != null and get_tree().root.has_node("MultiplayerService"):
+		return KeypairService.stable_id()
+	return ""
+
+
+func _annotation_author_display_name() -> String:
+	if get_tree() != null and get_tree().root != null and get_tree().root.has_node("MultiplayerService"):
+		return KeypairService.display_name()
+	return ""
+
+
+func _delete_selected_annotations() -> bool:
+	if _annotation_layer == null:
+		return false
+	var snaps: Array = _annotation_layer.selected_snapshots()
+	if snaps.is_empty():
+		return false
+	if not _can_emit_annotation():
+		return false
+	_annotation_layer.clear_selection()
+	History.push(RemoveStrokesCommand.new(self, snaps))
+	return true
+
+
 static func _deserialize_comment_property_value(key: String, raw: Variant) -> Variant:
 	if key == CommentData.FIELD_COLOR:
 		return CommentData.deserialize_color_value(raw)
@@ -3008,7 +3323,8 @@ func _show_item_context_menu(item: BoardItem, screen_pos: Vector2) -> void:
 	_item_context_menu.add_separator()
 	_item_context_menu.add_item("Show comments panel", 2)
 	_item_context_menu.reset_size()
-	_item_context_menu.popup(Rect2i(Vector2i(int(round(screen_pos.x)), int(round(screen_pos.y))), Vector2i.ZERO))
+	_item_context_menu.position = DisplayServer.mouse_get_position()
+	_item_context_menu.popup()
 
 
 func _on_item_context_menu_id_pressed(id: int) -> void:
@@ -3195,3 +3511,12 @@ func _on_sync_offer_disable_discovery() -> void:
 		MultiplayerService.set_project_discovery_enabled(false)
 	else:
 		SteamPresenceService.set_enabled(false)
+
+
+func _refresh_top_reserved() -> void:
+	if _top_bar == null:
+		return
+	var min_size: Vector2 = _top_bar.get_combined_minimum_size()
+	var current: float = _top_bar.size.y
+	var measured: float = max(min_size.y, current)
+	LayoutMetrics.top_reserved = measured + TOP_BAR_PADDING_PX

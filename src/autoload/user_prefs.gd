@@ -3,6 +3,10 @@ extends Node
 const PREFS_PATH: String = "user://ui_prefs.json"
 const FORMAT_VERSION: int = 2
 
+const UI_ZOOM_MIN: float = 0.5
+const UI_ZOOM_MAX: float = 3.0
+const UI_ZOOM_DEFAULT: float = 1.0
+
 const THEME_DARK: String = "dark"
 const THEME_LIGHT: String = "light"
 const THEME_CUSTOM: String = "custom"
@@ -11,6 +15,7 @@ const THEME_IMPORTED: String = "imported"
 signal changed()
 signal theme_changed()
 signal keybindings_changed()
+signal ui_zoom_changed(value: float)
 
 var outliner_visible: bool = true
 var minimap_visible: bool = true
@@ -40,6 +45,7 @@ var custom_font_italic_path: String = ""
 var custom_font_bold_italic_path: String = ""
 var custom_font_mono_path: String = ""
 var font_size: int = 14
+var ui_zoom: float = UI_ZOOM_DEFAULT
 var keybindings: Dictionary = {}
 var _outliner_collapsed_by_project: Dictionary = {}
 var _panel_layouts: Dictionary = {}
@@ -343,6 +349,15 @@ func set_font_size(value: int) -> void:
 	emit_signal("theme_changed")
 
 
+func set_ui_zoom(value: float) -> void:
+	var clamped: float = clampf(value, UI_ZOOM_MIN, UI_ZOOM_MAX)
+	if is_equal_approx(ui_zoom, clamped):
+		return
+	ui_zoom = clamped
+	_save()
+	emit_signal("ui_zoom_changed", ui_zoom)
+
+
 func set_keybinding(action_id: String, event: Variant) -> void:
 	if action_id == "":
 		return
@@ -437,6 +452,7 @@ func _load() -> void:
 	custom_font_bold_italic_path = String(data.get("custom_font_bold_italic_path", custom_font_bold_italic_path))
 	custom_font_mono_path = String(data.get("custom_font_mono_path", custom_font_mono_path))
 	font_size = int(data.get("font_size", font_size))
+	ui_zoom = clampf(float(data.get("ui_zoom", ui_zoom)), UI_ZOOM_MIN, UI_ZOOM_MAX)
 	var kb_raw: Variant = data.get("keybindings", {})
 	if typeof(kb_raw) == TYPE_DICTIONARY:
 		keybindings = (kb_raw as Dictionary).duplicate(true)
@@ -496,6 +512,7 @@ func _save() -> void:
 		"custom_font_bold_italic_path": custom_font_bold_italic_path,
 		"custom_font_mono_path": custom_font_mono_path,
 		"font_size": font_size,
+		"ui_zoom": ui_zoom,
 		"keybindings": keybindings,
 		"outliner_collapsed_by_project": _outliner_collapsed_by_project,
 		"panel_layouts": _panel_layouts,

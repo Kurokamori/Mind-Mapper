@@ -59,6 +59,8 @@ const IMPORT_STATUS_OK: String = "Theme imported successfully."
 @onready var _browse_mono_btn: Button = %BrowseMonoFontButton
 @onready var _clear_mono_btn: Button = %ClearMonoFontButton
 @onready var _font_size_spin: SpinBox = %FontSizeSpin
+@onready var _ui_zoom_spin: SpinBox = %UiZoomSpin
+@onready var _ui_zoom_reset_btn: Button = %UiZoomResetButton
 @onready var _close_btn: Button = %CloseButton
 @onready var _reset_btn: Button = %ResetButton
 
@@ -137,6 +139,12 @@ func _ready() -> void:
 
 	_font_size_spin.value = float(UserPrefs.font_size)
 	_font_size_spin.value_changed.connect(_on_font_size_changed)
+
+	_ui_zoom_spin.min_value = UserPrefs.UI_ZOOM_MIN
+	_ui_zoom_spin.max_value = UserPrefs.UI_ZOOM_MAX
+	_ui_zoom_spin.value = UserPrefs.ui_zoom
+	_ui_zoom_spin.value_changed.connect(_on_ui_zoom_changed)
+	_ui_zoom_reset_btn.pressed.connect(_on_ui_zoom_reset)
 
 	_board_image_mode.add_item("Tile", 0)
 	_board_image_mode.add_item("Stretch", 1)
@@ -372,6 +380,16 @@ func _on_font_size_changed(value: float) -> void:
 	UserPrefs.set_font_size(int(value))
 
 
+func _on_ui_zoom_changed(value: float) -> void:
+	UserPrefs.set_ui_zoom(value)
+
+
+func _on_ui_zoom_reset() -> void:
+	UserPrefs.set_ui_zoom(UserPrefs.UI_ZOOM_DEFAULT)
+	if _ui_zoom_spin != null:
+		_ui_zoom_spin.set_value_no_signal(UserPrefs.ui_zoom)
+
+
 func _on_browse_regular_font() -> void:
 	_open_font_picker(FontPreset.VARIANT_REGULAR)
 
@@ -490,6 +508,9 @@ func _on_reset() -> void:
 	UserPrefs.set_custom_font_bold_italic_path("")
 	UserPrefs.set_custom_font_mono_path("")
 	UserPrefs.set_font_size(14)
+	UserPrefs.set_ui_zoom(UserPrefs.UI_ZOOM_DEFAULT)
+	if _ui_zoom_spin != null:
+		_ui_zoom_spin.set_value_no_signal(UserPrefs.ui_zoom)
 	_accent_picker.color = UserPrefs.theme_accent
 	_bg_picker.color = UserPrefs.custom_bg
 	_fg_picker.color = UserPrefs.custom_fg

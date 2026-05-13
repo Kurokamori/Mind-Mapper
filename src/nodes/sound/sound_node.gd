@@ -72,6 +72,17 @@ func _label_for_display() -> String:
 	return "No audio"
 
 
+func notify_asset_available(streamed_asset_name: String) -> void:
+	if streamed_asset_name == "" or asset_name == "":
+		return
+	if streamed_asset_name != asset_name:
+		return
+	if source_mode != SourceMode.EMBEDDED:
+		return
+	_reload_stream()
+	_refresh_visuals()
+
+
 func resolve_absolute_path() -> String:
 	if source_mode == SourceMode.EMBEDDED:
 		if AppState.current_project == null or asset_name == "":

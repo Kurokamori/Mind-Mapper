@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://48c61nepj4gh" path="res://src/multiplayer/dialogs/host_session_dialog.gd" id="1_host"]
 
 [node name="HostSessionDialog" type="AcceptDialog" unique_id=1878381511]
-oversampling_override = 1.0
 title = "Host multiplayer session"
 position = Vector2i(0, 36)
 size = Vector2i(520, 280)

@@ -39,6 +39,7 @@ const KIND_MERGE_PREFLIGHT: String = "merge_preflight"
 const KIND_MERGE_PREFLIGHT_RESPONSE: String = "merge_preflight_response"
 const KIND_MERGE_FINALIZE: String = "merge_finalize"
 const KIND_CHAT_MESSAGE: String = "chat_message"
+const KIND_LIVE_STROKE: String = "live_stroke"
 
 
 static func envelope(kind: String, payload: Variant) -> Dictionary:
@@ -54,7 +55,7 @@ static func channel_for(kind: String) -> int:
 		KIND_MAP_REQUEST, KIND_MAP_RESPONSE, KIND_TILESET_REQUEST, KIND_TILESET_RESPONSE, \
 		KIND_MERGE_PREFLIGHT, KIND_MERGE_PREFLIGHT_RESPONSE, KIND_MERGE_FINALIZE:
 			return CHANNEL_OPS
-		KIND_PRESENCE, KIND_HEARTBEAT, KIND_PING_MARKER:
+		KIND_PRESENCE, KIND_HEARTBEAT, KIND_PING_MARKER, KIND_LIVE_STROKE:
 			return CHANNEL_PRESENCE
 		KIND_ASSET_QUERY, KIND_ASSET_OFFER, KIND_ASSET_REQUEST, KIND_ASSET_CHUNK, KIND_ASSET_DENY:
 			return CHANNEL_ASSETS
@@ -63,4 +64,4 @@ static func channel_for(kind: String) -> int:
 
 
 static func is_unreliable(kind: String) -> bool:
-	return kind == KIND_PRESENCE or kind == KIND_HEARTBEAT
+	return kind == KIND_PRESENCE or kind == KIND_HEARTBEAT or kind == KIND_LIVE_STROKE

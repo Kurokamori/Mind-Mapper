@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://fqpyur1j8kr0" path="res://src/nodes/todo_list/todo_card_detail_dialog.gd" id="1_dlg"]
 
 [node name="TodoCardDetailDialog" type="Window" unique_id=1741900247]
-oversampling_override = 1.0
 title = "Card Details"
 initial_position = 2
 size = Vector2i(560, 640)

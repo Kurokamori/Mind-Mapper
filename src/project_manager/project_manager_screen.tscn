@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://dtitm13vry78q"]
+[gd_scene format=3 uid="uid://dtitm13vry78q"]
 
 [ext_resource type="Script" uid="uid://bfn1xpj1fcr8m" path="res://src/project_manager/project_manager_screen.gd" id="1_pms"]
 [ext_resource type="PackedScene" uid="uid://b8mphost0001" path="res://src/multiplayer/dialogs/host_session_dialog.tscn" id="2_pms_host"]
@@ -12,6 +12,8 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_pms")
 
 [node name="Background" type="Panel" parent="." unique_id=396500919]
@@ -45,11 +47,14 @@ theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="Margins/VBox" unique_id=391425348]
 layout_mode = 2
-text = "Mind Mapper"
+theme_override_font_sizes/font_size = 85
+text = "LOOM"
+horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Margins/VBox" unique_id=1878359120]
 layout_mode = 2
-text = "Plan games, shows, movies, anything."
+text = "Your mind visualized and interconnected."
+horizontal_alignment = 1
 
 [node name="Actions" type="HBoxContainer" parent="Margins/VBox" unique_id=2135057860]
 layout_mode = 2
@@ -65,12 +70,12 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Open Project…"
 
-[node name="ActionSpacer" type="Control" parent="Margins/VBox/Actions"]
+[node name="ActionSpacer" type="Control" parent="Margins/VBox/Actions" unique_id=1209839786]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="JoinSessionButton" type="Button" parent="Margins/VBox/Actions"]
+[node name="JoinSessionButton" type="Button" parent="Margins/VBox/Actions" unique_id=303683600]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Join session…"
@@ -133,8 +138,8 @@ custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
 placeholder_text = "My Project"
 
-[node name="HostSessionDialog" parent="." instance=ExtResource("2_pms_host")]
+[node name="HostSessionDialog" parent="." unique_id=1119765486 instance=ExtResource("2_pms_host")]
 unique_name_in_owner = true
 
-[node name="JoinSessionDialog" parent="." instance=ExtResource("3_pms_join")]
+[node name="JoinSessionDialog" parent="." unique_id=78601951 instance=ExtResource("3_pms_join")]
 unique_name_in_owner = true

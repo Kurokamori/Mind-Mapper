@@ -66,6 +66,10 @@ func _apply_to_board(op: Op) -> Dictionary:
 			changed = _op_delete_comment(board, op)
 		OpKinds.SET_COMMENT_PROPERTY:
 			changed = _op_set_comment_property(board, op)
+		OpKinds.CREATE_STROKE:
+			changed = _op_create_stroke(board, op)
+		OpKinds.DELETE_STROKE:
+			changed = _op_delete_stroke(board, op)
 		_:
 			return {"applied": false, "reason": "unknown_kind"}
 	if changed:
@@ -831,3 +835,32 @@ func _op_map_set_object_property(page: MapPage, op: Op) -> bool:
 		page.objects[i] = entry
 		return true
 	return false
+
+
+func _op_create_stroke(board: Board, op: Op) -> bool:
+	var stroke_raw: Variant = op.payload.get("stroke_dict", null)
+	if typeof(stroke_raw) != TYPE_DICTIONARY:
+		return false
+	var stroke_dict: Dictionary = AnnotationStroke.normalize((stroke_raw as Dictionary).duplicate(true))
+	var stroke_id: String = String(stroke_dict.get(AnnotationStroke.FIELD_ID, ""))
+	if stroke_id == "":
+		return false
+	if _is_tombstoned(board, "stroke:%s" % stroke_id):
+		return false
+	if AnnotationStroke.find_index(board.annotations, stroke_id) >= 0:
+		return false
+	board.annotations.append(stroke_dict)
+	return true
+
+
+func _op_delete_stroke(board: Board, op: Op) -> bool:
+	var stroke_id: String = String(op.payload.get("stroke_id", ""))
+	if stroke_id == "":
+		return false
+	var idx: int = AnnotationStroke.find_index(board.annotations, stroke_id)
+	if idx < 0:
+		_add_tombstone(board, "stroke:%s" % stroke_id)
+		return false
+	board.annotations.remove_at(idx)
+	_add_tombstone(board, "stroke:%s" % stroke_id)
+	return true

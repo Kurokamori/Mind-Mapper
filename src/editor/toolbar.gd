@@ -29,6 +29,14 @@ const ACTION_TAG_FILTER: String = "tag_filter"
 const ACTION_PRESENT: String = "present"
 const ACTION_TEMPLATE: String = "template"
 const ACTION_SETTINGS: String = "settings"
+const ACTION_ANNOTATION_TOOL: String = "annotation_tool"
+const ACTION_ANNOTATION_COLOR: String = "annotation_color"
+const ACTION_ANNOTATION_WIDTH: String = "annotation_width"
+
+const ANNOTATION_TOOL_NONE: String = "none"
+const ANNOTATION_TOOL_PEN: String = "pen"
+const ANNOTATION_TOOL_ERASER: String = "eraser"
+const ANNOTATION_TOOL_SELECT: String = "select"
 
 const TILESETS_MENU_ID_NEW_MAP_PAGE: int = 0
 const TILESETS_MENU_ID_IMPORT_TRES: int = 1
@@ -43,8 +51,6 @@ const EXPORT_MODE_HTML: String = "html"
 
 const IMPORT_MODE_MARKDOWN: String = "markdown"
 const IMPORT_MODE_JSON: String = "json"
-const IMPORT_MODE_FREEMIND: String = "freemind"
-const IMPORT_MODE_XMIND: String = "xmind"
 const IMPORT_MODE_DOCUMENT: String = "document"
 const IMPORT_MODE_IMAGE: String = "image"
 const IMPORT_MODE_SOUND: String = "sound"
@@ -102,6 +108,11 @@ const SETTINGS_ACTION_OPEN_TODOS: String = "settings_open_todos"
 @onready var _settings_button: MenuButton = %SettingsButton
 @onready var _tilesets_button: MenuButton = %TilesetsButton
 @onready var _presence_strip: PresenceAvatarStrip = %PresenceStrip
+@onready var _pen_button: Button = %PenButton
+@onready var _eraser_button: Button = %EraserButton
+@onready var _annotation_select_button: Button = %AnnotationSelectButton
+@onready var _annotation_color_button: ColorPickerButton = %AnnotationColorButton
+@onready var _annotation_width_spin: SpinBox = %AnnotationWidthSpin
 
 var _save_status_state: String = "saved"
 var _last_saved_unix: int = 0
@@ -109,6 +120,7 @@ var _status_timer: Timer
 var _current_tags: PackedStringArray = PackedStringArray()
 var _selected_tag_filter: String = ""
 var _edit_mode_enabled: bool = true
+var _active_annotation_tool: String = ANNOTATION_TOOL_NONE
 
 
 func _ready() -> void:
@@ -125,6 +137,11 @@ func _ready() -> void:
 	_chat_button.toggled.connect(_on_chat_toggled)
 	_group_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_GROUP, null))
 	_present_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_PRESENT, null))
+	_pen_button.toggled.connect(func(pressed: bool) -> void: _on_annotation_tool_toggled(ANNOTATION_TOOL_PEN, pressed))
+	_eraser_button.toggled.connect(func(pressed: bool) -> void: _on_annotation_tool_toggled(ANNOTATION_TOOL_ERASER, pressed))
+	_annotation_select_button.toggled.connect(func(pressed: bool) -> void: _on_annotation_tool_toggled(ANNOTATION_TOOL_SELECT, pressed))
+	_annotation_color_button.color_changed.connect(_on_annotation_color_changed)
+	_annotation_width_spin.value_changed.connect(_on_annotation_width_changed)
 	_populate_export_menu()
 	_populate_import_menu()
 	_populate_add_menu()
@@ -255,8 +272,6 @@ func _populate_import_menu() -> void:
 	var entries: Array = [
 		[IMPORT_MODE_MARKDOWN, "Markdown Outline…"],
 		[IMPORT_MODE_JSON, "Project JSON…"],
-		[IMPORT_MODE_FREEMIND, "FreeMind (.mm)…"],
-		[IMPORT_MODE_XMIND, "XMind (.xmind/.xml)…"],
 		[IMPORT_MENU_SEPARATOR_TOKEN, ""],
 		[IMPORT_MODE_DOCUMENT, "Document(s)…"],
 		[IMPORT_MODE_IMAGE, "Image(s)…"],
@@ -622,6 +637,57 @@ func _refresh_save_status() -> void:
 
 func presence_strip() -> PresenceAvatarStrip:
 	return _presence_strip
+
+
+func _on_annotation_tool_toggled(tool_name: String, pressed: bool) -> void:
+	if pressed:
+		_active_annotation_tool = tool_name
+		_sync_annotation_tool_buttons()
+		emit_signal("action_requested", ACTION_ANNOTATION_TOOL, tool_name)
+	else:
+		if _active_annotation_tool != tool_name:
+			return
+		_active_annotation_tool = ANNOTATION_TOOL_NONE
+		_sync_annotation_tool_buttons()
+		emit_signal("action_requested", ACTION_ANNOTATION_TOOL, ANNOTATION_TOOL_NONE)
+
+
+func _sync_annotation_tool_buttons() -> void:
+	if _pen_button != null:
+		_pen_button.set_pressed_no_signal(_active_annotation_tool == ANNOTATION_TOOL_PEN)
+	if _eraser_button != null:
+		_eraser_button.set_pressed_no_signal(_active_annotation_tool == ANNOTATION_TOOL_ERASER)
+	if _annotation_select_button != null:
+		_annotation_select_button.set_pressed_no_signal(_active_annotation_tool == ANNOTATION_TOOL_SELECT)
+
+
+func annotation_tool() -> String:
+	return _active_annotation_tool
+
+
+func annotation_color() -> Color:
+	if _annotation_color_button == null:
+		return AnnotationStroke.DEFAULT_COLOR
+	return _annotation_color_button.color
+
+
+func annotation_width() -> float:
+	if _annotation_width_spin == null:
+		return AnnotationStroke.DEFAULT_WIDTH
+	return AnnotationStroke.clamp_width(float(_annotation_width_spin.value))
+
+
+func set_annotation_tool(tool_name: String) -> void:
+	_active_annotation_tool = tool_name
+	_sync_annotation_tool_buttons()
+
+
+func _on_annotation_color_changed(color: Color) -> void:
+	emit_signal("action_requested", ACTION_ANNOTATION_COLOR, color)
+
+
+func _on_annotation_width_changed(value: float) -> void:
+	emit_signal("action_requested", ACTION_ANNOTATION_WIDTH, AnnotationStroke.clamp_width(value))
 
 
 func _format_delta(seconds: int) -> String:

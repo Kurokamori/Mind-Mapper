@@ -68,9 +68,10 @@ static func type_for_id(popup: PopupMenu, id: int) -> String:
 	return String(meta) if meta != null else ""
 
 
-func popup_at_screen(screen_pos: Vector2) -> void:
-	var pi: Vector2i = Vector2i(int(round(screen_pos.x)), int(round(screen_pos.y)))
-	popup(Rect2i(pi, Vector2i.ZERO))
+func popup_at_screen(_screen_pos: Vector2) -> void:
+	reset_size()
+	position = DisplayServer.mouse_get_position()
+	popup()
 
 
 func _on_id_pressed(id: int) -> void:

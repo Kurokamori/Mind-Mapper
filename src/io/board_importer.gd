@@ -27,10 +27,6 @@ func import_file(path: String, mode: String) -> bool:
 			return import_markdown_text(raw)
 		"json":
 			return import_json_text(raw)
-		"freemind":
-			return import_freemind_text(raw)
-		"xmind":
-			return import_xmind_text(raw)
 	return false
 
 
@@ -117,50 +113,6 @@ func import_json_text(text: String) -> bool:
 		if not conn_dicts.is_empty():
 			History.push(AddConnectionsCommand.new(_editor, conn_dicts))
 	return true
-
-
-func import_freemind_text(text: String) -> bool:
-	var parser: XMLParser = XMLParser.new()
-	if parser.open_buffer(text.to_utf8_buffer()) != OK:
-		return false
-	var root: Dictionary = {"text": "Imported", "children": []}
-	var stack: Array = [root]
-	while parser.read() == OK:
-		var nt: int = parser.get_node_type()
-		if nt == XMLParser.NODE_ELEMENT and parser.get_node_name() == "node":
-			var label: String = ""
-			for i in range(parser.get_attribute_count()):
-				if parser.get_attribute_name(i) == "TEXT":
-					label = parser.get_attribute_value(i)
-			var n: Dictionary = {"text": label, "children": []}
-			(stack[stack.size() - 1] as Dictionary).children.append(n)
-			if not parser.is_empty():
-				stack.append(n)
-		elif nt == XMLParser.NODE_ELEMENT_END and parser.get_node_name() == "node":
-			if stack.size() > 1:
-				stack.pop_back()
-	return _instantiate_tree(root)
-
-
-func import_xmind_text(text: String) -> bool:
-	if text.strip_edges().begins_with("<"):
-		return import_freemind_text(text)
-	var parsed: Variant = JSON.parse_string(text)
-	if typeof(parsed) == TYPE_DICTIONARY:
-		var root: Dictionary = _xmind_json_to_tree(parsed)
-		return _instantiate_tree(root)
-	return false
-
-
-func _xmind_json_to_tree(d: Dictionary) -> Dictionary:
-	var label_v: Variant = d.get("title", d.get("text", "(no title)"))
-	var node: Dictionary = {"text": String(label_v), "children": []}
-	var topics_v: Variant = d.get("topics", d.get("children", []))
-	if typeof(topics_v) == TYPE_ARRAY:
-		for c in topics_v:
-			if typeof(c) == TYPE_DICTIONARY:
-				node.children.append(_xmind_json_to_tree(c))
-	return node
 
 
 func _instantiate_tree(root: Dictionary) -> bool:

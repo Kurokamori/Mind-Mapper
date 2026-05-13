@@ -32,6 +32,9 @@ const CREATE_COMMENT: String = "create_comment"
 const DELETE_COMMENT: String = "delete_comment"
 const SET_COMMENT_PROPERTY: String = "set_comment_property"
 
+const CREATE_STROKE: String = "create_stroke"
+const DELETE_STROKE: String = "delete_stroke"
+
 const CREATE_MAP_PAGE: String = "create_map_page"
 const RENAME_MAP_PAGE: String = "rename_map_page"
 const DELETE_MAP_PAGE: String = "delete_map_page"
@@ -63,6 +66,7 @@ static func scope_for_kind(kind: String) -> String:
 		SET_BLOCK_STACK_ROW, SET_TODO_CARD, MOVE_TODO_CARD, \
 		CREATE_CONNECTION, DELETE_CONNECTION, SET_CONNECTION_PROPERTY, \
 		CREATE_COMMENT, DELETE_COMMENT, SET_COMMENT_PROPERTY, \
+		CREATE_STROKE, DELETE_STROKE, \
 		REPLACE_ASSET, SET_BOARD_PROPERTY:
 			return SCOPE_BOARD
 		CREATE_BOARD, RENAME_BOARD, REPARENT_BOARD, DELETE_BOARD, \

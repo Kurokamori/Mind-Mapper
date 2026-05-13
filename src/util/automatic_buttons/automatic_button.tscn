@@ -1,0 +1,42 @@
+[gd_scene format=3 uid="uid://c5vvau0077f41"]
+
+[ext_resource type="Script" path="res://src/ui/components/automatic_button.gd" id="1_ab_script"]
+
+[node name="AutomaticButton" type="BaseButton"]
+custom_minimum_size = Vector2(200, 64)
+focus_mode = 2
+script = ExtResource("1_ab_script")
+
+[node name="OutlinePatch" type="NinePatchRect" parent="."]
+unique_name_in_owner = true
+z_index = -1
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="NinePatch" type="NinePatchRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+horizontal_alignment = 1
+vertical_alignment = 1

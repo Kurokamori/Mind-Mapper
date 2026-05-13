@@ -163,6 +163,8 @@ func _exit_tree() -> void:
 
 
 func _on_node_added(node: Node) -> void:
+	if node is Window:
+		WindowDpiScaler.attach(node as Window)
 	if _current_theme == null:
 		return
 	if node is Window:
@@ -217,6 +219,7 @@ func _apply_to_root() -> void:
 	var root: Window = tree.root
 	_sync_project_theme(theme)
 	if root != null:
+		WindowDpiScaler.attach(root, false)
 		root.theme = null
 		root.theme = theme
 		_apply_to_windows(root, theme)
@@ -381,6 +384,7 @@ func _apply_to_windows(node: Node, theme: Theme) -> void:
 	for child: Node in node.get_children():
 		if child is Window:
 			var win: Window = child as Window
+			WindowDpiScaler.attach(win)
 			win.theme = null
 			win.theme = theme
 			win.propagate_notification(Control.NOTIFICATION_THEME_CHANGED)

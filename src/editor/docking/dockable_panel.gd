@@ -6,8 +6,6 @@ const MODE_DOCK_LEFT: String = "dock_left"
 const MODE_DOCK_RIGHT: String = "dock_right"
 const MODE_DOCK_BOTTOM: String = "dock_bottom"
 
-const TOP_RESERVED_PX: float = 140.0
-const BOTTOM_RESERVED_PX: float = 8.0
 const SIDE_RESERVED_PX: float = 0.0
 const DOCK_SNAP_DISTANCE_PX: float = 32.0
 const DEFAULT_DOCK_WIDTH: float = 300.0
@@ -51,6 +49,32 @@ func _ready() -> void:
 	_apply_layout()
 	item_rect_changed.connect(_on_self_rect_changed)
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
+	if _has_layout_metrics():
+		LayoutMetrics.top_reserved_changed.connect(_on_layout_metrics_changed)
+		LayoutMetrics.bottom_reserved_changed.connect(_on_layout_metrics_changed)
+
+
+func _has_layout_metrics() -> bool:
+	var tree: SceneTree = get_tree()
+	if tree == null or tree.root == null:
+		return false
+	return tree.root.has_node("LayoutMetrics")
+
+
+func _top_reserved_px() -> float:
+	if _has_layout_metrics():
+		return LayoutMetrics.top_reserved
+	return 140.0
+
+
+func _bottom_reserved_px() -> float:
+	if _has_layout_metrics():
+		return LayoutMetrics.bottom_reserved
+	return 8.0
+
+
+func _on_layout_metrics_changed(_value: float) -> void:
+	_apply_layout()
 
 
 func _resolve_handles() -> void:
@@ -177,9 +201,9 @@ func _apply_layout() -> void:
 			var w_l: float = max(min_w, _dock_size)
 			_dock_size = w_l
 			offset_left = SIDE_RESERVED_PX
-			offset_top = TOP_RESERVED_PX
+			offset_top = _top_reserved_px()
 			offset_right = SIDE_RESERVED_PX + w_l
-			offset_bottom = -BOTTOM_RESERVED_PX
+			offset_bottom = -_bottom_reserved_px()
 		MODE_DOCK_RIGHT:
 			anchor_left = 1.0
 			anchor_top = 0.0
@@ -190,9 +214,9 @@ func _apply_layout() -> void:
 			var w_r: float = max(min_w, _dock_size)
 			_dock_size = w_r
 			offset_left = -w_r - SIDE_RESERVED_PX
-			offset_top = TOP_RESERVED_PX
+			offset_top = _top_reserved_px()
 			offset_right = -SIDE_RESERVED_PX
-			offset_bottom = -BOTTOM_RESERVED_PX
+			offset_bottom = -_bottom_reserved_px()
 		MODE_DOCK_BOTTOM:
 			anchor_left = 0.0
 			anchor_top = 1.0
@@ -203,9 +227,9 @@ func _apply_layout() -> void:
 			var h_b: float = max(min_h, _dock_size)
 			_dock_size = h_b
 			offset_left = SIDE_RESERVED_PX
-			offset_top = -h_b - BOTTOM_RESERVED_PX
+			offset_top = -h_b - _bottom_reserved_px()
 			offset_right = -SIDE_RESERVED_PX
-			offset_bottom = -BOTTOM_RESERVED_PX
+			offset_bottom = -_bottom_reserved_px()
 	_update_grip_visibility()
 	_layout_applying = false
 	_layout_grips()
@@ -235,9 +259,11 @@ func _clamp_floating_rect(rect: Rect2, min_w: float, min_h: float) -> Rect2:
 	var w: float = clamp(rect.size.x, min_w, max(min_w, vp.x - 8.0))
 	var h: float = clamp(rect.size.y, min_h, max(min_h, vp.y - 8.0))
 	var max_x: float = max(0.0, vp.x - w)
-	var max_y: float = max(TOP_RESERVED_PX, vp.y - h - BOTTOM_RESERVED_PX)
+	var top: float = _top_reserved_px()
+	var bottom: float = _bottom_reserved_px()
+	var max_y: float = max(top, vp.y - h - bottom)
 	var x: float = clamp(rect.position.x, 0.0, max_x)
-	var y: float = clamp(rect.position.y, TOP_RESERVED_PX, max_y)
+	var y: float = clamp(rect.position.y, top, max_y)
 	return Rect2(Vector2(x, y), Vector2(w, h))
 
 
@@ -380,7 +406,7 @@ func _apply_docked_resize(directions: int, delta: Vector2) -> void:
 				_dock_size = clamp(_dock_size - delta.x, min_w, vp.x - 100.0)
 		MODE_DOCK_BOTTOM:
 			if (directions & ResizeGrip.DIR_TOP) != 0:
-				_dock_size = clamp(_dock_size - delta.y, min_h, vp.y - TOP_RESERVED_PX - 60.0)
+				_dock_size = clamp(_dock_size - delta.y, min_h, vp.y - _top_reserved_px() - 60.0)
 
 
 func _show_dock_context_menu(global_pos: Vector2) -> void:

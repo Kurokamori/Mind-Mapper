@@ -10,69 +10,78 @@ offset_bottom = 40.0
 mouse_filter = 1
 script = ExtResource("1_toolbar")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1942134517]
+[node name="FlowContainer" type="HFlowContainer" parent="." unique_id=1942134517]
+unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 4
 
-[node name="HBox" type="HBoxContainer" parent="VBoxContainer" unique_id=742955658]
+[node name="ProjectGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000001]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ProjectLabel" type="Label" parent="VBoxContainer/HBox" unique_id=1814964679]
+[node name="ProjectLabel" type="Label" parent="FlowContainer/ProjectGroup" unique_id=1814964679]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 0)
+custom_minimum_size = Vector2(160, 0)
 layout_mode = 2
 
-[node name="Separator1" type="VSeparator" parent="VBoxContainer/HBox" unique_id=442428128]
+[node name="Separator1" type="VSeparator" parent="FlowContainer/ProjectGroup" unique_id=442428128]
 layout_mode = 2
 
-[node name="BackButton" type="Button" parent="VBoxContainer/HBox" unique_id=1298515334]
+[node name="BackButton" type="Button" parent="FlowContainer/ProjectGroup" unique_id=1298515334]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "← Projects"
 
-[node name="SaveButton" type="Button" parent="VBoxContainer/HBox" unique_id=817157259]
+[node name="SaveButton" type="Button" parent="FlowContainer/ProjectGroup" unique_id=817157259]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Save"
 
-[node name="SaveStatusLabel" type="Label" parent="VBoxContainer/HBox" unique_id=111235910]
+[node name="SaveStatusLabel" type="Label" parent="FlowContainer/ProjectGroup" unique_id=111235910]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 
-[node name="Separator2" type="VSeparator" parent="VBoxContainer/HBox" unique_id=2094113754]
+[node name="AddGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000002]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Separator2" type="VSeparator" parent="FlowContainer/AddGroup" unique_id=2094113754]
 layout_mode = 2
 
-[node name="AddMenuButton" type="MenuButton" parent="VBoxContainer/HBox" unique_id=707240715]
+[node name="AddMenuButton" type="MenuButton" parent="FlowContainer/AddGroup" unique_id=707240715]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Add ▾"
 
-[node name="Separator3" type="VSeparator" parent="VBoxContainer/HBox" unique_id=57386141]
+[node name="HistoryGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000003]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Separator3" type="VSeparator" parent="FlowContainer/HistoryGroup" unique_id=57386141]
 layout_mode = 2
 
-[node name="UndoButton" type="Button" parent="VBoxContainer/HBox" unique_id=1096988612]
+[node name="UndoButton" type="Button" parent="FlowContainer/HistoryGroup" unique_id=1096988612]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Undo"
 
-[node name="RedoButton" type="Button" parent="VBoxContainer/HBox" unique_id=970749436]
+[node name="RedoButton" type="Button" parent="FlowContainer/HistoryGroup" unique_id=970749436]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Redo"
 
-[node name="TopRowSpacer" type="Control" parent="VBoxContainer/HBox" unique_id=1211949567]
+[node name="PanelsGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000004]
 layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
+theme_override_constants/separation = 6
 
-[node name="OutlinerButton" type="Button" parent="VBoxContainer/HBox" unique_id=518926252]
+[node name="OutlinerButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=518926252]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
@@ -80,7 +89,7 @@ toggle_mode = true
 button_pressed = true
 text = "Outliner"
 
-[node name="MinimapButton" type="Button" parent="VBoxContainer/HBox" unique_id=639773856]
+[node name="MinimapButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=639773856]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
@@ -88,7 +97,7 @@ toggle_mode = true
 button_pressed = true
 text = "Minimap"
 
-[node name="InspectorButton" type="Button" parent="VBoxContainer/HBox" unique_id=1796293648]
+[node name="InspectorButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=1796293648]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
@@ -96,21 +105,21 @@ toggle_mode = true
 button_pressed = true
 text = "Inspector"
 
-[node name="TimerTrayButton" type="Button" parent="VBoxContainer/HBox" unique_id=1682036709]
+[node name="TimerTrayButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=1682036709]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 toggle_mode = true
 text = "Timers"
 
-[node name="CommentsButton" type="Button" parent="VBoxContainer/HBox" unique_id=2017203041]
+[node name="CommentsButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=2017203041]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 toggle_mode = true
 text = "Comments"
 
-[node name="ChatButton" type="Button" parent="VBoxContainer/HBox" unique_id=2017203099]
+[node name="ChatButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=2017203099]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
@@ -118,30 +127,29 @@ toggle_mode = true
 tooltip_text = "Open the chat panel (Live session only)"
 text = "Chat"
 
-[node name="TopRowSpacer2" type="Control" parent="VBoxContainer/HBox" unique_id=411656773]
+[node name="PresenceGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000005]
 layout_mode = 2
-size_flags_horizontal = 3
-mouse_filter = 2
+theme_override_constants/separation = 6
 
-[node name="PresenceStrip" parent="VBoxContainer/HBox" unique_id=345247762 instance=ExtResource("2_strip")]
+[node name="PresenceStrip" parent="FlowContainer/PresenceGroup" unique_id=345247762 instance=ExtResource("2_strip")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="LowerHBox" type="HBoxContainer" parent="VBoxContainer" unique_id=871438227]
+[node name="SnapGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000006]
 layout_mode = 2
-alignment = 1
+theme_override_constants/separation = 6
 
-[node name="Separator4" type="VSeparator" parent="VBoxContainer/LowerHBox" unique_id=1044692835]
+[node name="Separator4" type="VSeparator" parent="FlowContainer/SnapGroup" unique_id=1044692835]
 layout_mode = 2
 
-[node name="SnapButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=700274535]
+[node name="SnapButton" type="MenuButton" parent="FlowContainer/SnapGroup" unique_id=700274535]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Snap settings"
 focus_mode = 0
 text = "Snap ▾"
 
-[node name="AlignButton" type="Button" parent="VBoxContainer/LowerHBox" unique_id=923977938]
+[node name="AlignButton" type="Button" parent="FlowContainer/SnapGroup" unique_id=923977938]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
@@ -149,61 +157,116 @@ toggle_mode = true
 button_pressed = true
 text = "Guides"
 
-[node name="ArrangeButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=426436856]
+[node name="ArrangeButton" type="MenuButton" parent="FlowContainer/SnapGroup" unique_id=426436856]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Align / distribute / z-order"
 focus_mode = 0
 text = "Arrange ▾"
 
-[node name="TagFilterButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=1443327240]
+[node name="TagFilterButton" type="MenuButton" parent="FlowContainer/SnapGroup" unique_id=1443327240]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Filter by tag"
 focus_mode = 0
 text = "Tags ▾"
 
-[node name="Separator5" type="VSeparator" parent="VBoxContainer/LowerHBox" unique_id=909863622]
+[node name="AnnotationGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000007]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Separator5" type="VSeparator" parent="FlowContainer/AnnotationGroup" unique_id=909863622]
 layout_mode = 2
 
-[node name="GroupButton" type="Button" parent="VBoxContainer/LowerHBox" unique_id=881993713]
+[node name="PenButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182931]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+tooltip_text = "Pen — draw annotations"
+text = "✎ Pen"
+
+[node name="EraserButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182932]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+tooltip_text = "Eraser — click strokes to remove"
+text = "Eraser"
+
+[node name="AnnotationSelectButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182933]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+tooltip_text = "Select strokes — click or marquee, then Delete"
+text = "Pick"
+
+[node name="AnnotationColorButton" type="ColorPickerButton" parent="FlowContainer/AnnotationGroup" unique_id=771182934]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Brush color"
+color = Color(0.95, 0.32, 0.32, 1)
+edit_alpha = false
+
+[node name="AnnotationWidthSpin" type="SpinBox" parent="FlowContainer/AnnotationGroup" unique_id=771182935]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+tooltip_text = "Brush width"
+min_value = 0.5
+max_value = 64.0
+step = 0.5
+value = 4.0
+suffix = "px"
+
+[node name="MiscGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000008]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Separator6" type="VSeparator" parent="FlowContainer/MiscGroup" unique_id=1044692836]
+layout_mode = 2
+
+[node name="GroupButton" type="Button" parent="FlowContainer/MiscGroup" unique_id=881993713]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Group"
 
-[node name="PresentButton" type="Button" parent="VBoxContainer/LowerHBox" unique_id=858085165]
+[node name="PresentButton" type="Button" parent="FlowContainer/MiscGroup" unique_id=858085165]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Present"
 
-[node name="TemplatesButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=1772993640]
+[node name="TemplatesButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1772993640]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Templates ▾"
 
-[node name="TilesetsButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=1603129774]
+[node name="TilesetsButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1603129774]
 unique_name_in_owner = true
 layout_mode = 2
 tooltip_text = "Map pages and tilesets"
 focus_mode = 0
 text = "Maps & Tilesets ▾"
 
-[node name="ImportButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=910273850]
+[node name="ImportButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=910273850]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Import ▾"
 
-[node name="ExportButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=1650877399]
+[node name="ExportButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1650877399]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 text = "Export ▾"
 
-[node name="SettingsButton" type="MenuButton" parent="VBoxContainer/LowerHBox" unique_id=1572617716]
+[node name="SettingsButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1572617716]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
