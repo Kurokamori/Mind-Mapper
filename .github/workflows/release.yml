@@ -1,13 +1,14 @@
 name: "godot-ci export"
-on: push
-branches: 
-  - master
+on: 
+  push:
+    branches: 
+      - master
 
 # NOTE: If your `project.godot` is at the repository root, set `PROJECT_PATH` below to ".".
 
 env:
   GODOT_VERSION: 4.6.2
-  EXPORT_NAME: soupjam-2026
+  EXPORT_NAME: loom
   PROJECT_PATH: .
 
 jobs:
