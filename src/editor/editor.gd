@@ -94,9 +94,7 @@ const ANNOTATION_ERASER_RADIUS_PX: float = 12.0
 
 const PORT_DRAG_SNAP_PX: float = 28.0
 const ENVELOPE_MAX_PASSES: int = 8
-const ADD_POPUP_BASE_FONT_SIZE: int = 14
-const ADD_POPUP_FONT_MIN: int = 12
-const ADD_POPUP_FONT_MAX: int = 48
+const ADD_POPUP_FONT_MAX_SCALE: float = 3.0
 
 var _envelope_pass_running: bool = false
 
@@ -1951,21 +1949,33 @@ func _show_add_popup_at(_local_pos: Vector2) -> void:
 	if _add_node_popup == null:
 		return
 	_add_popup_selection_active = false
+	_sync_add_popup_content_scale()
 	_apply_add_popup_zoom_font()
 	var window_local: Vector2 = get_viewport().get_mouse_position()
 	_add_node_popup.popup_at_screen(window_local)
+
+
+func _sync_add_popup_content_scale() -> void:
+	var root: Window = get_tree().root
+	if root == null:
+		return
+	var parent_scale: float = root.content_scale_factor
+	if parent_scale <= 0.0:
+		parent_scale = 1.0
+	if not is_equal_approx(_add_node_popup.content_scale_factor, parent_scale):
+		_add_node_popup.content_scale_factor = parent_scale
 
 
 func _apply_add_popup_zoom_font() -> void:
 	var zoom_x: float = 1.0
 	if _camera != null:
 		zoom_x = max(_camera.zoom.x, 0.001)
+	var divisor: float = min(zoom_x, 1.0)
 	var base: int = ThemeManager.scaled_font_size(1.0)
-	var lo: int = ThemeManager.scaled_font_size(float(ADD_POPUP_FONT_MIN) / float(ADD_POPUP_BASE_FONT_SIZE))
-	var hi: int = ThemeManager.scaled_font_size(float(ADD_POPUP_FONT_MAX) / float(ADD_POPUP_BASE_FONT_SIZE))
-	var raw: float = float(base) / zoom_x
-	var sz: int = int(clamp(round(raw), float(lo), float(hi)))
+	var hi: int = ThemeManager.scaled_font_size(ADD_POPUP_FONT_MAX_SCALE)
+	var sz: int = int(clamp(round(float(base) / divisor), float(base), float(hi)))
 	_add_node_popup.add_theme_font_size_override("font_size", sz)
+	_add_node_popup.add_theme_font_size_override("font_separator_size", sz)
 
 
 func _on_add_popup_type_chosen(type_id: String) -> void:

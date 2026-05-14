@@ -1,13 +1,14 @@
 class_name RichTextInspector
 extends VBoxContainer
 
-@onready var _bb_edit: TextEdit = %BBEdit
+@onready var _wysiwyg: WysiwygRichEditor = %WysiwygEditor
 @onready var _font_size_spin: SpinBox = %FontSizeSpin
 @onready var _bg_picker: ColorPickerButton = %BgPicker
 @onready var _fg_picker: ColorPickerButton = %FgPicker
 @onready var _format_toolbar: BBCodeToolbar = %FormatToolbar
 @onready var _auto_width_check: CheckBox = %AutoWidthCheck
 @onready var _auto_height_check: CheckBox = %AutoHeightCheck
+@onready var _max_image_width_spin: SpinBox = %MaxImageWidthSpin
 
 var _item: RichTextNode
 var _editor: Node
@@ -25,12 +26,16 @@ func _ready() -> void:
 	if _item == null:
 		return
 	_suppress_signals = true
-	_bb_edit.text = _item.bbcode_text
+	_wysiwyg.default_font_size = _item.font_size
+	_wysiwyg.default_text_color = _item.resolved_fg_color()
+	_wysiwyg.default_background = _item.resolved_bg_color()
+	_wysiwyg.set_bbcode(_item.bbcode_text)
 	_font_size_spin.value = _item.font_size
 	_bg_picker.color = _item.resolved_bg_color()
 	_fg_picker.color = _item.resolved_fg_color()
 	_auto_width_check.button_pressed = _item.auto_width
 	_auto_height_check.button_pressed = _item.auto_height
+	_max_image_width_spin.value = _item.max_image_width
 	_suppress_signals = false
 	_binders["bbcode_text"] = PropertyBinder.new(_editor, _item, "bbcode_text", _item.bbcode_text)
 	_binders["font_size"] = PropertyBinder.new(_editor, _item, "font_size", _item.font_size)
@@ -38,21 +43,23 @@ func _ready() -> void:
 	_binders["fg_color"] = PropertyBinder.new(_editor, _item, "fg_color", ColorUtil.to_array(_item.resolved_fg_color()))
 	_binders["auto_width"] = PropertyBinder.new(_editor, _item, "auto_width", _item.auto_width)
 	_binders["auto_height"] = PropertyBinder.new(_editor, _item, "auto_height", _item.auto_height)
+	_binders["max_image_width"] = PropertyBinder.new(_editor, _item, "max_image_width", _item.max_image_width)
+	_format_toolbar.bind_wysiwyg(_wysiwyg)
+	_format_toolbar.text_changed.connect(_on_toolbar_changed)
+	_wysiwyg.text_changed.connect(_on_wysiwyg_live)
+	_wysiwyg.focus_exited.connect(_on_wysiwyg_commit)
 	_auto_width_check.toggled.connect(_on_auto_width)
 	_auto_height_check.toggled.connect(_on_auto_height)
-	_install_reset_button(_bg_picker, "bg_color", _item.resolved_bg_color)
-	_install_reset_button(_fg_picker, "fg_color", _item.resolved_fg_color)
-	ThemeManager.theme_applied.connect(_on_theme_applied)
-	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _on_theme_applied())
-	_format_toolbar.bind(_bb_edit)
-	_format_toolbar.text_changed.connect(_on_toolbar_changed)
-	_bb_edit.text_changed.connect(_on_bb_live)
-	_bb_edit.focus_exited.connect(_on_bb_commit)
+	_max_image_width_spin.value_changed.connect(_on_max_image_width)
 	_font_size_spin.value_changed.connect(_on_font_size)
 	_bg_picker.color_changed.connect(_on_bg_live)
 	_bg_picker.popup_closed.connect(_on_bg_commit)
 	_fg_picker.color_changed.connect(_on_fg_live)
 	_fg_picker.popup_closed.connect(_on_fg_commit)
+	_install_reset_button(_bg_picker, "bg_color", _item.resolved_bg_color)
+	_install_reset_button(_fg_picker, "fg_color", _item.resolved_fg_color)
+	ThemeManager.theme_applied.connect(_on_theme_applied)
+	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _on_theme_applied())
 
 
 func _find_editor() -> Node:
@@ -64,23 +71,24 @@ func _find_editor() -> Node:
 	return null
 
 
-func _on_bb_live() -> void:
+func _on_wysiwyg_live() -> void:
 	if _suppress_signals:
 		return
-	_binders["bbcode_text"].live(_bb_edit.text)
+	_binders["bbcode_text"].live(_wysiwyg.get_bbcode())
 
 
-func _on_bb_commit() -> void:
+func _on_wysiwyg_commit() -> void:
 	if _suppress_signals:
 		return
-	_binders["bbcode_text"].commit(_bb_edit.text)
+	_binders["bbcode_text"].commit(_wysiwyg.get_bbcode())
 
 
 func _on_toolbar_changed() -> void:
 	if _suppress_signals:
 		return
-	_binders["bbcode_text"].live(_bb_edit.text)
-	_binders["bbcode_text"].commit(_bb_edit.text)
+	var serialized: String = _wysiwyg.get_bbcode()
+	_binders["bbcode_text"].live(serialized)
+	_binders["bbcode_text"].commit(serialized)
 
 
 func _on_font_size(value: float) -> void:
@@ -89,30 +97,35 @@ func _on_font_size(value: float) -> void:
 	var v: int = int(value)
 	_binders["font_size"].live(v)
 	_binders["font_size"].commit(v)
+	_wysiwyg.default_font_size = v
 
 
 func _on_bg_live(c: Color) -> void:
 	if _suppress_signals:
 		return
 	_binders["bg_color"].live(ColorUtil.to_array(c))
+	_wysiwyg.default_background = c
 
 
 func _on_bg_commit() -> void:
 	if _suppress_signals:
 		return
 	_binders["bg_color"].commit(ColorUtil.to_array(_bg_picker.color))
+	_wysiwyg.default_background = _bg_picker.color
 
 
 func _on_fg_live(c: Color) -> void:
 	if _suppress_signals:
 		return
 	_binders["fg_color"].live(ColorUtil.to_array(c))
+	_wysiwyg.default_text_color = c
 
 
 func _on_fg_commit() -> void:
 	if _suppress_signals:
 		return
 	_binders["fg_color"].commit(ColorUtil.to_array(_fg_picker.color))
+	_wysiwyg.default_text_color = _fg_picker.color
 
 
 func _on_auto_width(pressed: bool) -> void:
@@ -129,6 +142,14 @@ func _on_auto_height(pressed: bool) -> void:
 	_binders["auto_height"].commit(pressed)
 
 
+func _on_max_image_width(value: float) -> void:
+	if _suppress_signals:
+		return
+	var v: int = max(0, int(value))
+	_binders["max_image_width"].live(v)
+	_binders["max_image_width"].commit(v)
+
+
 func _install_reset_button(picker: ColorPickerButton, slot: String, resolver: Callable) -> void:
 	var row: HBoxContainer = picker.get_parent() as HBoxContainer
 	if row == null:
@@ -141,7 +162,12 @@ func _install_reset_button(picker: ColorPickerButton, slot: String, resolver: Ca
 	btn.pressed.connect(func() -> void:
 		_binders[slot].live(null)
 		_binders[slot].commit(null)
-		picker.color = resolver.call()
+		var resolved: Color = resolver.call()
+		picker.color = resolved
+		if slot == "bg_color":
+			_wysiwyg.default_background = resolved
+		elif slot == "fg_color":
+			_wysiwyg.default_text_color = resolved
 	)
 
 
@@ -151,6 +177,8 @@ func _on_theme_applied() -> void:
 	_suppress_signals = true
 	if not _item.bg_color_custom:
 		_bg_picker.color = _item.resolved_bg_color()
+		_wysiwyg.default_background = _item.resolved_bg_color()
 	if not _item.fg_color_custom:
 		_fg_picker.color = _item.resolved_fg_color()
+		_wysiwyg.default_text_color = _item.resolved_fg_color()
 	_suppress_signals = false

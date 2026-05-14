@@ -144,6 +144,24 @@ min_value = 8.0
 max_value = 96.0
 value = 15.0
 
+[node name="ImageRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="ImageLabel" type="Label" parent="ImageRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Max image width"
+tooltip_text = "Caps natural image width in pixels. 0 = display at native size. Per-image overrides: ![alt|400](path)"
+
+[node name="MaxImageWidthSpin" type="SpinBox" parent="ImageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 4096.0
+step = 16.0
+value = 0.0
+suffix = "px"
+
 [node name="BgRow" type="HBoxContainer" parent="."]
 layout_mode = 2
 

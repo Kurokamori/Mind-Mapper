@@ -2,6 +2,54 @@
 
 [ext_resource type="Script" uid="uid://cj0trsg7yv02r" path="res://src/editor/toolbar.gd" id="1_toolbar"]
 [ext_resource type="PackedScene" uid="uid://b8mpstrip0001" path="res://src/multiplayer/presence/presence_avatar_strip.tscn" id="2_strip"]
+[ext_resource type="PackedScene" path="res://src/util/automatic_buttons/automatic_menu_button.tscn" id="3_ambtn"]
+[ext_resource type="Texture2D" uid="uid://dy00uw1lpectl" path="res://assets/ui/icons/settings.png" id="4_settings_icon"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="5_7l6fc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jjlv6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yvkbi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xsps2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7l6fc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vqk2q"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w1g50"]
+
+[sub_resource type="Resource" id="Resource_sh0qe"]
+script = ExtResource("5_7l6fc")
+
+[sub_resource type="Resource" id="Resource_7irh2"]
+script = ExtResource("5_7l6fc")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_8hlhq"]
+script = ExtResource("5_7l6fc")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_hh5w0"]
+script = ExtResource("5_7l6fc")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_8wy75"]
+script = ExtResource("5_7l6fc")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
 
 [node name="Toolbar" type="PanelContainer" unique_id=1552225806]
 anchors_preset = 10
@@ -122,9 +170,9 @@ text = "Comments"
 [node name="ChatButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=2017203099]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Open the chat panel (Live session only)"
 focus_mode = 0
 toggle_mode = true
-tooltip_text = "Open the chat panel (Live session only)"
 text = "Chat"
 
 [node name="PresenceGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000005]
@@ -181,33 +229,45 @@ layout_mode = 2
 [node name="PenButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182931]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Pen — draw annotations"
 focus_mode = 0
 toggle_mode = true
-tooltip_text = "Pen — draw annotations"
 text = "✎ Pen"
 
 [node name="EraserButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182932]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Eraser — click strokes to remove"
 focus_mode = 0
 toggle_mode = true
-tooltip_text = "Eraser — click strokes to remove"
 text = "Eraser"
 
 [node name="AnnotationSelectButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182933]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Select strokes — click or marquee, then Delete"
 focus_mode = 0
 toggle_mode = true
-tooltip_text = "Select strokes — click or marquee, then Delete"
 text = "Pick"
 
-[node name="AnnotationColorButton" type="ColorPickerButton" parent="FlowContainer/AnnotationGroup" unique_id=771182934]
+[node name="MarginContainer" type="MarginContainer" parent="FlowContainer/AnnotationGroup" unique_id=2056631702]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="AnnotationColorButton" type="ColorPickerButton" parent="FlowContainer/AnnotationGroup/MarginContainer" unique_id=771182934]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Brush color"
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jjlv6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_yvkbi")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_xsps2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7l6fc")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_vqk2q")
 color = Color(0.95, 0.32, 0.32, 1)
 edit_alpha = false
 
@@ -266,8 +326,32 @@ layout_mode = 2
 focus_mode = 0
 text = "Export ▾"
 
-[node name="SettingsButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1572617716]
+[node name="SettingsButton" parent="FlowContainer/MiscGroup" unique_id=1572617716 instance=ExtResource("3_ambtn")]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-focus_mode = 0
-text = "⚙"
+tooltip_text = "Settings"
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_disabled_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_normal_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_disabled_color = Color(0, 0, 0, 0)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_w1g50")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_w1g50")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_w1g50")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_w1g50")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_w1g50")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_w1g50")
+texture = ExtResource("4_settings_icon")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_sh0qe")
+effect_hover = SubResource("Resource_7irh2")
+effect_pressed = SubResource("Resource_8hlhq")
+effect_disabled = SubResource("Resource_hh5w0")
+effect_focused = SubResource("Resource_8wy75")

@@ -6,6 +6,9 @@ const PADDING: Vector2 = Vector2(10, 8)
 const ADD_BUTTON_HEIGHT: float = 32.0
 const ADD_BUTTON_BOTTOM_MARGIN: float = 10.0
 const SCROLL_GAP: float = 8.0
+const BASE_MIN_WIDTH: float = 260.0
+const EDITING_EXTRA_WIDTH: float = 140.0
+const SCROLLBAR_BUFFER: float = 16.0
 const DARK_HEADER_BG: Color = Color(0.22, 0.34, 0.50, 1.0)
 const LIGHT_HEADER_BG: Color = Color(0.55, 0.72, 0.92, 1.0)
 const DARK_HEADER_FG: Color = Color(0.95, 0.97, 1.0, 1.0)
@@ -40,6 +43,10 @@ const LEGACY_HEADER_FG: Color = DARK_HEADER_FG
 
 var _pre_edit_title: String = ""
 var _drop_indicator_index: int = -1
+var _edit_focus_count: int = 0
+var _pre_edit_width: float = -1.0
+var _auto_grown_width: float = -1.0
+var _shrink_check_pending: bool = false
 
 
 func _ready() -> void:
@@ -50,6 +57,8 @@ func _ready() -> void:
 	_layout()
 	_refresh_visuals()
 	_rebuild_cards()
+	if _cards_container != null and not _cards_container.minimum_size_changed.is_connected(_on_cards_minimum_size_changed):
+		_cards_container.minimum_size_changed.connect(_on_cards_minimum_size_changed)
 	if read_only:
 		return
 	_title_edit.focus_exited.connect(_on_edit_focus_exited)
@@ -95,7 +104,22 @@ func display_name() -> String:
 
 
 func minimum_item_size() -> Vector2:
-	return Vector2(260.0, HEADER_HEIGHT + ADD_BUTTON_HEIGHT + ADD_BUTTON_BOTTOM_MARGIN + SCROLL_GAP + 40.0)
+	var base_h: float = HEADER_HEIGHT + ADD_BUTTON_HEIGHT + ADD_BUTTON_BOTTOM_MARGIN + SCROLL_GAP + 40.0
+	var width: float = BASE_MIN_WIDTH
+	var content_w: float = _required_content_width()
+	if content_w > width:
+		width = content_w
+	return Vector2(width, base_h)
+
+
+func _required_content_width() -> float:
+	if _cards_container == null:
+		return 0.0
+	return _cards_container.get_combined_minimum_size().x + PADDING.x * 2.0 + SCROLLBAR_BUFFER
+
+
+func _on_cards_minimum_size_changed() -> void:
+	_enforce_minimum_width()
 
 
 func _draw_body() -> void:
@@ -176,7 +200,9 @@ func _rebuild_cards() -> void:
 		row.details_requested.connect(_on_card_details_requested)
 		row.child_drop.connect(_on_card_child_drop)
 		row.child_drop_into_self.connect(_on_card_child_drop_into_self)
+		row.edit_focus_changed.connect(_on_card_edit_focus_changed)
 		_cards_container.add_child.call_deferred(row)
+	_enforce_minimum_width.call_deferred()
 	_position_drop_indicator(-1)
 
 
@@ -219,6 +245,50 @@ func _grow_to_fit_content() -> void:
 	if changed:
 		size = new_size
 		_layout()
+
+
+func _enforce_minimum_width() -> void:
+	var min_w: float = minimum_item_size().x
+	if size.x < min_w:
+		size.x = min_w
+		_layout()
+
+
+func _on_card_edit_focus_changed(_card_id: String, focused: bool) -> void:
+	if focused:
+		_edit_focus_count += 1
+		if _edit_focus_count == 1:
+			_apply_editing_expand()
+	else:
+		_edit_focus_count = max(0, _edit_focus_count - 1)
+		if _edit_focus_count == 0 and not _shrink_check_pending:
+			_shrink_check_pending = true
+			_deferred_shrink_check.call_deferred()
+
+
+func _apply_editing_expand() -> void:
+	var target_w: float = minimum_item_size().x + EDITING_EXTRA_WIDTH
+	if size.x >= target_w:
+		return
+	if _pre_edit_width < 0.0:
+		_pre_edit_width = size.x
+	size.x = target_w
+	_auto_grown_width = target_w
+	_layout()
+
+
+func _deferred_shrink_check() -> void:
+	_shrink_check_pending = false
+	if _edit_focus_count > 0:
+		return
+	if _pre_edit_width < 0.0:
+		return
+	if is_equal_approx(size.x, _auto_grown_width):
+		var restore_w: float = max(_pre_edit_width, minimum_item_size().x)
+		size.x = restore_w
+		_layout()
+	_pre_edit_width = -1.0
+	_auto_grown_width = -1.0
 
 
 func _on_card_text_changed(card_id: String, new_text: String) -> void:

@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/table/column_resize_handle.gd" id="1_crh"]
+
+[node name="TableColumnResizeHandle" type="Control"]
+custom_minimum_size = Vector2(8, 0)
+mouse_default_cursor_shape = 10
+script = ExtResource("1_crh")

@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://b5x8mgrrcimsd"]
+
+[ext_resource type="Script" path="res://src/nodes/document/image_size_dialog.gd" id="1_isd"]
+
+[node name="ImageSizeDialog" type="ConfirmationDialog"]
+title = "Insert Image"
+initial_position = 2
+size = Vector2i(420, 260)
+ok_button_text = "Insert"
+script = ExtResource("1_isd")
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -56.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="Root" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PathLabel" type="Label" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Source:"
+autowrap_mode = 2
+
+[node name="AltLabel" type="Label" parent="Margin/Root"]
+layout_mode = 2
+text = "Alt text"
+
+[node name="AltEdit" type="LineEdit" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Description shown when image is unavailable"
+
+[node name="SizeLabel" type="Label" parent="Margin/Root"]
+layout_mode = 2
+text = "Size (px, 0 = automatic)"
+
+[node name="SizeRow" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WLabel" type="Label" parent="Margin/Root/SizeRow"]
+layout_mode = 2
+text = "W"
+
+[node name="WidthSpin" type="SpinBox" parent="Margin/Root/SizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 8192.0
+step = 1.0
+value = 0.0
+
+[node name="X" type="Label" parent="Margin/Root/SizeRow"]
+layout_mode = 2
+text = "×"
+
+[node name="HLabel" type="Label" parent="Margin/Root/SizeRow"]
+layout_mode = 2
+text = "H"
+
+[node name="HeightSpin" type="SpinBox" parent="Margin/Root/SizeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 8192.0
+step = 1.0
+value = 0.0
+
+[node name="HintLabel" type="Label" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Use 0 to keep that dimension automatic."
+autowrap_mode = 2

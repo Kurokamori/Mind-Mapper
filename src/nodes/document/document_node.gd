@@ -14,6 +14,7 @@ const DEFAULT_H3_FONT_SIZE: int = 20
 const DEFAULT_H4_FONT_SIZE: int = 18
 const DEFAULT_H5_FONT_SIZE: int = 16
 const DEFAULT_H6_FONT_SIZE: int = 15
+const DEFAULT_MAX_IMAGE_WIDTH: int = 0
 const PREVIEW_DARK_HEADER: Color = Color(0.18, 0.20, 0.26, 1.0)
 const PREVIEW_LIGHT_HEADER: Color = Color(0.84, 0.87, 0.92, 1.0)
 
@@ -27,6 +28,7 @@ const PREVIEW_LIGHT_HEADER: Color = Color(0.84, 0.87, 0.92, 1.0)
 @export var h4_font_size: int = DEFAULT_H4_FONT_SIZE
 @export var h5_font_size: int = DEFAULT_H5_FONT_SIZE
 @export var h6_font_size: int = DEFAULT_H6_FONT_SIZE
+@export var max_image_width: int = DEFAULT_MAX_IMAGE_WIDTH
 @export var bg_color: Color = Color(0, 0, 0, 1)
 @export var fg_color: Color = Color(1, 1, 1, 1)
 @export var bg_color_custom: bool = false
@@ -86,7 +88,8 @@ func _refresh_visuals() -> void:
 		_title_label.add_theme_font_size_override("font_size", title_font_size)
 	if _preview != null:
 		_preview.bbcode_enabled = true
-		_preview.text = MarkdownConverter.markdown_to_bbcode(markdown_text, heading_sizes())
+		var bbcode: String = MarkdownConverter.markdown_to_bbcode(markdown_text, heading_sizes())
+		MarkdownImageRenderer.render_bbcode_with_images(_preview, bbcode, "", max_image_width)
 		_preview.add_theme_color_override("default_color", fg)
 		_preview.add_theme_font_size_override("normal_font_size", font_size)
 		_preview.add_theme_font_size_override("bold_font_size", font_size)
@@ -124,7 +127,7 @@ func _on_edit_begin() -> void:
 func _open_editor_dialog() -> void:
 	var scene: PackedScene = preload("res://src/nodes/document/document_editor_dialog.tscn")
 	var dlg: DocumentEditorDialog = scene.instantiate()
-	dlg.bind(title, markdown_text, heading_sizes(), font_size, title_font_size)
+	dlg.bind(title, markdown_text, heading_sizes(), font_size, title_font_size, max_image_width)
 	get_tree().root.add_child(dlg)
 	dlg.applied.connect(_on_editor_applied)
 	dlg.popup_centered()
@@ -192,6 +195,7 @@ func serialize_payload() -> Dictionary:
 		"h4_font_size": h4_font_size,
 		"h5_font_size": h5_font_size,
 		"h6_font_size": h6_font_size,
+		"max_image_width": max_image_width,
 		"bg_color_custom": bg_color_custom,
 		"fg_color_custom": fg_color_custom,
 	}
@@ -213,6 +217,7 @@ func deserialize_payload(d: Dictionary) -> void:
 	h4_font_size = int(d.get("h4_font_size", h4_font_size))
 	h5_font_size = int(d.get("h5_font_size", h5_font_size))
 	h6_font_size = int(d.get("h6_font_size", h6_font_size))
+	max_image_width = int(d.get("max_image_width", max_image_width))
 	if d.has("bg_color_custom"):
 		bg_color_custom = bool(d["bg_color_custom"])
 		if bg_color_custom and d.has("bg_color"):
@@ -247,6 +252,8 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			h5_font_size = int(value)
 		"h6_font_size":
 			h6_font_size = int(value)
+		"max_image_width":
+			max_image_width = max(0, int(value))
 		"bg_color":
 			if value == null:
 				bg_color_custom = false
@@ -281,4 +288,5 @@ func bulk_shareable_properties() -> Array:
 		{"key": "h4_font_size", "label": "H4 font", "kind": "int_range", "min": 8, "max": 96},
 		{"key": "h5_font_size", "label": "H5 font", "kind": "int_range", "min": 8, "max": 96},
 		{"key": "h6_font_size", "label": "H6 font", "kind": "int_range", "min": 8, "max": 96},
+		{"key": "max_image_width", "label": "Max image width (0 = native)", "kind": "int_range", "min": 0, "max": 4096},
 	]

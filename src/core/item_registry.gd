@@ -57,7 +57,7 @@ func default_payload(type_id: String) -> Dictionary:
 		TYPE_BLOCK_STACK: return {"title": "Blocks", "blocks": []}
 		TYPE_URL: return {"url": "https://example.com", "title": "Untitled link"}
 		TYPE_CODE: return {"code": "// code", "language": "plaintext"}
-		TYPE_TABLE: return {"rows": 3, "cols": 3, "cells": []}
+		TYPE_TABLE: return {"title": "Table", "rows": 3, "cols": 3, "cells": [], "has_header_row": false, "col_aligns": [], "rules": []}
 		TYPE_EQUATION: return {"latex": "E = mc^2"}
 		TYPE_STICKY: return {"text": "Sticky note", "color_index": 0}
 		TYPE_DOCUMENT: return {"title": "Untitled Document", "markdown_text": "# Document\n\nDouble-click to open the editor.\n", "font_size": 14}

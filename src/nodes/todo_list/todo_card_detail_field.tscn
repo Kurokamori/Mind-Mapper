@@ -1,6 +1,42 @@
 [gd_scene format=3 uid="uid://evtqkcn7pgvd"]
 
 [ext_resource type="Script" uid="uid://bdhb8m7yw1iad" path="res://src/nodes/todo_list/todo_card_detail_field.gd" id="1_field"]
+[ext_resource type="PackedScene" uid="uid://c5vvau0077f41" path="res://src/util/automatic_buttons/automatic_button.tscn" id="2_ab"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/delete.png" id="3_delete"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="4_effect"]
+
+[sub_resource type="Resource" id="Resource_normal"]
+script = ExtResource("4_effect")
+
+[sub_resource type="Resource" id="Resource_hover"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_pressed"]
+script = ExtResource("4_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_disabled"]
+script = ExtResource("4_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_focused"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
 
 [node name="TodoCardDetailField" type="PanelContainer" unique_id=330752516]
 script = ExtResource("1_field")
@@ -35,13 +71,19 @@ focus_mode = 0
 text = "▼"
 flat = true
 
-[node name="DeleteButton" type="Button" parent="VBox/TopRow" unique_id=1676606626]
+[node name="DeleteButton" parent="VBox/TopRow" unique_id=1676606626 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 0)
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-focus_mode = 0
-text = "×"
-flat = true
+size_flags_horizontal = 1
+size_flags_vertical = 1
+texture = ExtResource("3_delete")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_normal")
+effect_hover = SubResource("Resource_hover")
+effect_pressed = SubResource("Resource_pressed")
+effect_disabled = SubResource("Resource_disabled")
+effect_focused = SubResource("Resource_focused")
 
 [node name="ContentEdit" type="TextEdit" parent="VBox" unique_id=708101629]
 unique_name_in_owner = true

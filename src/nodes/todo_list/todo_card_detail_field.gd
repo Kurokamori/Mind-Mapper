@@ -7,7 +7,7 @@ signal move_requested(field_id: String, direction: int)
 
 @onready var _header_edit: LineEdit = %HeaderEdit
 @onready var _content_edit: TextEdit = %ContentEdit
-@onready var _delete_button: Button = %DeleteButton
+@onready var _delete_button: AutomaticButton = %DeleteButton
 @onready var _move_up_button: Button = %MoveUpButton
 @onready var _move_down_button: Button = %MoveDownButton
 

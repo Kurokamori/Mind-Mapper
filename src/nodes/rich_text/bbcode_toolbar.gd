@@ -1,5 +1,5 @@
 class_name BBCodeToolbar
-extends HBoxContainer
+extends HFlowContainer
 
 signal text_changed()
 
@@ -21,27 +21,82 @@ signal text_changed()
 @onready var _clear_button: Button = %ClearButton
 
 var _target: TextEdit = null
+var _wysiwyg: WysiwygRichEditor = null
 
 
 func bind(target: TextEdit) -> void:
 	_target = target
+	_wysiwyg = null
+
+
+func bind_wysiwyg(editor: WysiwygRichEditor) -> void:
+	_wysiwyg = editor
+	_target = null
 
 
 func _ready() -> void:
-	_bold_button.pressed.connect(func() -> void: _wrap("b"))
-	_italic_button.pressed.connect(func() -> void: _wrap("i"))
-	_underline_button.pressed.connect(func() -> void: _wrap("u"))
-	_strike_button.pressed.connect(func() -> void: _wrap("s"))
-	_code_button.pressed.connect(func() -> void: _wrap("code"))
-	_h1_button.pressed.connect(func() -> void: _wrap_with_size(28))
-	_h2_button.pressed.connect(func() -> void: _wrap_with_size(22))
-	_h3_button.pressed.connect(func() -> void: _wrap_with_size(18))
+	_bold_button.pressed.connect(_on_bold)
+	_italic_button.pressed.connect(_on_italic)
+	_underline_button.pressed.connect(_on_underline)
+	_strike_button.pressed.connect(_on_strike)
+	_code_button.pressed.connect(_on_code)
+	_h1_button.pressed.connect(func() -> void: _on_size(28))
+	_h2_button.pressed.connect(func() -> void: _on_size(22))
+	_h3_button.pressed.connect(func() -> void: _on_size(18))
 	_list_button.pressed.connect(_apply_list)
 	_link_button.pressed.connect(_apply_link)
 	_internal_link_button.pressed.connect(_apply_internal_link)
 	_color_apply_button.pressed.connect(_apply_color)
 	_size_apply_button.pressed.connect(_apply_size_spin)
 	_clear_button.pressed.connect(_clear_formatting)
+
+
+func _on_bold() -> void:
+	if _wysiwyg != null:
+		_wysiwyg.toggle_attribute_in_selection("bold")
+		_emit_change()
+		return
+	_wrap("b")
+
+
+func _on_italic() -> void:
+	if _wysiwyg != null:
+		_wysiwyg.toggle_attribute_in_selection("italic")
+		_emit_change()
+		return
+	_wrap("i")
+
+
+func _on_underline() -> void:
+	if _wysiwyg != null:
+		_wysiwyg.toggle_attribute_in_selection("underline")
+		_emit_change()
+		return
+	_wrap("u")
+
+
+func _on_strike() -> void:
+	if _wysiwyg != null:
+		_wysiwyg.toggle_attribute_in_selection("strike")
+		_emit_change()
+		return
+	_wrap("s")
+
+
+func _on_code() -> void:
+	if _wysiwyg != null:
+		_wysiwyg.toggle_attribute_in_selection("code")
+		_emit_change()
+		return
+	_wrap("code")
+
+
+func _on_size(size_value: int) -> void:
+	if _wysiwyg != null:
+		_wysiwyg.apply_attribute_to_selection("size", size_value)
+		_emit_change()
+		return
+	_wrap_with_size(size_value)
 
 
 func _wrap(tag: String) -> void:
@@ -56,6 +111,10 @@ func _apply_color() -> void:
 	if _color_picker == null:
 		return
 	var color: Color = _color_picker.color
+	if _wysiwyg != null:
+		_wysiwyg.apply_attribute_to_selection("color", color)
+		_emit_change()
+		return
 	var hex: String = "#%02x%02x%02x" % [
 		int(round(color.r * 255.0)),
 		int(round(color.g * 255.0)),
@@ -67,11 +126,11 @@ func _apply_color() -> void:
 func _apply_size_spin() -> void:
 	if _size_spin == null:
 		return
-	_wrap_with_size(int(_size_spin.value))
+	_on_size(int(_size_spin.value))
 
 
 func _apply_internal_link() -> void:
-	if _target == null:
+	if _wysiwyg == null and _target == null:
 		return
 	var picker_scene: PackedScene = preload("res://src/editor/link_picker.tscn")
 	var picker: LinkPicker = picker_scene.instantiate()
@@ -87,9 +146,18 @@ func _apply_internal_link() -> void:
 			picker.queue_free()
 			return
 		var spec: String = "%s:%s" % [kind, id_v]
+		var display_label: String = String(target.get("display_label", id_v))
+		if _wysiwyg != null:
+			var label_text: String = _wysiwyg.get_selected_text()
+			if label_text == "":
+				label_text = display_label
+			_wysiwyg.insert_link(spec, label_text)
+			_emit_change()
+			picker.queue_free()
+			return
 		var sel_text: String = _target.get_selected_text()
 		if sel_text == "":
-			sel_text = String(target.get("display_label", id_v))
+			sel_text = display_label
 		_replace_selection_or_insert("[url=%s]%s[/url]" % [spec, sel_text])
 		picker.queue_free()
 	)
@@ -107,6 +175,14 @@ func _find_editor_node() -> Node:
 
 
 func _apply_link() -> void:
+	if _wysiwyg != null:
+		var selected: String = _wysiwyg.get_selected_text()
+		if selected == "":
+			_wysiwyg.insert_link("https://example.com", "link")
+		else:
+			_wysiwyg.insert_link(selected, selected)
+		_emit_change()
+		return
 	if _target == null:
 		return
 	var selection_text: String = _target.get_selected_text()
@@ -117,21 +193,41 @@ func _apply_link() -> void:
 
 
 func _apply_list() -> void:
+	if _wysiwyg != null:
+		var sel_text: String = _wysiwyg.get_selected_text()
+		var source_lines: PackedStringArray = (sel_text if sel_text != "" else "Item 1\nItem 2").split("\n")
+		var rebuilt_lines: PackedStringArray = PackedStringArray()
+		for raw_line: String in source_lines:
+			var trimmed: String = raw_line.strip_edges()
+			if trimmed == "":
+				continue
+			if trimmed.begins_with("• "):
+				rebuilt_lines.append(trimmed)
+			else:
+				rebuilt_lines.append("• " + trimmed)
+		var inserted: String = "\n".join(rebuilt_lines)
+		_wysiwyg.insert_text(inserted)
+		_emit_change()
+		return
 	if _target == null:
 		return
-	var selection_text: String = _target.get_selected_text()
-	var lines: PackedStringArray = (selection_text if selection_text != "" else "Item 1\nItem 2").split("\n")
+	var selection_text2: String = _target.get_selected_text()
+	var lines: PackedStringArray = (selection_text2 if selection_text2 != "" else "Item 1\nItem 2").split("\n")
 	var list_block: String = "[ul]\n"
 	for line: String in lines:
-		var trimmed: String = line.strip_edges()
-		if trimmed == "":
+		var trimmed2: String = line.strip_edges()
+		if trimmed2 == "":
 			continue
-		list_block += "  " + trimmed + "\n"
+		list_block += "  " + trimmed2 + "\n"
 	list_block += "[/ul]"
 	_replace_selection_or_insert(list_block)
 
 
 func _clear_formatting() -> void:
+	if _wysiwyg != null:
+		_wysiwyg.clear_formatting_in_selection()
+		_emit_change()
+		return
 	if _target == null:
 		return
 	var selection_text: String = _target.get_selected_text()
@@ -191,6 +287,8 @@ func _replace_selection_or_insert(text_to_insert: String) -> void:
 func _emit_change() -> void:
 	if _target != null:
 		_target.grab_focus()
+	elif _wysiwyg != null:
+		_wysiwyg.grab_focus()
 	emit_signal("text_changed")
 
 

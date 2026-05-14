@@ -5,12 +5,11 @@
 [sub_resource type="ButtonGroup" id="ButtonGroup_mode"]
 
 [node name="ThemeDialog" type="Window" unique_id=1418287699]
+oversampling_override = 1.0
 title = "Theme & Fonts"
 position = Vector2i(0, 36)
-size = Vector2i(905, 752)
-wrap_controls = true
+size = Vector2i(992, 752)
 popup_window = true
-max_size = Vector2i(1000, 752)
 script = ExtResource("1_theme_dlg")
 
 [node name="Panel" type="Panel" parent="." unique_id=2139725196]
@@ -40,6 +39,7 @@ alignment = 1
 
 [node name="VBox" type="VBoxContainer" parent="CenterContainer/HBoxContainer" unique_id=758228548]
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="ModeLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=198021486]
@@ -74,272 +74,279 @@ layout_mode = 2
 button_group = SubResource("ButtonGroup_mode")
 text = "Imported"
 
-[node name="ImportedSection" type="VBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=2055808400]
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=1400931445]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer" unique_id=1696916400]
+layout_mode = 2
+
+[node name="ImportedSection" type="VBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=2055808400]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="ImportedHeader" type="Label" parent="CenterContainer/HBoxContainer/VBox/ImportedSection" unique_id=2055808401]
+[node name="ImportedHeader" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ImportedSection" unique_id=2055808401]
 layout_mode = 2
 text = "Imported theme (.tres)"
 
-[node name="ImportedRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ImportedSection" unique_id=2055808402]
+[node name="ImportedRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ImportedSection" unique_id=2055808402]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ImportedPathLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ImportedSection/ImportedRow" unique_id=2055808403]
+[node name="ImportedPathLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ImportedSection/ImportedRow" unique_id=2055808403]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "(no theme imported)"
 text_overrun_behavior = 3
 
-[node name="ImportedBrowseButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ImportedSection/ImportedRow" unique_id=2055808404]
+[node name="ImportedBrowseButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ImportedSection/ImportedRow" unique_id=2055808404]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Import…"
 
-[node name="ImportedClearButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ImportedSection/ImportedRow" unique_id=2055808405]
+[node name="ImportedClearButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ImportedSection/ImportedRow" unique_id=2055808405]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="ImportedStatusLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ImportedSection" unique_id=2055808406]
+[node name="ImportedStatusLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ImportedSection" unique_id=2055808406]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Only self-contained .tres themes (PNG/JPEG textures only) are accepted."
 autowrap_mode = 3
 
-[node name="AccentLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=1198326625]
+[node name="AccentLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=1198326625]
 visible = false
 layout_mode = 2
 text = "Accent color"
 
-[node name="AccentPicker" type="ColorPickerButton" parent="CenterContainer/HBoxContainer/VBox" unique_id=1206300542]
+[node name="AccentPicker" type="ColorPickerButton" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=1206300542]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 
-[node name="BoardBgSeparator" type="HSeparator" parent="CenterContainer/HBoxContainer/VBox" unique_id=650312956]
+[node name="BoardBgSeparator" type="HSeparator" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=650312956]
 layout_mode = 2
 
-[node name="BoardBgHeader" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=1609070937]
+[node name="BoardBgHeader" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=1609070937]
 layout_mode = 2
 text = "Board background image (current board)"
 
-[node name="BoardImageRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=207381059]
+[node name="BoardImageRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=207381059]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BoardImagePathLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/BoardImageRow" unique_id=1920707209]
+[node name="BoardImagePathLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardImageRow" unique_id=1920707209]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "(no image)"
 
-[node name="BoardImageBrowse" type="Button" parent="CenterContainer/HBoxContainer/VBox/BoardImageRow" unique_id=943315823]
+[node name="BoardImageBrowse" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardImageRow" unique_id=943315823]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Browse…"
 
-[node name="BoardImageClear" type="Button" parent="CenterContainer/HBoxContainer/VBox/BoardImageRow" unique_id=1340144130]
+[node name="BoardImageClear" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardImageRow" unique_id=1340144130]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="BoardImageModeLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/BoardImageRow" unique_id=1292173761]
+[node name="BoardImageModeLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardImageRow" unique_id=1292173761]
 layout_mode = 2
 text = "Image mode"
 
-[node name="BoardImageMode" type="OptionButton" parent="CenterContainer/HBoxContainer/VBox/BoardImageRow" unique_id=1663295912]
+[node name="BoardImageMode" type="OptionButton" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardImageRow" unique_id=1663295912]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="BoardBgColorRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=171347187]
+[node name="BoardBgColorRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=171347187]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="BoardBgColorLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/BoardBgColorRow" unique_id=1292173762]
+[node name="BoardBgColorLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardBgColorRow" unique_id=1292173762]
 layout_mode = 2
 text = "Background color (current board)"
 
-[node name="BoardBgColorPicker" type="ColorPickerButton" parent="CenterContainer/HBoxContainer/VBox/BoardBgColorRow" unique_id=1292173763]
+[node name="BoardBgColorPicker" type="ColorPickerButton" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardBgColorRow" unique_id=1292173763]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 28)
 layout_mode = 2
 size_flags_horizontal = 3
 edit_alpha = false
 
-[node name="BoardBgColorClear" type="Button" parent="CenterContainer/HBoxContainer/VBox/BoardBgColorRow" unique_id=1292173764]
+[node name="BoardBgColorClear" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoardBgColorRow" unique_id=1292173764]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Use theme"
 
-[node name="FontSeparator" type="HSeparator" parent="CenterContainer/HBoxContainer/VBox" unique_id=768865770]
+[node name="FontSeparator" type="HSeparator" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=768865770]
 layout_mode = 2
 
-[node name="FontPresetLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=126041622]
+[node name="FontPresetLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=126041622]
 layout_mode = 2
 text = "Font preset"
 
-[node name="FontPresetOption" type="OptionButton" parent="CenterContainer/HBoxContainer/VBox" unique_id=958001612]
+[node name="FontPresetOption" type="OptionButton" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=958001612]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="CustomFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=888228848]
+[node name="CustomFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=888228848]
 layout_mode = 2
 text = "Custom font — regular (overrides preset when set)"
 
-[node name="CustomFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=2085904087]
+[node name="CustomFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=2085904087]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CustomFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/CustomFontRow" unique_id=687450122]
+[node name="CustomFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/CustomFontRow" unique_id=687450122]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "No custom font"
 editable = false
 
-[node name="BrowseFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/CustomFontRow" unique_id=901707465]
+[node name="BrowseFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/CustomFontRow" unique_id=901707465]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Browse..."
 
-[node name="ClearFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/CustomFontRow" unique_id=1284583822]
+[node name="ClearFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/CustomFontRow" unique_id=1284583822]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="VariationsLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=410020001]
+[node name="VariationsLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=410020001]
 layout_mode = 2
 text = "Variations (used by RichTextLabel: [b], [i], [code])"
 
-[node name="BoldFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=410020010]
+[node name="BoldFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=410020010]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BoldFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/BoldFontRow" unique_id=410020011]
+[node name="BoldFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldFontRow" unique_id=410020011]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 text = "Bold"
 
-[node name="BoldFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/BoldFontRow" unique_id=410020012]
+[node name="BoldFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldFontRow" unique_id=410020012]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "No bold font"
 editable = false
 
-[node name="BrowseBoldFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/BoldFontRow" unique_id=410020013]
+[node name="BrowseBoldFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldFontRow" unique_id=410020013]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Browse..."
 
-[node name="ClearBoldFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/BoldFontRow" unique_id=410020014]
+[node name="ClearBoldFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldFontRow" unique_id=410020014]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="ItalicFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=410020020]
+[node name="ItalicFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=410020020]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="ItalicFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ItalicFontRow" unique_id=410020021]
+[node name="ItalicFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ItalicFontRow" unique_id=410020021]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 text = "Italic"
 
-[node name="ItalicFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/ItalicFontRow" unique_id=410020022]
+[node name="ItalicFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ItalicFontRow" unique_id=410020022]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "No italic font"
 editable = false
 
-[node name="BrowseItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ItalicFontRow" unique_id=410020023]
+[node name="BrowseItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ItalicFontRow" unique_id=410020023]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Browse..."
 
-[node name="ClearItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ItalicFontRow" unique_id=410020024]
+[node name="ClearItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ItalicFontRow" unique_id=410020024]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="BoldItalicFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=410020030]
+[node name="BoldItalicFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=410020030]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BoldItalicFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/BoldItalicFontRow" unique_id=410020031]
+[node name="BoldItalicFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldItalicFontRow" unique_id=410020031]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 text = "Bold italic"
 
-[node name="BoldItalicFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/BoldItalicFontRow" unique_id=410020032]
+[node name="BoldItalicFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldItalicFontRow" unique_id=410020032]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "No bold-italic font"
 editable = false
 
-[node name="BrowseBoldItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/BoldItalicFontRow" unique_id=410020033]
+[node name="BrowseBoldItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldItalicFontRow" unique_id=410020033]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Browse..."
 
-[node name="ClearBoldItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/BoldItalicFontRow" unique_id=410020034]
+[node name="ClearBoldItalicFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/BoldItalicFontRow" unique_id=410020034]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="MonoFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=410020040]
+[node name="MonoFontRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=410020040]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="MonoFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/MonoFontRow" unique_id=410020041]
+[node name="MonoFontLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/MonoFontRow" unique_id=410020041]
 custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 text = "Monospace"
 
-[node name="MonoFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/MonoFontRow" unique_id=410020042]
+[node name="MonoFontPath" type="LineEdit" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/MonoFontRow" unique_id=410020042]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "No monospace font"
 editable = false
 
-[node name="BrowseMonoFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/MonoFontRow" unique_id=410020043]
+[node name="BrowseMonoFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/MonoFontRow" unique_id=410020043]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Browse..."
 
-[node name="ClearMonoFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/MonoFontRow" unique_id=410020044]
+[node name="ClearMonoFontButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/MonoFontRow" unique_id=410020044]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Clear"
 
-[node name="FontSizeLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=1453873238]
+[node name="FontSizeLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=1453873238]
 layout_mode = 2
 text = "Font size"
 
-[node name="FontSizeSpin" type="SpinBox" parent="CenterContainer/HBoxContainer/VBox" unique_id=429240351]
+[node name="FontSizeSpin" type="SpinBox" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=429240351]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 48.0
 value = 14.0
 
-[node name="UiZoomLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox" unique_id=771203401]
+[node name="UiZoomLabel" type="Label" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=771203401]
 layout_mode = 2
 text = "UI zoom (applies to app + dialogs; multiplies per-monitor DPI scaling on dialogs)"
 
-[node name="UiZoomRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=771203402]
+[node name="UiZoomRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=771203402]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="UiZoomSpin" type="SpinBox" parent="CenterContainer/HBoxContainer/VBox/UiZoomRow" unique_id=771203403]
+[node name="UiZoomSpin" type="SpinBox" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/UiZoomRow" unique_id=771203403]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -349,23 +356,23 @@ step = 0.05
 value = 1.0
 suffix = "x"
 
-[node name="UiZoomResetButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/UiZoomRow" unique_id=771203404]
+[node name="UiZoomResetButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/UiZoomRow" unique_id=771203404]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reset"
 
-[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox" unique_id=40464971]
+[node name="ButtonRow" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer" unique_id=40464971]
 layout_mode = 2
 size_flags_vertical = 8
 theme_override_constants/separation = 8
 alignment = 2
 
-[node name="ResetButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ButtonRow" unique_id=1572568183]
+[node name="ResetButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ButtonRow" unique_id=1572568183]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Reset"
 
-[node name="CloseButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ButtonRow" unique_id=1804390812]
+[node name="CloseButton" type="Button" parent="CenterContainer/HBoxContainer/VBox/ScrollContainer/VBoxContainer/ButtonRow" unique_id=1804390812]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Close"
@@ -474,6 +481,15 @@ layout_mode = 2
 text = "Node heading text"
 
 [node name="NodeHeadingFgPicker" type="ColorPickerButton" parent="CenterContainer/HBoxContainer/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=1752957115]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 28)
+layout_mode = 2
+
+[node name="IconColorLabel" type="Label" parent="CenterContainer/HBoxContainer/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=8821001]
+layout_mode = 2
+text = "Icon color"
+
+[node name="IconColorPicker" type="ColorPickerButton" parent="CenterContainer/HBoxContainer/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=8821002]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 28)
 layout_mode = 2

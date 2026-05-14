@@ -63,6 +63,7 @@ func _refresh_visuals() -> void:
 		_label.add_theme_color_override("font_color", Color(0.10, 0.09, 0.05))
 	if _edit != null:
 		_edit.add_theme_font_size_override("font_size", font_size)
+		_edit.add_theme_color_override("font_color", Color(0.10, 0.09, 0.05))
 	queue_redraw()
 
 

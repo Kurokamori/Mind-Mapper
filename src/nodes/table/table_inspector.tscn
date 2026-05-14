@@ -4,16 +4,32 @@
 
 [node name="TableInspector" type="VBoxContainer"]
 script = ExtResource("1_tbli")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
 text = "Table"
 
+[node name="TitleRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TitleLabel" type="Label" parent="TitleRow"]
+layout_mode = 2
+text = "Title"
+custom_minimum_size = Vector2(72, 0)
+
+[node name="TitleEdit" type="LineEdit" parent="TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Untitled table"
+
 [node name="DimensionsLabel" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 2
 text = "3 × 3"
+modulate = Color(1, 1, 1, 0.7)
 
 [node name="RowsRow" type="HBoxContainer" parent="."]
 layout_mode = 2
@@ -45,8 +61,199 @@ min_value = 1.0
 max_value = 100.0
 value = 3.0
 
+[node name="HeaderRowCheck" type="CheckBox" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "First row is a header"
+
+[node name="AlignmentsHeader" type="Label" parent="."]
+layout_mode = 2
+text = "Column alignment"
+
+[node name="AlignmentsContainer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="CellHeader" type="Label" parent="."]
+layout_mode = 2
+text = "Cell formatting"
+
+[node name="CellTargetRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CellLabel" type="Label" parent="CellTargetRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cell"
+
+[node name="CellRowSpin" type="SpinBox" parent="CellTargetRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 99.0
+value = 0.0
+prefix = "R"
+
+[node name="CellColSpin" type="SpinBox" parent="CellTargetRow"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 99.0
+value = 0.0
+prefix = "C"
+
+[node name="CellBgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CellUseBg" type="CheckBox" parent="CellBgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Background"
+
+[node name="CellBgPicker" type="ColorPickerButton" parent="CellBgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(64, 22)
+color = Color(1, 1, 1, 1)
+
+[node name="CellFgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CellUseFg" type="CheckBox" parent="CellFgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Text color"
+
+[node name="CellFgPicker" type="ColorPickerButton" parent="CellFgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(64, 22)
+color = Color(0, 0, 0, 1)
+
+[node name="CellStyleRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CellBold" type="CheckBox" parent="CellStyleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Bold"
+
+[node name="CellItalic" type="CheckBox" parent="CellStyleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Italic"
+
+[node name="CellClear" type="Button" parent="CellStyleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Clear cell"
+
+[node name="CellHint" type="Label" parent="."]
+layout_mode = 2
+autowrap_mode = 3
+text = "Click a cell on the canvas to select it, or use the spinners above."
+modulate = Color(1, 1, 1, 0.55)
+
+[node name="RulesHeader" type="Label" parent="."]
+layout_mode = 2
+text = "Conditional formatting"
+
+[node name="RulesContainer" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AddRuleBtn" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 2
+text = "+ Add rule"
+
+[node name="ColorsHeader" type="Label" parent="."]
+layout_mode = 2
+text = "Appearance"
+
+[node name="BgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="BgLabel" type="Label" parent="BgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Background"
+
+[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(64, 22)
+
+[node name="BgReset" type="Button" parent="BgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset"
+
+[node name="AccentRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="AccentLabel" type="Label" parent="AccentRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Header color"
+
+[node name="AccentPicker" type="ColorPickerButton" parent="AccentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(64, 22)
+
+[node name="AccentReset" type="Button" parent="AccentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset"
+
+[node name="HeaderFgRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="HeaderFgLabel" type="Label" parent="HeaderFgRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Header text"
+
+[node name="HeaderFgPicker" type="ColorPickerButton" parent="HeaderFgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(64, 22)
+
+[node name="HeaderFgReset" type="Button" parent="HeaderFgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset"
+
+[node name="GridLineRow" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="GridLineLabel" type="Label" parent="GridLineRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Grid line"
+
+[node name="GridLinePicker" type="ColorPickerButton" parent="GridLineRow"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(64, 22)
+
+[node name="GridLineReset" type="Button" parent="GridLineRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reset"
+
 [node name="HintLabel" type="Label" parent="."]
 layout_mode = 2
 autowrap_mode = 3
-text = "Edit cell text directly inside the table on the canvas."
-modulate = Color(1, 1, 1, 0.6)
+text = "Double-click the table header to rename. Double-click a cell to edit it. Click elsewhere or press Esc to exit edit mode."
+modulate = Color(1, 1, 1, 0.55)

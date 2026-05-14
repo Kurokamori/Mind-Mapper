@@ -2,9 +2,10 @@
 
 [ext_resource type="Script" path="res://src/nodes/rich_text/bbcode_toolbar.gd" id="1_bbtb"]
 
-[node name="BBCodeToolbar" type="HBoxContainer"]
+[node name="BBCodeToolbar" type="HFlowContainer"]
 script = ExtResource("1_bbtb")
-theme_override_constants/separation = 2
+theme_override_constants/h_separation = 2
+theme_override_constants/v_separation = 2
 
 [node name="BoldButton" type="Button" parent="."]
 unique_name_in_owner = true

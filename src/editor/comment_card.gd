@@ -7,7 +7,7 @@ signal jump_requested(item_id: String, card_id: String)
 @onready var _title_edit: LineEdit = %TitleEdit
 @onready var _resolve_button: CheckButton = %ResolveButton
 @onready var _edit_button: Button = %EditButton
-@onready var _delete_button: Button = %DeleteButton
+@onready var _delete_button: AutomaticButton = %DeleteButton
 @onready var _target_button: Button = %TargetButton
 @onready var _body_view: RichTextLabel = %BodyView
 @onready var _body_edit: TextEdit = %BodyEdit

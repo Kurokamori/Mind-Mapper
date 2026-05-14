@@ -15,7 +15,7 @@ signal layer_opacity_changed(layer_id: String, value: float)
 
 @onready var _close_button: Button = %CloseButton
 @onready var _list_root: VBoxContainer = %ListRoot
-@onready var _add_button: Button = %AddButton
+@onready var _add_button: AutomaticButton = %AddButton
 
 var _selected_layer_id: String = ""
 var _layers: Array = []

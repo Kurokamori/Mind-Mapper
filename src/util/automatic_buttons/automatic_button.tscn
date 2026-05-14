@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c5vvau0077f41"]
 
-[ext_resource type="Script" path="res://src/ui/components/automatic_button.gd" id="1_ab_script"]
+[ext_resource type="Script" uid="uid://3n5tithhlmfu" path="res://src/util/automatic_buttons/automatic_button.gd" id="1_ab_script"]
 
 [node name="AutomaticButton" type="BaseButton"]
 custom_minimum_size = Vector2(200, 64)

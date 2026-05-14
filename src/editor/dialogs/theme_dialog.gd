@@ -35,6 +35,7 @@ const IMPORT_STATUS_OK: String = "Theme imported successfully."
 @onready var _node_fg_picker: ColorPickerButton = %NodeFgPicker
 @onready var _node_heading_bg_picker: ColorPickerButton = %NodeHeadingBgPicker
 @onready var _node_heading_fg_picker: ColorPickerButton = %NodeHeadingFgPicker
+@onready var _icon_color_picker: ColorPickerButton = %IconColorPicker
 @onready var _per_type_headings_button: Button = %PerTypeHeadingsButton
 @onready var _font_preset_option: OptionButton = %FontPresetOption
 @onready var _board_image_path_label: Label = %BoardImagePathLabel
@@ -112,6 +113,8 @@ func _ready() -> void:
 	_node_fg_picker.color_changed.connect(UserPrefs.set_custom_node_fg)
 	_node_heading_bg_picker.color_changed.connect(UserPrefs.set_custom_node_heading_bg)
 	_node_heading_fg_picker.color_changed.connect(UserPrefs.set_custom_node_heading_fg)
+	_icon_color_picker.color = UserPrefs.custom_icon_color
+	_icon_color_picker.color_changed.connect(UserPrefs.set_custom_icon_color)
 	_per_type_headings_button.pressed.connect(_open_per_type_headings_dialog)
 
 	_populate_font_presets()
@@ -500,6 +503,7 @@ func _on_reset() -> void:
 	UserPrefs.set_custom_node_fg(Color(0.95, 0.96, 0.98, 1.0))
 	UserPrefs.set_custom_node_heading_bg(Color(0.32, 0.18, 0.42, 1.0))
 	UserPrefs.set_custom_node_heading_fg(Color(0.97, 0.97, 0.99, 1.0))
+	UserPrefs.set_custom_icon_color(Color(1.0, 1.0, 1.0, 1.0))
 	UserPrefs.clear_custom_node_headings()
 	UserPrefs.set_font_preset_id("default")
 	UserPrefs.set_custom_font_path("")
@@ -520,6 +524,7 @@ func _on_reset() -> void:
 	_node_fg_picker.color = UserPrefs.custom_node_fg
 	_node_heading_bg_picker.color = UserPrefs.custom_node_heading_bg
 	_node_heading_fg_picker.color = UserPrefs.custom_node_heading_fg
+	_icon_color_picker.color = UserPrefs.custom_icon_color
 	_mode_dark.button_pressed = true
 	_custom_font_path.text = ""
 	_bold_font_path.text = ""

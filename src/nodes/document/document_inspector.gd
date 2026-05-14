@@ -10,6 +10,7 @@ extends VBoxContainer
 @onready var _h4_font_size_spin: SpinBox = %H4FontSizeSpin
 @onready var _h5_font_size_spin: SpinBox = %H5FontSizeSpin
 @onready var _h6_font_size_spin: SpinBox = %H6FontSizeSpin
+@onready var _max_image_width_spin: SpinBox = %MaxImageWidthSpin
 @onready var _bg_picker: ColorPickerButton = %BgPicker
 @onready var _fg_picker: ColorPickerButton = %FgPicker
 @onready var _open_editor_button: Button = %OpenEditorButton
@@ -24,6 +25,7 @@ const SIZE_KEYS: Array[String] = [
 	"h4_font_size",
 	"h5_font_size",
 	"h6_font_size",
+	"max_image_width",
 ]
 
 var _item: DocumentNode
@@ -51,6 +53,7 @@ func _ready() -> void:
 	_h4_font_size_spin.value = _item.h4_font_size
 	_h5_font_size_spin.value = _item.h5_font_size
 	_h6_font_size_spin.value = _item.h6_font_size
+	_max_image_width_spin.value = _item.max_image_width
 	_bg_picker.color = _item.resolved_bg_color()
 	_fg_picker.color = _item.resolved_fg_color()
 	_suppress_signals = false
@@ -71,6 +74,7 @@ func _ready() -> void:
 	_connect_size_spin(_h4_font_size_spin, "h4_font_size")
 	_connect_size_spin(_h5_font_size_spin, "h5_font_size")
 	_connect_size_spin(_h6_font_size_spin, "h6_font_size")
+	_connect_size_spin(_max_image_width_spin, "max_image_width")
 	_bg_picker.color_changed.connect(_on_bg_live)
 	_bg_picker.popup_closed.connect(_on_bg_commit)
 	_fg_picker.color_changed.connect(_on_fg_live)

@@ -23,12 +23,12 @@ const INDENT_BAR_COLORS: Array = [
 @onready var _indent_spacer: Control = %IndentSpacer
 @onready var _indent_bar: ColorRect = %IndentBar
 @onready var _text_edit: LineEdit = %TextEdit
-@onready var _outdent_btn: Button = %OutdentButton
-@onready var _indent_btn: Button = %IndentButton
-@onready var _image_btn: Button = %ImageButton
+@onready var _outdent_btn: AutomaticButton = %OutdentButton
+@onready var _indent_btn: AutomaticButton = %IndentButton
+@onready var _image_btn: AutomaticButton = %ImageButton
 @onready var _image_thumb: TextureRect = %ImageThumb
-@onready var _link_btn: Button = %LinkButton
-@onready var _delete_btn: Button = %DeleteButton
+@onready var _link_btn: AutomaticButton = %LinkButton
+@onready var _delete_btn: AutomaticButton = %DeleteButton
 
 const HIGHLIGHT_BORDER: Color = Color(0.95, 0.78, 0.30, 1.0)
 
@@ -154,7 +154,7 @@ func _apply_image_visual() -> void:
 			return
 	_image_thumb.texture = null
 	_image_thumb.visible = false
-	_image_btn.text = "+"
+	_image_btn.text = ""
 
 
 func _load_image_bytes(path: String) -> Image:

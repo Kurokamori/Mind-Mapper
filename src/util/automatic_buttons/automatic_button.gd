@@ -159,6 +159,15 @@ enum VisualState {
 	set(value):
 		modulate_base = value
 		_refresh()
+## When true, modulate_base is overridden at draw time by ThemeManager.icon_color()
+## so a white source texture tints to the per-theme icon color (dark/light/custom).
+## Per-state HSV effects from the effect resources still compose on top. Leave
+## off for buttons that author an explicit modulate_base.
+@export var use_theme_icon_color: bool = false:
+	set(value):
+		use_theme_icon_color = value
+		_connect_theme_signal()
+		_refresh()
 
 @export_group("State Effects")
 ## When any of these are null, the button falls back to its sensible built-in
@@ -291,7 +300,14 @@ func _ready() -> void:
 			toggled.connect(_on_toggled)
 	if not resized.is_connected(_on_resized):
 		resized.connect(_on_resized)
+	_connect_theme_signal()
 	_refresh()
+
+
+func _exit_tree() -> void:
+	var tm: Node = _theme_manager()
+	if tm != null and tm.has_signal(&"theme_applied") and tm.is_connected(&"theme_applied", _on_theme_applied):
+		tm.disconnect(&"theme_applied", _on_theme_applied)
 
 
 ## Combines the Label's intrinsic size with the four content margins so the
@@ -346,7 +362,7 @@ func _resolve_state() -> VisualState:
 func _apply_state(state: VisualState) -> void:
 	if _ninepatch == null or _label == null or _outline_patch == null:
 		return
-	_ninepatch.modulate = _eff_color(&"modulate_base")
+	_ninepatch.modulate = _resolved_modulate_base()
 	_label.add_theme_color_override(&"font_color", _label_color_for(state))
 	var effect: AutomaticButtonStateEffect = _effect_for(state)
 	var pivot_targets: Array[Control] = [_outline_patch, _ninepatch, _label]
@@ -581,6 +597,46 @@ func _on_style_changed() -> void:
 
 func _on_effect_changed() -> void:
 	_refresh()
+
+
+## Resolve the modulate applied to the main NinePatchRect. When
+## use_theme_icon_color is on, the per-theme icon color replaces the authored
+## modulate_base; the authored color's alpha is still honored so designers can
+## fade an icon button independently of the theme tint.
+func _resolved_modulate_base() -> Color:
+	var base: Color = _eff_color(&"modulate_base")
+	if not use_theme_icon_color:
+		return base
+	var tm: Node = _theme_manager()
+	if tm == null or not tm.has_method(&"icon_color"):
+		return base
+	var raw: Variant = tm.call(&"icon_color")
+	if typeof(raw) != TYPE_COLOR:
+		return base
+	var tinted: Color = raw
+	return Color(tinted.r, tinted.g, tinted.b, tinted.a * base.a)
+
+
+func _theme_manager() -> Node:
+	if not is_inside_tree():
+		return null
+	return get_tree().root.get_node_or_null(^"ThemeManager")
+
+
+func _connect_theme_signal() -> void:
+	var tm: Node = _theme_manager()
+	if tm == null or not tm.has_signal(&"theme_applied"):
+		return
+	var connected: bool = tm.is_connected(&"theme_applied", _on_theme_applied)
+	if use_theme_icon_color and not connected:
+		tm.connect(&"theme_applied", _on_theme_applied)
+	elif not use_theme_icon_color and connected:
+		tm.disconnect(&"theme_applied", _on_theme_applied)
+
+
+func _on_theme_applied() -> void:
+	if use_theme_icon_color:
+		_refresh()
 
 
 # --- Input wiring -------------------------------------------------------------

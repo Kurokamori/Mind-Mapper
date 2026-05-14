@@ -1,6 +1,42 @@
 [gd_scene format=3 uid="uid://mcbl18aujjrq"]
 
 [ext_resource type="Script" uid="uid://jf5ljlxdmgtn" path="res://src/editor/comment_card.gd" id="1_card"]
+[ext_resource type="PackedScene" uid="uid://c5vvau0077f41" path="res://src/util/automatic_buttons/automatic_button.tscn" id="2_ab"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/delete.png" id="3_delete"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="4_effect"]
+
+[sub_resource type="Resource" id="Resource_normal"]
+script = ExtResource("4_effect")
+
+[sub_resource type="Resource" id="Resource_hover"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_pressed"]
+script = ExtResource("4_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_disabled"]
+script = ExtResource("4_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_focused"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
 
 [node name="CommentCard" type="PanelContainer" unique_id=732013667]
 custom_minimum_size = Vector2(0, 96)
@@ -53,13 +89,20 @@ focus_mode = 0
 toggle_mode = true
 text = "Edit"
 
-[node name="DeleteButton" type="Button" parent="Margin/VBox/HeaderHBox" unique_id=1057925909]
+[node name="DeleteButton" parent="Margin/VBox/HeaderHBox" unique_id=1057925909 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
+size_flags_horizontal = 1
+size_flags_vertical = 1
 tooltip_text = "Delete this comment"
-focus_mode = 0
-text = "X"
-flat = true
+texture = ExtResource("3_delete")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_normal")
+effect_hover = SubResource("Resource_hover")
+effect_pressed = SubResource("Resource_pressed")
+effect_disabled = SubResource("Resource_disabled")
+effect_focused = SubResource("Resource_focused")
 
 [node name="TargetButton" type="Button" parent="Margin/VBox" unique_id=1075431961]
 unique_name_in_owner = true

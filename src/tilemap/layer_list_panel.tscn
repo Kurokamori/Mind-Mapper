@@ -1,7 +1,43 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://src/tilemap/layer_list_panel.gd" id="1_panel"]
 [ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
+[ext_resource type="PackedScene" uid="uid://c5vvau0077f41" path="res://src/util/automatic_buttons/automatic_button.tscn" id="3_ab"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/add.png" id="4_add"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="5_effect"]
+
+[sub_resource type="Resource" id="Resource_normal"]
+script = ExtResource("5_effect")
+
+[sub_resource type="Resource" id="Resource_hover"]
+script = ExtResource("5_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_pressed"]
+script = ExtResource("5_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_disabled"]
+script = ExtResource("5_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_focused"]
+script = ExtResource("5_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
 
 [node name="LayerListPanel" type="PanelContainer"]
 custom_minimum_size = Vector2(280, 0)
@@ -37,12 +73,20 @@ size_flags_horizontal = 3
 mouse_filter = 1
 text = "Layers"
 
-[node name="AddButton" type="Button" parent="Margin/VBox/Header"]
+[node name="AddButton" parent="Margin/VBox/Header" instance=ExtResource("3_ab")]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-focus_mode = 0
+size_flags_horizontal = 1
+size_flags_vertical = 1
 tooltip_text = "Add a new tile layer"
-text = "+"
+texture = ExtResource("4_add")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_normal")
+effect_hover = SubResource("Resource_hover")
+effect_pressed = SubResource("Resource_pressed")
+effect_disabled = SubResource("Resource_disabled")
+effect_focused = SubResource("Resource_focused")
 
 [node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
 unique_name_in_owner = true

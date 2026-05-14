@@ -36,6 +36,7 @@ var custom_node_fg: Color = Color(0.95, 0.96, 0.98, 1.0)
 var custom_node_heading_bg: Color = Color(0.32, 0.18, 0.42, 1.0)
 var custom_node_heading_fg: Color = Color(0.97, 0.97, 0.99, 1.0)
 var custom_node_headings: Dictionary = {}
+var custom_icon_color: Color = Color(1.0, 1.0, 1.0, 1.0)
 var imported_theme_path: String = ""
 var imported_theme_label: String = ""
 var font_preset_id: String = "default"
@@ -203,6 +204,14 @@ func set_custom_node_heading_fg(value: Color) -> void:
 	if custom_node_heading_fg == value:
 		return
 	custom_node_heading_fg = value
+	_save()
+	emit_signal("theme_changed")
+
+
+func set_custom_icon_color(value: Color) -> void:
+	if custom_icon_color == value:
+		return
+	custom_icon_color = value
 	_save()
 	emit_signal("theme_changed")
 
@@ -436,6 +445,7 @@ func _load() -> void:
 	custom_node_fg = _read_color(data.get("custom_node_fg", null), custom_node_fg)
 	custom_node_heading_bg = _read_color(data.get("custom_node_heading_bg", null), custom_node_heading_bg)
 	custom_node_heading_fg = _read_color(data.get("custom_node_heading_fg", null), custom_node_heading_fg)
+	custom_icon_color = _read_color(data.get("custom_icon_color", null), custom_icon_color)
 	custom_node_headings.clear()
 	var headings_raw: Variant = data.get("custom_node_headings", {})
 	if typeof(headings_raw) == TYPE_DICTIONARY:
@@ -502,6 +512,7 @@ func _save() -> void:
 		"custom_node_fg": _color_to_array(custom_node_fg),
 		"custom_node_heading_bg": _color_to_array(custom_node_heading_bg),
 		"custom_node_heading_fg": _color_to_array(custom_node_heading_fg),
+		"custom_icon_color": _color_to_array(custom_icon_color),
 		"custom_node_headings": _serialize_node_headings(),
 		"imported_theme_path": imported_theme_path,
 		"imported_theme_label": imported_theme_label,

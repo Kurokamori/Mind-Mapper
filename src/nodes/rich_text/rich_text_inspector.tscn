@@ -1,58 +1,85 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://src/nodes/rich_text/rich_text_inspector.gd" id="1_rti"]
 [ext_resource type="PackedScene" path="res://src/nodes/rich_text/bbcode_toolbar.tscn" id="2_bbtb"]
+[ext_resource type="PackedScene" path="res://src/nodes/rich_text/wysiwyg/wysiwyg_rich_editor.tscn" id="3_wyse"]
 
 [node name="RichTextInspector" type="VBoxContainer"]
+custom_minimum_size = Vector2(0, 0)
+size_flags_horizontal = 3
 script = ExtResource("1_rti")
 theme_override_constants/separation = 6
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Rich Text"
+clip_text = true
 
 [node name="HelpLabel" type="Label" parent="."]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
-text = "Use the toolbar to wrap the selection. Manual BBCode is supported below."
+size_flags_horizontal = 3
+text = "Edit directly — formatting from the toolbar applies to the selection."
 autowrap_mode = 2
 
-[node name="FormatToolbarScroll" type="ScrollContainer" parent="."]
+[node name="FormatToolbar" parent="." instance=ExtResource("2_bbtb")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
-horizontal_scroll_mode = 2
-vertical_scroll_mode = 0
+size_flags_horizontal = 3
 
-[node name="FormatToolbar" parent="FormatToolbarScroll" instance=ExtResource("2_bbtb")]
+[node name="EditorPanel" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EditorMargin" type="MarginContainer" parent="EditorPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="WysiwygEditor" parent="EditorPanel/EditorMargin" instance=ExtResource("3_wyse")]
 unique_name_in_owner = true
 layout_mode = 2
-
-[node name="BBEdit" type="TextEdit" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 160)
-layout_mode = 2
-wrap_mode = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="FontSizeRow" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Font size"
+clip_text = true
 
 [node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 min_value = 6.0
 max_value = 72.0
 value = 16.0
 
 [node name="BgRow" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="BgLabel" type="Label" parent="BgRow"]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Background"
+clip_text = true
 
 [node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
 unique_name_in_owner = true
@@ -60,12 +87,16 @@ custom_minimum_size = Vector2(80, 0)
 layout_mode = 2
 
 [node name="FgRow" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="FgLabel" type="Label" parent="FgRow"]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Default text"
+clip_text = true
 
 [node name="FgPicker" type="ColorPickerButton" parent="FgRow"]
 unique_name_in_owner = true
@@ -74,17 +105,45 @@ layout_mode = 2
 
 [node name="AutoFitLabel" type="Label" parent="."]
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Auto-fit to content"
+clip_text = true
 
 [node name="AutoFitRow" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="AutoWidthCheck" type="CheckBox" parent="AutoFitRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Width"
+clip_text = true
 
 [node name="AutoHeightCheck" type="CheckBox" parent="AutoFitRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 text = "Height"
+clip_text = true
+
+[node name="MaxImageWidthRow" type="HBoxContainer" parent="."]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MaxImageWidthLabel" type="Label" parent="MaxImageWidthRow"]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Max image width (0 = native)"
+autowrap_mode = 2
+
+[node name="MaxImageWidthSpin" type="SpinBox" parent="MaxImageWidthRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+min_value = 0.0
+max_value = 4096.0
+value = 0.0

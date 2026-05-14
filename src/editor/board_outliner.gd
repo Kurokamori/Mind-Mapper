@@ -16,7 +16,7 @@ const META_KIND_MAP: String = "map"
 const META_KIND_MAPS_HEADER: String = "maps_header"
 
 @onready var _tree: Tree = %Tree
-@onready var _new_root_button: Button = %NewRootButton
+@onready var _new_root_button: AutomaticButton = %NewRootButton
 @onready var _close_button: Button = %CloseButton
 @onready var _context_menu: PopupMenu = %ContextMenu
 

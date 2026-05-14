@@ -1,95 +1,522 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://8wx16o6uuo7y"]
 
-[ext_resource type="Script" path="res://src/nodes/block_stack/block_row.gd" id="1_block_row"]
+[ext_resource type="Script" uid="uid://bqur1q564hcud" path="res://src/nodes/block_stack/block_row.gd" id="1_block_row"]
+[ext_resource type="PackedScene" uid="uid://c5vvau0077f41" path="res://src/util/automatic_buttons/automatic_button.tscn" id="2_ab"]
+[ext_resource type="Texture2D" uid="uid://o1c6xguu4uav" path="res://assets/ui/icons/outdent.png" id="3_ckjdq"]
+[ext_resource type="Texture2D" uid="uid://ccrb7o5fcusej" path="res://assets/ui/icons/delete.png" id="3_delete"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="4_effect"]
+[ext_resource type="Texture2D" uid="uid://micotolkmugb" path="res://assets/ui/icons/indent.png" id="5_7giu7"]
+[ext_resource type="Texture2D" uid="uid://caknpr87gixcw" path="res://assets/ui/icons/image.png" id="6_6j7g0"]
+[ext_resource type="Texture2D" uid="uid://ceu7aophrlvou" path="res://assets/ui/icons/link.png" id="7_7c4fu"]
 
-[node name="BlockRow" type="PanelContainer"]
+[sub_resource type="Resource" id="Resource_blfnr"]
+script = ExtResource("4_effect")
+
+[sub_resource type="Resource" id="Resource_vj24b"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_ele7i"]
+script = ExtResource("4_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_k2s3a"]
+script = ExtResource("4_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_x486s"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_normal"]
+script = ExtResource("4_effect")
+
+[sub_resource type="Resource" id="Resource_hover"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_pressed"]
+script = ExtResource("4_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_disabled"]
+script = ExtResource("4_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_focused"]
+script = ExtResource("4_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[node name="BlockRow" type="PanelContainer" unique_id=698240275]
 custom_minimum_size = Vector2(0, 30)
-mouse_filter = 0
 mouse_default_cursor_shape = 13
 script = ExtResource("1_block_row")
 
-[node name="HBox" type="HBoxContainer" parent="."]
+[node name="HBox" type="HBoxContainer" parent="." unique_id=527717148]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="DragHandle" type="ColorRect" parent="HBox"]
+[node name="DragHandle" type="ColorRect" parent="HBox" unique_id=1856942747]
 custom_minimum_size = Vector2(6, 0)
 layout_mode = 2
 mouse_filter = 2
 color = Color(0.55, 0.55, 0.62, 0.6)
 
-[node name="IndentSpacer" type="Control" parent="HBox"]
+[node name="IndentSpacer" type="Control" parent="HBox" unique_id=1392992254]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="IndentBar" type="ColorRect" parent="HBox"]
+[node name="IndentBar" type="ColorRect" parent="HBox" unique_id=1131831799]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(3, 0)
 layout_mode = 2
 mouse_filter = 2
 color = Color(0.95, 0.78, 0.3, 1)
 
-[node name="TextEdit" type="LineEdit" parent="HBox"]
+[node name="TextEdit" type="LineEdit" parent="HBox" unique_id=1331640050]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-flat = true
 placeholder_text = "Block text"
-
-[node name="OutdentButton" type="Button" parent="HBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(22, 0)
-layout_mode = 2
-focus_mode = 0
 flat = true
-tooltip_text = "Outdent (Shift+Tab)"
-text = "⬅"
 
-[node name="IndentButton" type="Button" parent="HBox"]
+[node name="OutdentButton" parent="HBox" unique_id=2108768002 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(22, 0)
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 2
+auto_translate_mode = 0
+editor_description = ""
+visible = true
+modulate = Color(1, 1, 1, 1)
+self_modulate = Color(1, 1, 1, 1)
+show_behind_parent = false
+top_level = false
+clip_children = 0
+light_mask = 1
+visibility_layer = 1
+z_index = 0
+z_as_relative = true
+y_sort_enabled = false
+texture_filter = 0
+texture_repeat = 0
+material = null
+use_parent_material = false
+clip_contents = false
+custom_minimum_size = Vector2(32, 32)
+layout_direction = 0
 layout_mode = 2
-focus_mode = 0
-flat = true
-tooltip_text = "Indent (Tab)"
-text = "➡"
+size_flags_horizontal = 1
+size_flags_vertical = 1
+size_flags_stretch_ratio = 1.0
+offset_transform_enabled = false
+offset_transform_position = Vector2(0, 0)
+offset_transform_position_ratio = Vector2(0, 0)
+offset_transform_scale = Vector2(1, 1)
+offset_transform_rotation = 0.0
+offset_transform_pivot = Vector2(0, 0)
+offset_transform_pivot_ratio = Vector2(0.5, 0.5)
+offset_transform_visual_only = true
+localize_numeral_system = true
+tooltip_text = ""
+tooltip_auto_translate_mode = 0
+focus_neighbor_left = NodePath("")
+focus_neighbor_top = NodePath("")
+focus_neighbor_right = NodePath("")
+focus_neighbor_bottom = NodePath("")
+focus_next = NodePath("")
+focus_previous = NodePath("")
+focus_behavior_recursive = 0
+mouse_filter = 0
+mouse_behavior_recursive = 0
+mouse_force_pass_scroll_events = true
+mouse_default_cursor_shape = 0
+accessibility_name = ""
+accessibility_description = ""
+accessibility_live = 0
+accessibility_controls_nodes = Array[NodePath]([])
+accessibility_described_by_nodes = Array[NodePath]([])
+accessibility_labeled_by_nodes = Array[NodePath]([])
+accessibility_flow_to_nodes = Array[NodePath]([])
+theme = null
+theme_type_variation = &""
+disabled = false
+toggle_mode = false
+button_pressed = false
+action_mode = 1
+button_mask = 1
+keep_pressed_outside = false
+button_group = null
+shortcut = null
+shortcut_feedback = true
+shortcut_in_tooltip = true
+texture = ExtResource("3_ckjdq")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_blfnr")
+effect_hover = SubResource("Resource_vj24b")
+effect_pressed = SubResource("Resource_ele7i")
+effect_disabled = SubResource("Resource_k2s3a")
+effect_focused = SubResource("Resource_x486s")
 
-[node name="ImageButton" type="Button" parent="HBox"]
+[node name="IndentButton" parent="HBox" unique_id=1820477150 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 24)
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 2
+auto_translate_mode = 0
+editor_description = ""
+visible = true
+modulate = Color(1, 1, 1, 1)
+self_modulate = Color(1, 1, 1, 1)
+show_behind_parent = false
+top_level = false
+clip_children = 0
+light_mask = 1
+visibility_layer = 1
+z_index = 0
+z_as_relative = true
+y_sort_enabled = false
+texture_filter = 0
+texture_repeat = 0
+material = null
+use_parent_material = false
+clip_contents = false
+custom_minimum_size = Vector2(32, 32)
+layout_direction = 0
 layout_mode = 2
-focus_mode = 0
-flat = true
-tooltip_text = "Set image"
-text = "+"
+size_flags_horizontal = 1
+size_flags_vertical = 1
+size_flags_stretch_ratio = 1.0
+offset_transform_enabled = false
+offset_transform_position = Vector2(0, 0)
+offset_transform_position_ratio = Vector2(0, 0)
+offset_transform_scale = Vector2(1, 1)
+offset_transform_rotation = 0.0
+offset_transform_pivot = Vector2(0, 0)
+offset_transform_pivot_ratio = Vector2(0.5, 0.5)
+offset_transform_visual_only = true
+localize_numeral_system = true
+tooltip_text = ""
+tooltip_auto_translate_mode = 0
+focus_neighbor_left = NodePath("")
+focus_neighbor_top = NodePath("")
+focus_neighbor_right = NodePath("")
+focus_neighbor_bottom = NodePath("")
+focus_next = NodePath("")
+focus_previous = NodePath("")
+focus_behavior_recursive = 0
+mouse_filter = 0
+mouse_behavior_recursive = 0
+mouse_force_pass_scroll_events = true
+mouse_default_cursor_shape = 0
+accessibility_name = ""
+accessibility_description = ""
+accessibility_live = 0
+accessibility_controls_nodes = Array[NodePath]([])
+accessibility_described_by_nodes = Array[NodePath]([])
+accessibility_labeled_by_nodes = Array[NodePath]([])
+accessibility_flow_to_nodes = Array[NodePath]([])
+theme = null
+theme_type_variation = &""
+disabled = false
+toggle_mode = false
+button_pressed = false
+action_mode = 1
+button_mask = 1
+keep_pressed_outside = false
+button_group = null
+shortcut = null
+shortcut_feedback = true
+shortcut_in_tooltip = true
+texture = ExtResource("5_7giu7")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_blfnr")
+effect_hover = SubResource("Resource_vj24b")
+effect_pressed = SubResource("Resource_ele7i")
+effect_disabled = SubResource("Resource_k2s3a")
+effect_focused = SubResource("Resource_x486s")
 
-[node name="ImageThumb" type="TextureRect" parent="HBox/ImageButton"]
+[node name="ImageButton" parent="HBox" unique_id=455811578 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
-mouse_filter = 2
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 2
+auto_translate_mode = 0
+editor_description = ""
+visible = true
+modulate = Color(1, 1, 1, 1)
+self_modulate = Color(1, 1, 1, 1)
+show_behind_parent = false
+top_level = false
+clip_children = 0
+light_mask = 1
+visibility_layer = 1
+z_index = 0
+z_as_relative = true
+y_sort_enabled = false
+texture_filter = 0
+texture_repeat = 0
+material = null
+use_parent_material = false
+clip_contents = false
+custom_minimum_size = Vector2(32, 32)
+layout_direction = 0
+layout_mode = 2
+size_flags_horizontal = 1
+size_flags_vertical = 1
+size_flags_stretch_ratio = 1.0
+offset_transform_enabled = false
+offset_transform_position = Vector2(0, 0)
+offset_transform_position_ratio = Vector2(0, 0)
+offset_transform_scale = Vector2(1, 1)
+offset_transform_rotation = 0.0
+offset_transform_pivot = Vector2(0, 0)
+offset_transform_pivot_ratio = Vector2(0.5, 0.5)
+offset_transform_visual_only = true
+localize_numeral_system = true
+tooltip_text = ""
+tooltip_auto_translate_mode = 0
+focus_neighbor_left = NodePath("")
+focus_neighbor_top = NodePath("")
+focus_neighbor_right = NodePath("")
+focus_neighbor_bottom = NodePath("")
+focus_next = NodePath("")
+focus_previous = NodePath("")
+focus_behavior_recursive = 0
+mouse_filter = 0
+mouse_behavior_recursive = 0
+mouse_force_pass_scroll_events = true
+mouse_default_cursor_shape = 0
+accessibility_name = ""
+accessibility_description = ""
+accessibility_live = 0
+accessibility_controls_nodes = Array[NodePath]([])
+accessibility_described_by_nodes = Array[NodePath]([])
+accessibility_labeled_by_nodes = Array[NodePath]([])
+accessibility_flow_to_nodes = Array[NodePath]([])
+theme = null
+theme_type_variation = &""
+disabled = false
+toggle_mode = false
+button_pressed = false
+action_mode = 1
+button_mask = 1
+keep_pressed_outside = false
+button_group = null
+shortcut = null
+shortcut_feedback = true
+shortcut_in_tooltip = true
+texture = ExtResource("6_6j7g0")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_blfnr")
+effect_hover = SubResource("Resource_vj24b")
+effect_pressed = SubResource("Resource_ele7i")
+effect_disabled = SubResource("Resource_k2s3a")
+effect_focused = SubResource("Resource_x486s")
+
+[node name="ImageThumb" type="TextureRect" parent="HBox/ImageButton" unique_id=1599582306]
+unique_name_in_owner = true
 visible = false
-anchor_left = 0.0
-anchor_top = 0.0
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 36.0
+offset_right = 36.0
+mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="LinkButton" type="Button" parent="HBox"]
+[node name="LinkButton" parent="HBox" unique_id=942997035 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(22, 0)
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 2
+auto_translate_mode = 0
+editor_description = ""
+visible = true
+modulate = Color(1, 1, 1, 1)
+self_modulate = Color(1, 1, 1, 1)
+show_behind_parent = false
+top_level = false
+clip_children = 0
+light_mask = 1
+visibility_layer = 1
+z_index = 0
+z_as_relative = true
+y_sort_enabled = false
+texture_filter = 0
+texture_repeat = 0
+material = null
+use_parent_material = false
+clip_contents = false
+custom_minimum_size = Vector2(32, 32)
+layout_direction = 0
 layout_mode = 2
-focus_mode = 0
-flat = true
-tooltip_text = "Set link (Ctrl+click to follow)"
-text = "🔗"
+size_flags_horizontal = 1
+size_flags_vertical = 1
+size_flags_stretch_ratio = 1.0
+offset_transform_enabled = false
+offset_transform_position = Vector2(0, 0)
+offset_transform_position_ratio = Vector2(0, 0)
+offset_transform_scale = Vector2(1, 1)
+offset_transform_rotation = 0.0
+offset_transform_pivot = Vector2(0, 0)
+offset_transform_pivot_ratio = Vector2(0.5, 0.5)
+offset_transform_visual_only = true
+localize_numeral_system = true
+tooltip_text = ""
+tooltip_auto_translate_mode = 0
+focus_neighbor_left = NodePath("")
+focus_neighbor_top = NodePath("")
+focus_neighbor_right = NodePath("")
+focus_neighbor_bottom = NodePath("")
+focus_next = NodePath("")
+focus_previous = NodePath("")
+focus_behavior_recursive = 0
+mouse_filter = 0
+mouse_behavior_recursive = 0
+mouse_force_pass_scroll_events = true
+mouse_default_cursor_shape = 0
+accessibility_name = ""
+accessibility_description = ""
+accessibility_live = 0
+accessibility_controls_nodes = Array[NodePath]([])
+accessibility_described_by_nodes = Array[NodePath]([])
+accessibility_labeled_by_nodes = Array[NodePath]([])
+accessibility_flow_to_nodes = Array[NodePath]([])
+theme = null
+theme_type_variation = &""
+disabled = false
+toggle_mode = false
+button_pressed = false
+action_mode = 1
+button_mask = 1
+keep_pressed_outside = false
+button_group = null
+shortcut = null
+shortcut_feedback = true
+shortcut_in_tooltip = true
+texture = ExtResource("7_7c4fu")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_blfnr")
+effect_hover = SubResource("Resource_vj24b")
+effect_pressed = SubResource("Resource_ele7i")
+effect_disabled = SubResource("Resource_k2s3a")
+effect_focused = SubResource("Resource_x486s")
 
-[node name="DeleteButton" type="Button" parent="HBox"]
+[node name="DeleteButton" parent="HBox" unique_id=1434874473 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(22, 0)
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 2
+auto_translate_mode = 0
+editor_description = ""
+visible = true
+modulate = Color(1, 1, 1, 1)
+self_modulate = Color(1, 1, 1, 1)
+show_behind_parent = false
+top_level = false
+clip_children = 0
+light_mask = 1
+visibility_layer = 1
+z_index = 0
+z_as_relative = true
+y_sort_enabled = false
+texture_filter = 0
+texture_repeat = 0
+material = null
+use_parent_material = false
+clip_contents = false
+custom_minimum_size = Vector2(28, 28)
+layout_direction = 0
 layout_mode = 2
-focus_mode = 0
-flat = true
+size_flags_horizontal = 1
+size_flags_vertical = 1
+size_flags_stretch_ratio = 1.0
+offset_transform_enabled = false
+offset_transform_position = Vector2(0, 0)
+offset_transform_position_ratio = Vector2(0, 0)
+offset_transform_scale = Vector2(1, 1)
+offset_transform_rotation = 0.0
+offset_transform_pivot = Vector2(0, 0)
+offset_transform_pivot_ratio = Vector2(0.5, 0.5)
+offset_transform_visual_only = true
+localize_numeral_system = true
 tooltip_text = "Delete block"
-text = "×"
+tooltip_auto_translate_mode = 0
+focus_neighbor_left = NodePath("")
+focus_neighbor_top = NodePath("")
+focus_neighbor_right = NodePath("")
+focus_neighbor_bottom = NodePath("")
+focus_next = NodePath("")
+focus_previous = NodePath("")
+focus_behavior_recursive = 0
+mouse_filter = 0
+mouse_behavior_recursive = 0
+mouse_force_pass_scroll_events = true
+mouse_default_cursor_shape = 0
+accessibility_name = ""
+accessibility_description = ""
+accessibility_live = 0
+accessibility_controls_nodes = Array[NodePath]([])
+accessibility_described_by_nodes = Array[NodePath]([])
+accessibility_labeled_by_nodes = Array[NodePath]([])
+accessibility_flow_to_nodes = Array[NodePath]([])
+theme = null
+theme_type_variation = &""
+disabled = false
+toggle_mode = false
+button_pressed = false
+action_mode = 1
+button_mask = 1
+keep_pressed_outside = false
+button_group = null
+shortcut = null
+shortcut_feedback = true
+shortcut_in_tooltip = true
+texture = ExtResource("3_delete")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_normal")
+effect_hover = SubResource("Resource_hover")
+effect_pressed = SubResource("Resource_pressed")
+effect_disabled = SubResource("Resource_disabled")
+effect_focused = SubResource("Resource_focused")

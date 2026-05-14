@@ -11,6 +11,7 @@ signal add_child_requested(card_id: String)
 signal details_requested(card_id: String)
 signal child_drop(target_card_id: String, source_list_id: String, source_card_id: String, source_card_data: Dictionary, insert_index: int)
 signal child_drop_into_self(target_card_id: String, source_list_id: String, source_card_id: String, source_card_data: Dictionary)
+signal edit_focus_changed(card_id: String, focused: bool)
 
 const NORMAL_BG: Color = Color(0.18, 0.20, 0.24, 1.0)
 const COMPLETED_BG: Color = Color(0.14, 0.16, 0.18, 1.0)
@@ -22,11 +23,11 @@ const SELF_SCENE: String = "res://src/nodes/todo_list/todo_card_row.tscn"
 @onready var _expand_button: Button = %ExpandButton
 @onready var _check: CheckBox = %Check
 @onready var _text_edit: LineEdit = %TextEdit
-@onready var _details_button: Button = %DetailsButton
-@onready var _add_child_button: Button = %AddChildButton
+@onready var _details_button: AutomaticButton = %DetailsButton
+@onready var _add_child_button: AutomaticButton = %AddChildButton
 @onready var _priority_btn: MenuButton = %PriorityButton
-@onready var _due_btn: Button = %DueButton
-@onready var _delete_button: Button = %DeleteButton
+@onready var _due_btn: AutomaticButton = %DueButton
+@onready var _delete_button: AutomaticButton = %DeleteButton
 @onready var _sub_row: HBoxContainer = %SubRow
 @onready var _child_area: VBoxContainer = %ChildArea
 @onready var _child_container: VBoxContainer = %ChildContainer
@@ -70,6 +71,7 @@ func _ready() -> void:
 	_check.toggled.connect(_on_check_toggled)
 	_text_edit.text_changed.connect(_on_text_changed)
 	_text_edit.text_submitted.connect(_on_text_submitted)
+	_text_edit.focus_entered.connect(_on_text_focus_entered)
 	_text_edit.focus_exited.connect(_on_text_focus_exited)
 	_delete_button.pressed.connect(_on_delete_pressed)
 	_expand_button.pressed.connect(_on_expand_pressed)
@@ -81,13 +83,13 @@ func _ready() -> void:
 
 
 func _apply_compact_button_styles() -> void:
-	for btn: Button in [_priority_btn, _due_btn, _delete_button, _details_button, _add_child_button, _expand_button, _add_child_row_button]:
+	for btn in [_priority_btn, _due_btn, _delete_button, _details_button, _add_child_button, _expand_button, _add_child_row_button]:
 		if btn == null:
 			continue
 		_install_compact_button_styles(btn)
 
 
-func _install_compact_button_styles(btn: Button) -> void:
+func _install_compact_button_styles(btn) -> void:
 	var states: Array[String] = ["normal", "hover", "pressed", "disabled"]
 	for state: String in states:
 		var sb: StyleBoxFlat = StyleBoxFlat.new()
@@ -150,10 +152,10 @@ func _refresh_details_indicator() -> void:
 	var description: String = String(card_data.get("description", ""))
 	var has_extra: bool = details.size() > 0 or description.strip_edges() != ""
 	if has_extra:
-		_details_button.text = "📝•"
+		_details_button.text = ""
 		_details_button.modulate = Color(1.0, 0.85, 0.45)
 	else:
-		_details_button.text = "📝"
+		_details_button.text = ""
 		_details_button.modulate = Color.WHITE
 
 
@@ -189,6 +191,7 @@ func _forward_signals(row: TodoCardRow) -> void:
 	row.child_drop_into_self.connect(func(tid: String, slid: String, scid: String, sdata: Dictionary) -> void:
 		emit_signal("child_drop_into_self", tid, slid, scid, sdata)
 	)
+	row.edit_focus_changed.connect(func(cid: String, focused: bool) -> void: emit_signal("edit_focus_changed", cid, focused))
 
 
 func _setup_priority_menu() -> void:
@@ -218,7 +221,7 @@ func _refresh_priority_label() -> void:
 func _refresh_due_label() -> void:
 	var due: int = int(card_data.get("due_unix", 0))
 	if due <= 0:
-		_due_btn.text = "📅"
+		_due_btn.text = ""
 		_due_btn.modulate = Color.WHITE
 		return
 	_due_btn.text = Time.get_date_string_from_unix_time(due)
@@ -266,6 +269,11 @@ func _apply_visual_style() -> void:
 	add_theme_stylebox_override("panel", sb)
 	var fg: Color = palette_completed_fg if completed else palette_fg
 	_text_edit.add_theme_color_override("font_color", fg)
+	var empty_style: StyleBoxEmpty = StyleBoxEmpty.new()
+	_text_edit.add_theme_stylebox_override("normal", empty_style)
+	_text_edit.add_theme_stylebox_override("focus", empty_style)
+	_text_edit.add_theme_stylebox_override("read_only", empty_style)
+	_text_edit.add_theme_color_override("selection_color", Color(fg.r, fg.g, fg.b, 0.22))
 	if completed:
 		_text_edit.add_theme_constant_override("caret_blink", 0)
 
@@ -290,7 +298,12 @@ func _on_text_submitted(new_text: String) -> void:
 	_text_edit.release_focus()
 
 
+func _on_text_focus_entered() -> void:
+	emit_signal("edit_focus_changed", card_id, true)
+
+
 func _on_text_focus_exited() -> void:
+	emit_signal("edit_focus_changed", card_id, false)
 	if _suppress:
 		return
 	emit_signal("text_changed", card_id, _text_edit.text)

@@ -16,7 +16,7 @@ signal port_drag_started(item: BoardItem, anchor: String)
 
 const SELECTION_OUTLINE_COLOR := Color(0.35, 0.7, 1.0, 1.0)
 const SELECTION_OUTLINE_WIDTH := 2.0
-const RESIZE_GRIP_SIZE := 14.0
+const RESIZE_GRIP_HIT_SIZE := 28.0
 const MIN_ITEM_WIDTH := 48.0
 const MIN_ITEM_HEIGHT := 32.0
 const LINK_BADGE_SIZE := 18.0
@@ -65,6 +65,9 @@ var _hovered_port: String = ""
 var _force_ports_visible: bool = false
 var _highlighted_port: String = ""
 
+const RESIZE_GRIP_SCENE: PackedScene = preload("res://src/core/board_resize_grip.tscn")
+var _resize_grip: BoardResizeGrip = null
+
 
 func _ready() -> void:
 	if item_id == "":
@@ -74,6 +77,7 @@ func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 	_apply_initial_minimum_size()
 	mouse_exited.connect(_on_mouse_exited_item)
+	_install_resize_grip()
 
 
 func _set_read_only(value: bool) -> void:
@@ -82,6 +86,7 @@ func _set_read_only(value: bool) -> void:
 	read_only = value
 	if is_inside_tree() and mouse_filter != Control.MOUSE_FILTER_IGNORE:
 		mouse_filter = Control.MOUSE_FILTER_STOP if value else Control.MOUSE_FILTER_PASS
+	_refresh_resize_grip_visibility()
 	queue_redraw()
 
 
@@ -115,6 +120,7 @@ func set_selected(value: bool) -> void:
 	_selected = value
 	if not value:
 		_release_input_focus_in_subtree(self)
+	_refresh_resize_grip_visibility()
 	queue_redraw()
 
 
@@ -176,7 +182,63 @@ func _on_edit_end() -> void:
 
 
 func _is_in_resize_grip(local: Vector2) -> bool:
-	return local.x >= size.x - RESIZE_GRIP_SIZE and local.y >= size.y - RESIZE_GRIP_SIZE
+	return local.x >= size.x - RESIZE_GRIP_HIT_SIZE and local.y >= size.y - RESIZE_GRIP_HIT_SIZE
+
+
+func _install_resize_grip() -> void:
+	if _resize_grip != null:
+		return
+	_resize_grip = RESIZE_GRIP_SCENE.instantiate() as BoardResizeGrip
+	if _resize_grip == null:
+		return
+	add_child(_resize_grip)
+	move_child(_resize_grip, get_child_count() - 1)
+	_resize_grip.offset_left = -RESIZE_GRIP_HIT_SIZE
+	_resize_grip.offset_top = -RESIZE_GRIP_HIT_SIZE
+	_resize_grip.visible = _selected and not locked and not read_only
+	_resize_grip.grip_pressed.connect(_on_resize_grip_pressed)
+	_resize_grip.grip_motion.connect(_on_resize_grip_motion)
+	_resize_grip.grip_released.connect(_on_resize_grip_released)
+
+
+func _refresh_resize_grip_visibility() -> void:
+	if _resize_grip == null:
+		return
+	_resize_grip.visible = _selected and not locked and not read_only
+	if not _resize_grip.visible and _resize_grip.is_active():
+		_resize_grip.cancel_press()
+		if _resize_active:
+			_resize_active = false
+			emit_signal("resize_ended", self)
+	if _resize_grip.visible:
+		move_child(_resize_grip, get_child_count() - 1)
+
+
+func _on_resize_grip_pressed() -> void:
+	if locked or read_only:
+		return
+	_resize_active = true
+	_resize_start_size = size
+	emit_signal("resize_started", self)
+
+
+func _on_resize_grip_motion(local_at_item: Vector2) -> void:
+	if not _resize_active:
+		return
+	var min_s: Vector2 = minimum_item_size()
+	var intended_size: Vector2 = Vector2(max(min_s.x, local_at_item.x), max(min_s.y, local_at_item.y))
+	var aligned_size: Vector2 = AlignmentGuideService.maybe_align_resize(self, intended_size)
+	size = aligned_size
+	emit_signal("resizing", self, size)
+
+
+func _on_resize_grip_released() -> void:
+	if not _resize_active:
+		return
+	_resize_active = false
+	emit_signal("resize_ended", self)
+	if size != _resize_start_size:
+		emit_signal("resized_by_user", self, _resize_start_size, size)
 
 
 func port_local_position(anchor: String) -> Vector2:
@@ -287,12 +349,6 @@ func _gui_input(event: InputEvent) -> void:
 					emit_signal("port_drag_started", self, port_anchor)
 					accept_event()
 					return
-				if _selected and _is_in_resize_grip(local) and not locked:
-					_resize_active = true
-					_resize_start_size = size
-					emit_signal("resize_started", self)
-					accept_event()
-					return
 				_press_screen_position = mb.global_position
 				_moved_during_press = false
 				var additive := mb.shift_pressed
@@ -359,18 +415,6 @@ func _draw() -> void:
 		_draw_tag_strip()
 	if _selected:
 		_draw_rounded_outline(SELECTION_OUTLINE_COLOR, int(SELECTION_OUTLINE_WIDTH))
-		if not read_only:
-			var grip_rect := Rect2(
-				Vector2(size.x - RESIZE_GRIP_SIZE, size.y - RESIZE_GRIP_SIZE),
-				Vector2(RESIZE_GRIP_SIZE, RESIZE_GRIP_SIZE),
-			)
-			draw_rect(grip_rect, SELECTION_OUTLINE_COLOR.darkened(0.15), true)
-			draw_line(
-				Vector2(size.x - 2.0, size.y - RESIZE_GRIP_SIZE + 2.0),
-				Vector2(size.x - RESIZE_GRIP_SIZE + 2.0, size.y - 2.0),
-				Color(1, 1, 1, 0.7),
-				1.0,
-			)
 	if not read_only and ports_currently_visible():
 		_draw_ports()
 
@@ -528,6 +572,7 @@ func apply_dict(d: Dictionary) -> void:
 	if typeof(lt) == TYPE_DICTIONARY:
 		link_target = (lt as Dictionary).duplicate(true)
 	locked = bool(d.get("locked", false))
+	_refresh_resize_grip_visibility()
 	var tag_raw: Variant = d.get("tags", null)
 	tags = PackedStringArray()
 	if typeof(tag_raw) == TYPE_ARRAY:
@@ -570,6 +615,7 @@ func apply_property(key: String, value: Variant) -> void:
 			queue_redraw()
 		"locked":
 			locked = bool(value)
+			_refresh_resize_grip_visibility()
 			queue_redraw()
 		"tags":
 			tags = PackedStringArray()

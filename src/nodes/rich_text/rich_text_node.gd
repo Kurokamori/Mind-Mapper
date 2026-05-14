@@ -6,7 +6,8 @@ const TOOLBAR_GAP: float = 6.0
 const DEFAULT_FONT_SIZE: int = 16
 const LEGACY_DEFAULT_BG: Color = Color(0.13, 0.14, 0.18, 1.0)
 const LEGACY_DEFAULT_FG: Color = Color(0.95, 0.96, 0.98, 1.0)
-const DEFAULT_BBCODE: String = "[b]Heading[/b]\nDouble-click to edit. Use [color=#7cf]BBCode[/color] like [i]italics[/i] and [b]bold[/b]."
+const DEFAULT_BBCODE: String = "**Heading**\nDouble-click to edit. Markdown like *italics*, **bold**, `code`, and [links](https://example.com) are supported, plus BBCode like [color=#7cf]colored text[/color]."
+const DEFAULT_MAX_IMAGE_WIDTH: int = 0
 
 @export var bbcode_text: String = DEFAULT_BBCODE
 @export var font_size: int = DEFAULT_FONT_SIZE
@@ -16,6 +17,7 @@ const DEFAULT_BBCODE: String = "[b]Heading[/b]\nDouble-click to edit. Use [color
 @export var fg_color_custom: bool = false
 @export var auto_width: bool = true
 @export var auto_height: bool = true
+@export var max_image_width: int = DEFAULT_MAX_IMAGE_WIDTH
 
 @onready var _rich: RichTextLabel = %RichTextLabel
 @onready var _edit: TextEdit = %TextEdit
@@ -90,11 +92,19 @@ func _draw_body() -> void:
 	_draw_rounded_panel(bg, border_color, 0.0, Color(0, 0, 0, 0), border_width)
 
 
+func rendered_bbcode() -> String:
+	if bbcode_text == "":
+		return ""
+	if MarkdownConverter.contains_bbcode(bbcode_text):
+		return bbcode_text
+	return MarkdownConverter.markdown_to_bbcode(bbcode_text)
+
+
 func _refresh_visuals() -> void:
 	var fg: Color = resolved_fg_color()
 	if _rich != null:
 		_rich.bbcode_enabled = true
-		_rich.text = bbcode_text
+		MarkdownImageRenderer.render_bbcode_with_images(_rich, rendered_bbcode(), "", max_image_width)
 		_rich.add_theme_color_override("default_color", fg)
 		_rich.add_theme_font_size_override("normal_font_size", font_size)
 		_rich.add_theme_font_size_override("bold_font_size", font_size)
@@ -291,6 +301,7 @@ func serialize_payload() -> Dictionary:
 		"fg_color_custom": fg_color_custom,
 		"auto_width": auto_width,
 		"auto_height": auto_height,
+		"max_image_width": max_image_width,
 	}
 	if bg_color_custom:
 		out["bg_color"] = ColorUtil.to_array(bg_color)
@@ -322,6 +333,7 @@ func deserialize_payload(d: Dictionary) -> void:
 			fg_color = stored_fg
 	auto_width = bool(d.get("auto_width", false))
 	auto_height = bool(d.get("auto_height", false))
+	max_image_width = max(0, int(d.get("max_image_width", max_image_width)))
 	if _rich != null:
 		_refresh_visuals()
 
@@ -348,6 +360,8 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			auto_width = bool(value)
 		"auto_height":
 			auto_height = bool(value)
+		"max_image_width":
+			max_image_width = max(0, int(value))
 	_refresh_visuals()
 
 
@@ -365,4 +379,5 @@ func bulk_shareable_properties() -> Array:
 		{"key": "font_size", "label": "Font size", "kind": "int_range", "min": 6, "max": 96},
 		{"key": "auto_width", "label": "Auto width", "kind": "bool"},
 		{"key": "auto_height", "label": "Auto height", "kind": "bool"},
+		{"key": "max_image_width", "label": "Max image width (0 = native)", "kind": "int_range", "min": 0, "max": 4096},
 	]

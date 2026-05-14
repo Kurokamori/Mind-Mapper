@@ -1,0 +1,113 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/table/table_rule_row.gd" id="1_rrow"]
+
+[node name="TableRuleRow" type="PanelContainer"]
+size_flags_horizontal = 3
+script = ExtResource("1_rrow")
+
+[node name="Outer" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Row1" type="HBoxContainer" parent="Outer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DeleteBtn" type="Button" parent="Outer/Row1"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "×"
+tooltip_text = "Delete rule"
+custom_minimum_size = Vector2(24, 0)
+
+[node name="ScopeOption" type="OptionButton" parent="Outer/Row1"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ColumnSpin" type="SpinBox" parent="Outer/Row1"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 99.0
+value = 0.0
+prefix = "C"
+
+[node name="RowSpin" type="SpinBox" parent="Outer/Row1"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 99.0
+value = 0.0
+prefix = "R"
+
+[node name="Row2" type="HBoxContainer" parent="Outer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="OpOption" type="OptionButton" parent="Outer/Row2"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ValueEdit" type="LineEdit" parent="Outer/Row2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "value"
+
+[node name="Value2Edit" type="LineEdit" parent="Outer/Row2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "upper"
+
+[node name="CaseCheck" type="CheckBox" parent="Outer/Row2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Aa"
+tooltip_text = "Case sensitive"
+
+[node name="Row3" type="HBoxContainer" parent="Outer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="UseBgCheck" type="CheckBox" parent="Outer/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "BG"
+button_pressed = true
+
+[node name="BgPicker" type="ColorPickerButton" parent="Outer/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(48, 22)
+color = Color(0.95, 0.83, 0.3, 1)
+
+[node name="UseFgCheck" type="CheckBox" parent="Outer/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "FG"
+
+[node name="FgPicker" type="ColorPickerButton" parent="Outer/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(48, 22)
+color = Color(0.1, 0.1, 0.12, 1)
+
+[node name="BoldCheck" type="CheckBox" parent="Outer/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "B"
+tooltip_text = "Bold"
+
+[node name="ItalicCheck" type="CheckBox" parent="Outer/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "I"
+tooltip_text = "Italic"
+
+[node name="HeaderCheck" type="CheckBox" parent="Outer/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Hdr"
+tooltip_text = "Also apply to header row"

@@ -43,18 +43,37 @@ func _ready() -> void:
 		return
 	if UserPrefs != null and not UserPrefs.ui_zoom_changed.is_connected(_on_ui_zoom_changed):
 		UserPrefs.ui_zoom_changed.connect(_on_ui_zoom_changed)
+	if _window is Popup and not (_window as Popup).about_to_popup.is_connected(_on_about_to_popup):
+		(_window as Popup).about_to_popup.connect(_on_about_to_popup)
+	if _is_subwindow():
+		var tree: SceneTree = get_tree()
+		if tree != null and tree.root != null and not tree.root.size_changed.is_connected(_on_root_size_changed):
+			tree.root.size_changed.connect(_on_root_size_changed)
 	_apply_scale(true)
 
 
 func _exit_tree() -> void:
 	if UserPrefs != null and UserPrefs.ui_zoom_changed.is_connected(_on_ui_zoom_changed):
 		UserPrefs.ui_zoom_changed.disconnect(_on_ui_zoom_changed)
+	if _window is Popup and (_window as Popup).about_to_popup.is_connected(_on_about_to_popup):
+		(_window as Popup).about_to_popup.disconnect(_on_about_to_popup)
+	var tree: SceneTree = get_tree()
+	if tree != null and tree.root != null and tree.root.size_changed.is_connected(_on_root_size_changed):
+		tree.root.size_changed.disconnect(_on_root_size_changed)
+
+
+func _on_root_size_changed() -> void:
+	if _is_subwindow():
+		_apply_scale(true)
 
 
 func _process(delta: float) -> void:
 	if _window == null:
 		return
 	if not track_dpi:
+		set_process(false)
+		return
+	if _is_subwindow():
 		set_process(false)
 		return
 	_accumulator += delta
@@ -66,15 +85,74 @@ func _process(delta: float) -> void:
 
 func refresh() -> void:
 	_apply_scale(true)
-	set_process(track_dpi)
+	set_process(track_dpi and not _is_subwindow())
 
 
 func _on_ui_zoom_changed(_value: float) -> void:
 	_apply_scale(true)
 
 
+func _on_about_to_popup() -> void:
+	_apply_scale(true)
+
+
+func _is_subwindow() -> bool:
+	if _window == null:
+		return false
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		return false
+	return _window != tree.root
+
+
+func _root_scale_factor() -> float:
+	var tree: SceneTree = get_tree()
+	if tree == null or tree.root == null:
+		return 1.0
+	var root: Window = tree.root
+	var factor: float = root.content_scale_factor
+	if factor <= 0.0:
+		factor = 1.0
+	var stretch: float = _root_stretch_scale(root)
+	return factor * stretch
+
+
+func _root_stretch_scale(root: Window) -> float:
+	if root.content_scale_mode == Window.CONTENT_SCALE_MODE_DISABLED:
+		return 1.0
+	var base: Vector2i = root.content_scale_size
+	if base.x <= 0 or base.y <= 0:
+		base = Vector2i(
+			int(ProjectSettings.get_setting("display/window/size/viewport_width", 0)),
+			int(ProjectSettings.get_setting("display/window/size/viewport_height", 0))
+		)
+	if base.x <= 0 or base.y <= 0:
+		return 1.0
+	var win_size: Vector2i = root.size
+	if win_size.x <= 0 or win_size.y <= 0:
+		return 1.0
+	var sx: float = float(win_size.x) / float(base.x)
+	var sy: float = float(win_size.y) / float(base.y)
+	match root.content_scale_aspect:
+		Window.CONTENT_SCALE_ASPECT_IGNORE:
+			return (sx + sy) * 0.5
+		Window.CONTENT_SCALE_ASPECT_KEEP_WIDTH:
+			return sx
+		Window.CONTENT_SCALE_ASPECT_KEEP_HEIGHT:
+			return sy
+		_:
+			return min(sx, sy)
+
+
 func _apply_scale(force: bool) -> void:
 	if _window == null:
+		return
+	if _is_subwindow():
+		var inherited: float = _root_scale_factor()
+		inherited = clampf(inherited, minimum_scale, maximum_scale)
+		if not is_equal_approx(_window.content_scale_factor, inherited):
+			_window.content_scale_factor = inherited
+		_last_zoom = inherited
 		return
 	var manual_zoom: float = _current_manual_zoom()
 	var dpi_scale: float = 1.0

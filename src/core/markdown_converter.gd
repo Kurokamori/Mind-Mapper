@@ -174,9 +174,32 @@ static func _convert_inline(line: String) -> String:
 	text = _replace_inline_pattern(text, "(?<!_)_([^_\\n]+?)_(?!_)", "[i]$1[/i]")
 	text = _replace_inline_pattern(text, "~~(.+?)~~", "[s]$1[/s]")
 	text = _replace_inline_pattern(text, "`([^`\\n]+?)`", "[code]$1[/code]")
-	text = _replace_inline_pattern(text, "!\\[([^\\]]*)\\]\\(([^)\\s]+)\\)", "[img]$2[/img]")
+	text = _replace_image_markdown(text)
 	text = _replace_inline_pattern(text, "\\[([^\\]]+)\\]\\(([^)\\s]+)\\)", "[url=$2]$1[/url]")
 	return text
+
+
+static func _replace_image_markdown(text: String) -> String:
+	var regex: RegEx = RegEx.new()
+	if regex.compile("!\\[([^\\]]*)\\]\\(([^)\\s]+)\\)") != OK:
+		return text
+	var result: String = text
+	var match_result: RegExMatch = regex.search(result)
+	while match_result != null:
+		var alt_text: String = match_result.get_string(1)
+		var path_value: String = match_result.get_string(2)
+		var size_spec: String = ""
+		var pipe_index: int = alt_text.find("|")
+		if pipe_index >= 0:
+			size_spec = alt_text.substr(pipe_index + 1).strip_edges()
+		var replacement: String
+		if size_spec != "":
+			replacement = "[img=%s]%s[/img]" % [size_spec, path_value]
+		else:
+			replacement = "[img]%s[/img]" % path_value
+		result = result.substr(0, match_result.get_start()) + replacement + result.substr(match_result.get_end())
+		match_result = regex.search(result, match_result.get_start() + replacement.length())
+	return result
 
 
 static func _replace_inline_pattern(text: String, pattern: String, replacement: String) -> String:
@@ -285,8 +308,20 @@ static func _replace_url_tag_to_markdown(text: String) -> String:
 
 static func _replace_img_tag_to_markdown(text: String) -> String:
 	var regex: RegEx = RegEx.new()
-	regex.compile("\\[img(?:=[^\\]]*)?\\]([\\s\\S]*?)\\[/img\\]")
-	return regex.sub(text, "![]($1)", true)
+	regex.compile("\\[img(?:=([^\\]]+))?\\]([\\s\\S]*?)\\[/img\\]")
+	var result: String = text
+	var match_result: RegExMatch = regex.search(result)
+	while match_result != null:
+		var size_spec: String = match_result.get_string(1)
+		var path_value: String = match_result.get_string(2)
+		var replacement: String
+		if size_spec != "":
+			replacement = "![|%s](%s)" % [size_spec, path_value]
+		else:
+			replacement = "![](%s)" % path_value
+		result = result.substr(0, match_result.get_start()) + replacement + result.substr(match_result.get_end())
+		match_result = regex.search(result, match_result.get_start() + replacement.length())
+	return result
 
 
 static func _strip_attribute_tag(text: String, tag: String) -> String:

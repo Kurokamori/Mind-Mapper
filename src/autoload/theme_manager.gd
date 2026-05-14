@@ -50,6 +50,8 @@ const DARK_ACCENT: Color = Color(0.50, 0.44, 0.61, 1.0)
 const DARK_ACCENT_BRIGHT: Color = Color(0.55, 0.49, 0.65, 1.0)
 const DARK_ACCENT_DIM: Color = Color(0.40, 0.36, 0.49, 1.0)
 const LIGHT_ACCENT: Color = Color(0.55, 0.36, 0.18, 1.0)
+const DARK_ICON: Color = Color(0.677, 0.672, 0.822, 1.0)
+const LIGHT_ICON: Color = Color(0.332, 0.219, 0.146, 1.0)
 
 signal theme_applied()
 signal font_manifest_changed()
@@ -125,6 +127,13 @@ static var NODE_TYPE_HEADINGS: Dictionary = {
 		"dark_fg": Color(0.95, 0.97, 1.0, 1.0),
 		"light_fg": Color(0.06, 0.13, 0.22, 1.0),
 	},
+	"table": {
+		"label": "Table",
+		"dark_bg": Color(0.20, 0.30, 0.45, 1.0),
+		"light_bg": Color(0.60, 0.75, 0.92, 1.0),
+		"dark_fg": Color(0.95, 0.97, 1.0, 1.0),
+		"light_fg": Color(0.06, 0.13, 0.22, 1.0),
+	},
 }
 
 var _current_theme: Theme = null
@@ -180,6 +189,8 @@ func _on_node_added(node: Node) -> void:
 	var font: Font = active_font()
 	if node is Control:
 		_apply_font_override_to_control(node as Control, font)
+		if (node is LineEdit or node is TextEdit) and not _is_inside_secondary_window(node):
+			_apply_input_transparency(node as Control)
 	if node is Window:
 		_apply_font_override_to_window(node as Window, font)
 
@@ -231,6 +242,7 @@ func _apply_to_root() -> void:
 		_force_theme_on_scene_roots(root, theme)
 		_force_theme_on_button_popups(root, theme)
 		_force_font_overrides(root, active_font())
+		_force_input_transparency(root)
 		root.propagate_notification(Control.NOTIFICATION_THEME_CHANGED)
 	emit_signal("theme_applied")
 
@@ -254,11 +266,15 @@ func _apply_theme_to_popup(popup: PopupMenu, theme: Theme) -> void:
 	popup.theme = null
 	popup.theme = theme
 	var font: Font = active_font()
+	var size: int = UserPrefs.font_size
 	if font != null:
 		popup.add_theme_font_override("font", font)
 	else:
 		popup.remove_theme_font_override("font")
+	popup.add_theme_font_size_override("font_size", size)
+	popup.add_theme_font_size_override("font_separator_size", size)
 	popup.propagate_notification(Control.NOTIFICATION_THEME_CHANGED)
+	popup.reset_size()
 
 
 func _sync_project_theme(theme: Theme) -> void:
@@ -605,15 +621,23 @@ func _apply_font_to_theme(theme: Theme) -> void:
 	var size: int = UserPrefs.font_size
 	theme.default_font_size = size
 	ThemeDB.fallback_font_size = size
+	var font_classes: PackedStringArray = PackedStringArray([
+		"Label", "Button", "MenuButton", "OptionButton", "CheckBox", "CheckButton",
+		"ColorPickerButton", "LinkButton", "LineEdit", "TextEdit", "CodeEdit",
+		"SpinBox", "ItemList", "Tree", "PopupMenu", "TabBar", "TabContainer",
+		"AcceptDialog", "ConfirmationDialog", "FileDialog", "Window",
+	])
+	for cls: String in font_classes:
+		theme.set_font_size("font_size", cls, size)
+	theme.set_font_size("title_font_size", "Window", size)
+	theme.set_font_size("font_separator_size", "PopupMenu", size)
+	for variant_v: Variant in RICH_TEXT_VARIANT_SLOTS.keys():
+		var slot: String = String(RICH_TEXT_VARIANT_SLOTS[variant_v])
+		var size_slot: String = slot.replace("_font", "_font_size")
+		theme.set_font_size(size_slot, "RichTextLabel", size)
 	if font != null:
 		theme.default_font = font
 		ThemeDB.fallback_font = font
-		var font_classes: PackedStringArray = PackedStringArray([
-			"Label", "Button", "MenuButton", "OptionButton", "CheckBox", "CheckButton",
-			"ColorPickerButton", "LinkButton", "LineEdit", "TextEdit", "CodeEdit",
-			"SpinBox", "ItemList", "Tree", "PopupMenu", "TabBar", "TabContainer",
-			"AcceptDialog", "ConfirmationDialog", "FileDialog", "Window",
-		])
 		for cls: String in font_classes:
 			theme.set_font("font", cls, font)
 		theme.set_font("title_font", "Window", font)
@@ -627,6 +651,53 @@ func _apply_font_to_theme(theme: Theme) -> void:
 				theme.set_font(slot, cls, variant_font)
 	else:
 		ThemeDB.fallback_font = _engine_fallback_font
+
+
+## Walk the main-window subtree and give every text-input control a
+## transparent background via per-control overrides. Descendants of
+## secondary Window nodes (dialogs, popup menus, theme editor, etc.)
+## are skipped so those inputs keep their themed backgrounds. Caret,
+## selection, and focus-highlight styles are untouched.
+func _force_input_transparency(node: Node) -> void:
+	if node == null:
+		return
+	var tree: SceneTree = get_tree()
+	var main_root: Window = null
+	if tree != null:
+		main_root = tree.root
+	if node is Window and node != main_root:
+		return
+	if node is Control:
+		_apply_input_transparency(node as Control)
+	for child: Node in node.get_children():
+		_force_input_transparency(child)
+
+
+func _apply_input_transparency(ctrl: Control) -> void:
+	if ctrl == null:
+		return
+	if not (ctrl is LineEdit or ctrl is TextEdit):
+		return
+	ctrl.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	ctrl.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	ctrl.add_theme_stylebox_override("read_only", StyleBoxEmpty.new())
+	if ctrl is TextEdit:
+		var transparent: Color = Color(0.0, 0.0, 0.0, 0.0)
+		ctrl.add_theme_color_override("background_color", transparent)
+		ctrl.add_theme_color_override("caret_background_color", transparent)
+
+
+func _is_inside_secondary_window(node: Node) -> bool:
+	var tree: SceneTree = get_tree()
+	var main_root: Window = null
+	if tree != null:
+		main_root = tree.root
+	var n: Node = node.get_parent()
+	while n != null:
+		if n is Window and n != main_root:
+			return true
+		n = n.get_parent()
+	return false
 
 
 func active_font() -> Font:
@@ -860,6 +931,24 @@ func _palette_equal(a: Dictionary, b: Dictionary) -> bool:
 
 func accent_color() -> Color:
 	return UserPrefs.theme_accent
+
+
+## Base modulate used by white-source icon buttons (AutomaticButton with
+## use_theme_icon_color = true). Returns a per-mode default for dark/light and
+## the user-authored override for custom/imported. Per-state HSV effects from
+## AutomaticButtonStateEffect compose on top of this base.
+func icon_color() -> Color:
+	if UserPrefs.theme_mode == UserPrefs.THEME_LIGHT:
+		return LIGHT_ICON
+	if UserPrefs.theme_mode == UserPrefs.THEME_CUSTOM or UserPrefs.theme_mode == UserPrefs.THEME_IMPORTED:
+		return UserPrefs.custom_icon_color
+	return DARK_ICON
+
+
+func default_icon_color_for_mode(mode: String) -> Color:
+	if mode == UserPrefs.THEME_LIGHT:
+		return LIGHT_ICON
+	return DARK_ICON
 
 
 func translucent_panel_stylebox() -> StyleBoxFlat:
