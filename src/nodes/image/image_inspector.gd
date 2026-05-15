@@ -86,12 +86,12 @@ func _refresh_path_label() -> void:
 
 
 func _on_replace_pressed() -> void:
-	_file_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_file_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_file_selected(path: String) -> void:
 	_pending_image_path = path
-	_embed_choice.popup_centered()
+	PopupSizer.popup_fit(_embed_choice)
 
 
 func _on_embed_confirmed() -> void:
@@ -211,4 +211,4 @@ func _on_crop_visual() -> void:
 	dlg.add_child(ic)
 	dlg.close_requested.connect(func() -> void: dlg.queue_free())
 	add_child(dlg)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(560, 480)})

@@ -28,15 +28,15 @@ func _ready() -> void:
 
 
 func open() -> void:
-	popup_centered()
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(620, 360)})
 
 
 func _on_output_browse() -> void:
-	_output_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_output_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_root_browse() -> void:
-	_root_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_root_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_output_chosen(dir: String) -> void:

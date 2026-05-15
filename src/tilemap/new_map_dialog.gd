@@ -17,7 +17,7 @@ func open() -> void:
 	_name_edit.text = "New Map"
 	_tile_w_spin.value = 16
 	_tile_h_spin.value = 16
-	popup_centered()
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(360, 200)})
 	_name_edit.grab_focus()
 
 

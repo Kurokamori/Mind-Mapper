@@ -257,7 +257,7 @@ func _on_due_pressed() -> void:
 		emit_signal("due_changed", card_id, 0)
 		dlg.queue_free()
 	)
-	dlg.popup_centered(Vector2i(280, 140))
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(280, 140)})
 
 
 func _apply_visual_style() -> void:

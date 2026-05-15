@@ -226,7 +226,7 @@ func _apply_image() -> void:
 	if _image_dialog == null:
 		return
 	_image_picker_mode = ImagePickerMode.INSERT
-	_image_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_image_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_image_file_selected(path: String) -> void:
@@ -275,7 +275,7 @@ func _on_normalize_pressed() -> void:
 func _on_import_pressed() -> void:
 	if _import_dialog == null:
 		return
-	_import_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_import_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_import_file_selected(path: String) -> void:
@@ -493,7 +493,7 @@ func _on_image_toolbar_edit_link() -> void:
 	if _active_image_token.is_empty():
 		return
 	_image_picker_mode = ImagePickerMode.REPLACE_LINK
-	_image_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_image_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_image_toolbar_edit_size() -> void:

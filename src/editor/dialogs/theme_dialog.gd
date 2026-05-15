@@ -168,7 +168,7 @@ func _open_per_type_headings_dialog() -> void:
 	var scene: PackedScene = preload("res://src/editor/dialogs/custom_node_headings_dialog.tscn")
 	var dlg: Window = scene.instantiate()
 	add_child(dlg)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(560, 620)})
 
 
 func _refresh_board_image_label() -> void:
@@ -195,7 +195,7 @@ func _on_board_image_browse() -> void:
 	_image_file_dialog.close_requested.connect(_image_file_dialog.queue_free)
 	_image_file_dialog.canceled.connect(_image_file_dialog.queue_free)
 	add_child(_image_file_dialog)
-	_image_file_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_image_file_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_board_image_picked(path: String) -> void:
@@ -333,7 +333,7 @@ func _on_imported_browse() -> void:
 	_theme_file_dialog.close_requested.connect(_theme_file_dialog.queue_free)
 	_theme_file_dialog.canceled.connect(_theme_file_dialog.queue_free)
 	add_child(_theme_file_dialog)
-	_theme_file_dialog.popup_centered()
+	PopupSizer.popup_fit(_theme_file_dialog, {"preferred": Vector2i(720, 480)})
 
 
 func _on_theme_file_selected(path: String) -> void:
@@ -447,7 +447,7 @@ func _open_font_picker(variant: String) -> void:
 	_file_dialog.close_requested.connect(_file_dialog.queue_free)
 	_file_dialog.canceled.connect(_file_dialog.queue_free)
 	add_child(_file_dialog)
-	_file_dialog.popup_centered()
+	PopupSizer.popup_fit(_file_dialog, {"preferred": Vector2i(720, 480)})
 
 
 func _on_font_file_selected(path: String) -> void:

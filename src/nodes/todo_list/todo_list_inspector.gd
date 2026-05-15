@@ -193,7 +193,7 @@ func _on_plain_text_edit_pressed() -> void:
 	dlg.bind("Edit %s as plain text" % _item.title, initial)
 	get_tree().root.add_child(dlg)
 	dlg.applied.connect(_on_plain_text_applied)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(560, 520)})
 
 
 func _on_plain_text_applied(text: String) -> void:

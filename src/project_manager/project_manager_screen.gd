@@ -88,7 +88,7 @@ func _on_card_join_live(folder_path: String, lobby_entry: Dictionary, adapter_ki
 
 func _on_card_host_requested(folder_path: String) -> void:
 	_pending_host_folder = folder_path
-	_host_session_dialog.popup_centered()
+	PopupSizer.popup_fit(_host_session_dialog, {"preferred": Vector2i(520, 280)})
 
 
 func _on_host_session_confirmed(adapter_kind: String, settings: Dictionary) -> void:
@@ -107,7 +107,7 @@ func _on_host_session_confirmed(adapter_kind: String, settings: Dictionary) -> v
 
 
 func _on_join_session_pressed() -> void:
-	_join_session_dialog.popup_centered()
+	PopupSizer.popup_fit(_join_session_dialog, {"preferred": Vector2i(680, 520)})
 
 
 func _on_join_session_confirmed(adapter_kind: String, connect_info: Dictionary) -> void:
@@ -130,23 +130,23 @@ func _show_inline_message(text: String) -> void:
 	dlg.title = "Multiplayer"
 	dlg.dialog_text = text
 	add_child(dlg)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg)
 	dlg.confirmed.connect(dlg.queue_free)
 	dlg.canceled.connect(dlg.queue_free)
 
 
 func _on_new_pressed() -> void:
-	_create_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_create_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_open_pressed() -> void:
-	_open_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_open_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_create_folder_chosen(folder: String) -> void:
 	_pending_create_folder = folder
 	_name_edit.text = ""
-	_name_dialog.popup_centered()
+	PopupSizer.popup_fit(_name_dialog, {"preferred": Vector2i(360, 140)})
 	_name_edit.grab_focus()
 
 

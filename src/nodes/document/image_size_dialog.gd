@@ -28,7 +28,7 @@ func open_for_insert(default_alt: String, image_reference: String) -> void:
 	_height_spin.value = 0.0
 	_hint_label.text = "Use 0 to keep that dimension automatic. Both 0 inserts the image at its native size."
 	_path_label.text = "Source: %s" % image_reference
-	popup_centered()
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(420, 260)})
 	_alt_edit.grab_focus()
 	_alt_edit.select_all()
 
@@ -42,7 +42,7 @@ func open_for_edit(alt_text: String, width: int, height: int, image_reference: S
 	_height_spin.value = float(max(0, height))
 	_hint_label.text = "Use 0 to keep that dimension automatic. Both 0 removes the explicit size."
 	_path_label.text = "Source: %s" % image_reference
-	popup_centered()
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(420, 260)})
 	_width_spin.grab_focus()
 
 

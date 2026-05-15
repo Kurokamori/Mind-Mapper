@@ -14,6 +14,8 @@ const SELECTION_OUTLINE_COLOR: Color = Color(0.35, 0.7, 1.0, 0.9)
 const SELECTION_OUTLINE_PADDING: float = 2.5
 const ENDPOINT_DOT_RADIUS: float = 4.0
 const BEZIER_SAMPLES: int = 24
+const SMOOTH_SAMPLES_PER_SEGMENT: int = 18
+const SMOOTH_TENSION: float = 0.85
 const WAYPOINT_RADIUS: float = 5.0
 const WAYPOINT_HIT_RADIUS: float = 9.0
 const ROUTING_GRID: float = 24.0
@@ -28,6 +30,7 @@ var _pending_endpoint_world: Vector2 = Vector2.ZERO
 var _pending_active: bool = false
 var _waypoint_drag_conn_id: String = ""
 var _waypoint_drag_index: int = -1
+var _waypoint_drag_before: Array = []
 
 
 func bind_editor(editor: Node) -> void:
@@ -108,6 +111,10 @@ func selected_connections() -> Array:
 		if c != null:
 			out.append(c)
 	return out
+
+
+func is_connection_selected(connection_id: String) -> bool:
+	return _selected_ids.has(connection_id)
 
 
 func select_connection(connection_id: String, additive: bool = false) -> void:
@@ -211,6 +218,13 @@ func hit_test_waypoint(world_pos: Vector2) -> Dictionary:
 	return {}
 
 
+func _waypoints_snapshot(c: Connection) -> Array:
+	var out: Array = []
+	for w in c.waypoints:
+		out.append([float((w as Vector2).x), float((w as Vector2).y)])
+	return out
+
+
 func add_waypoint_at(world_pos: Vector2) -> bool:
 	var c: Connection = hit_test(world_pos)
 	if c == null:
@@ -220,24 +234,24 @@ func add_waypoint_at(world_pos: Vector2) -> bool:
 	var endpoints: Array = _compute_endpoints(c)
 	if endpoints.is_empty():
 		return false
-	var path: PackedVector2Array = _build_path(c, endpoints[0], endpoints[1])
+	var legs: PackedVector2Array = PackedVector2Array()
+	legs.append(endpoints[0])
+	for w in c.waypoints:
+		legs.append(w)
+	legs.append(endpoints[1])
 	var insert_idx: int = c.waypoints.size()
-	var best_seg: int = -1
 	var best_d: float = INF
-	for i in range(path.size() - 1):
-		var d: float = _distance_to_segment(path[i], path[i + 1], world_pos)
+	for i in range(legs.size() - 1):
+		var d: float = _distance_to_segment(legs[i], legs[i + 1], world_pos)
 		if d < best_d:
 			best_d = d
-			best_seg = i
-	if best_seg >= 0:
-		insert_idx = clampi(best_seg, 0, c.waypoints.size())
-	if _editor != null:
-		var before_arr: Array = []
-		for w in c.waypoints:
-			before_arr.append([float((w as Vector2).x), float((w as Vector2).y)])
-		var after_arr: Array = before_arr.duplicate(true)
-		after_arr.insert(insert_idx, [world_pos.x, world_pos.y])
-		History.push(ModifyConnectionPropertyCommand.new(_editor, c.id, "waypoints", before_arr, after_arr))
+			insert_idx = i
+	insert_idx = clampi(insert_idx, 0, c.waypoints.size())
+	var before: Array = _waypoints_snapshot(c)
+	c.waypoints.insert(insert_idx, world_pos)
+	_waypoint_drag_conn_id = c.id
+	_waypoint_drag_index = insert_idx
+	_waypoint_drag_before = before
 	queue_redraw()
 	return true
 
@@ -245,6 +259,8 @@ func add_waypoint_at(world_pos: Vector2) -> bool:
 func begin_waypoint_drag(connection_id: String, index: int) -> void:
 	_waypoint_drag_conn_id = connection_id
 	_waypoint_drag_index = index
+	var c: Connection = find_connection(connection_id)
+	_waypoint_drag_before = _waypoints_snapshot(c) if c != null else []
 
 
 func is_dragging_waypoint() -> bool:
@@ -264,16 +280,14 @@ func update_waypoint_drag(world_pos: Vector2) -> void:
 func end_waypoint_drag() -> void:
 	if _waypoint_drag_conn_id == "":
 		return
-	if _editor != null:
-		var c: Connection = find_connection(_waypoint_drag_conn_id)
-		if c != null:
-			var arr: Array = []
-			for w in c.waypoints:
-				arr.append([float((w as Vector2).x), float((w as Vector2).y)])
-			if _editor.has_method("request_save"):
-				_editor.request_save()
+	var c: Connection = find_connection(_waypoint_drag_conn_id)
+	if c != null and _editor != null:
+		var after: Array = _waypoints_snapshot(c)
+		if after != _waypoint_drag_before:
+			History.push(ModifyConnectionPropertyCommand.new(_editor, c.id, "waypoints", _waypoint_drag_before, after))
 	_waypoint_drag_conn_id = ""
 	_waypoint_drag_index = -1
+	_waypoint_drag_before = []
 
 
 func remove_selected_waypoint(world_pos: Vector2) -> bool:
@@ -442,13 +456,14 @@ func _smooth_through_points(pts: PackedVector2Array) -> PackedVector2Array:
 		return pts
 	var out: PackedVector2Array = PackedVector2Array()
 	out.append(pts[0])
+	var last: int = pts.size() - 1
 	for i in range(pts.size() - 1):
-		var p0: Vector2 = pts[max(0, i - 1)]
 		var p1: Vector2 = pts[i]
 		var p2: Vector2 = pts[i + 1]
-		var p3: Vector2 = pts[min(pts.size() - 1, i + 2)]
-		for s in range(1, 13):
-			var t: float = float(s) / 12.0
+		var p0: Vector2 = pts[i - 1] if i - 1 >= 0 else (2.0 * p1 - p2)
+		var p3: Vector2 = pts[i + 2] if i + 2 <= last else (2.0 * p2 - p1)
+		for s in range(1, SMOOTH_SAMPLES_PER_SEGMENT + 1):
+			var t: float = float(s) / float(SMOOTH_SAMPLES_PER_SEGMENT)
 			out.append(_catmull(p0, p1, p2, p3, t))
 	return out
 
@@ -456,7 +471,13 @@ func _smooth_through_points(pts: PackedVector2Array) -> PackedVector2Array:
 func _catmull(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: float) -> Vector2:
 	var t2: float = t * t
 	var t3: float = t2 * t
-	return 0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3)
+	var m1: Vector2 = (p2 - p0) * SMOOTH_TENSION
+	var m2: Vector2 = (p3 - p1) * SMOOTH_TENSION
+	var h00: float = 2.0 * t3 - 3.0 * t2 + 1.0
+	var h10: float = t3 - 2.0 * t2 + t
+	var h01: float = -2.0 * t3 + 3.0 * t2
+	var h11: float = t3 - t2
+	return h00 * p1 + h10 * m1 + h01 * p2 + h11 * m2
 
 
 func _build_bezier_path(start_point: Vector2, end_point: Vector2) -> PackedVector2Array:

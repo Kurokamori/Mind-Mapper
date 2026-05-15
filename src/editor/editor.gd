@@ -459,6 +459,12 @@ func _input(event: InputEvent) -> void:
 	var world_pos: Vector2 = _camera.screen_to_world(screen_pos)
 	var item_under: BoardItem = _item_strictly_at_world(world_pos)
 	if mb.button_index == MOUSE_BUTTON_RIGHT:
+		if _connection_layer != null and not is_local_read_only():
+			var rc_wp_hit: Dictionary = _connection_layer.hit_test_waypoint(world_pos)
+			if not rc_wp_hit.is_empty():
+				_connection_layer.remove_selected_waypoint(world_pos)
+				get_viewport().set_input_as_handled()
+				return
 		var rc_blocking: BoardItem = item_under
 		if rc_blocking is GroupNode and _is_world_pos_on_group_body(rc_blocking as GroupNode, world_pos):
 			rc_blocking = null
@@ -488,15 +494,12 @@ func _input(event: InputEvent) -> void:
 		var ro_local: bool = is_local_read_only()
 		var wp_hit: Dictionary = _connection_layer.hit_test_waypoint(world_pos)
 		if not wp_hit.is_empty() and not ro_local:
-			if mb.shift_pressed:
-				_connection_layer.remove_selected_waypoint(world_pos)
-			else:
-				_connection_layer.begin_waypoint_drag(String(wp_hit.connection_id), int(wp_hit.index))
+			_connection_layer.begin_waypoint_drag(String(wp_hit.connection_id), int(wp_hit.index))
 			get_viewport().set_input_as_handled()
 			return
 		var hit: Connection = _connection_layer.hit_test(world_pos)
 		if hit != null:
-			if mb.alt_pressed and not ro_local:
+			if _connection_layer.is_connection_selected(hit.id) and not ro_local and not mb.shift_pressed:
 				_connection_layer.add_waypoint_at(world_pos)
 				get_viewport().set_input_as_handled()
 				return
@@ -1600,7 +1603,7 @@ func _save_selection_as_template() -> void:
 		dlg.queue_free()
 	)
 	dlg.canceled.connect(func() -> void: dlg.queue_free())
-	dlg.popup_centered(Vector2i(320, 140))
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(320, 140)})
 
 
 func _insert_template(name: String) -> void:
@@ -1643,14 +1646,14 @@ func _open_theme_dialog() -> void:
 	if dlg.has_method("bind"):
 		dlg.bind(AppState.current_board)
 	add_child(dlg)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(992, 752)})
 
 
 func _open_keybindings_dialog() -> void:
 	var scene: PackedScene = preload("res://src/editor/dialogs/keybindings_dialog.tscn")
 	var dlg: Window = scene.instantiate()
 	add_child(dlg)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(560, 540)})
 
 
 func _open_snapshots_dialog() -> void:
@@ -1659,7 +1662,7 @@ func _open_snapshots_dialog() -> void:
 	if dlg.has_method("bind"):
 		dlg.bind(AppState.current_project)
 	add_child(dlg)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(520, 460)})
 
 
 func _open_open_todos_board() -> void:
@@ -1668,7 +1671,7 @@ func _open_open_todos_board() -> void:
 	if dlg.has_method("bind"):
 		dlg.bind(self)
 	add_child(dlg)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(720, 520)})
 
 
 func _open_import_dialog(mode: String) -> void:
@@ -1699,7 +1702,7 @@ func _open_import_dialog(mode: String) -> void:
 		dlg.queue_free()
 	)
 	dlg.canceled.connect(func() -> void: dlg.queue_free())
-	dlg.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(dlg, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _open_document_import_dialog() -> void:
@@ -1720,7 +1723,7 @@ func _open_document_import_dialog() -> void:
 		dlg.queue_free()
 	)
 	dlg.canceled.connect(func() -> void: dlg.queue_free())
-	dlg.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(dlg, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _open_image_import_dialog() -> void:
@@ -1742,7 +1745,7 @@ func _open_image_import_dialog() -> void:
 		dlg.queue_free()
 	)
 	dlg.canceled.connect(func() -> void: dlg.queue_free())
-	dlg.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(dlg, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _open_sound_import_dialog() -> void:
@@ -1761,7 +1764,7 @@ func _open_sound_import_dialog() -> void:
 		dlg.queue_free()
 	)
 	dlg.canceled.connect(func() -> void: dlg.queue_free())
-	dlg.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(dlg, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_batch_image_files_selected(paths: PackedStringArray) -> void:
@@ -1770,7 +1773,7 @@ func _on_batch_image_files_selected(paths: PackedStringArray) -> void:
 	if AppState.current_board == null:
 		return
 	_pending_batch_image_paths = paths.duplicate()
-	_embed_choice_popup.popup_centered()
+	PopupSizer.popup_fit(_embed_choice_popup)
 
 
 func _on_batch_sound_files_selected(paths: PackedStringArray) -> void:
@@ -1779,7 +1782,7 @@ func _on_batch_sound_files_selected(paths: PackedStringArray) -> void:
 	if AppState.current_board == null:
 		return
 	_pending_batch_sound_paths = paths.duplicate()
-	_embed_sound_popup.popup_centered()
+	PopupSizer.popup_fit(_embed_sound_popup)
 
 
 func _handle_document_batch_import(paths: PackedStringArray) -> void:
@@ -1933,9 +1936,9 @@ func _handle_add(type_id: String) -> void:
 		ItemRegistry.TYPE_SUBPAGE:
 			_add_subpage()
 		ItemRegistry.TYPE_IMAGE:
-			_image_dialog.popup_centered_ratio(0.7)
+			PopupSizer.popup_fit(_image_dialog, {"ratio": Vector2(0.7, 0.7)})
 		ItemRegistry.TYPE_SOUND:
-			_sound_dialog.popup_centered_ratio(0.7)
+			PopupSizer.popup_fit(_sound_dialog, {"ratio": Vector2(0.7, 0.7)})
 		_:
 			if ItemRegistry.has_type(type_id):
 				_add_simple(type_id, ItemRegistry.default_payload(type_id))
@@ -2066,7 +2069,7 @@ func _show_tileset_info(message: String) -> void:
 	if _tileset_info_dialog == null:
 		return
 	_tileset_info_dialog.dialog_text = message
-	_tileset_info_dialog.popup_centered()
+	PopupSizer.popup_fit(_tileset_info_dialog)
 
 
 func _clear_pending_add_state() -> void:
@@ -2176,7 +2179,7 @@ func _add_simple(type_id: String, extra: Dictionary) -> void:
 
 func _on_image_chosen(path: String) -> void:
 	_pending_image_path = path
-	_embed_choice_popup.popup_centered()
+	PopupSizer.popup_fit(_embed_choice_popup)
 
 
 func _on_embed_image_confirmed() -> void:
@@ -2222,7 +2225,7 @@ func _finalize_image_add(embed: bool) -> void:
 
 func _on_sound_chosen(path: String) -> void:
 	_pending_sound_path = path
-	_embed_sound_popup.popup_centered()
+	PopupSizer.popup_fit(_embed_sound_popup)
 
 
 func _on_embed_sound_confirmed() -> void:
@@ -2367,7 +2370,7 @@ func _open_export_dialog(mode: String) -> void:
 	_export_dialog.title = title
 	_export_dialog.current_file = default_name
 	_export_dialog.filters = PackedStringArray(["*.%s ; %s" % [ext, ext.to_upper()]])
-	_export_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_export_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_export_path_chosen(path: String) -> void:
@@ -2729,17 +2732,17 @@ func _on_selection_changed_for_presence(_items: Array) -> void:
 
 func _on_host_session_requested() -> void:
 	if _host_dialog != null:
-		_host_dialog.popup_centered()
+		PopupSizer.popup_fit(_host_dialog)
 
 
 func _on_join_session_requested() -> void:
 	if _join_dialog != null:
-		_join_dialog.popup_centered()
+		PopupSizer.popup_fit(_join_dialog)
 
 
 func _on_manage_participants_requested() -> void:
 	if _participant_dialog != null:
-		_participant_dialog.popup_centered()
+		PopupSizer.popup_fit(_participant_dialog)
 
 
 func _on_leave_session_requested() -> void:
@@ -2800,7 +2803,7 @@ func _show_session_error(message: String) -> void:
 	err_dialog.title = "Multiplayer"
 	err_dialog.dialog_text = message
 	add_child(err_dialog)
-	err_dialog.popup_centered()
+	PopupSizer.popup_fit(err_dialog)
 	err_dialog.confirmed.connect(err_dialog.queue_free)
 	err_dialog.canceled.connect(err_dialog.queue_free)
 
@@ -3431,7 +3434,7 @@ func _wire_merge_dialogs() -> void:
 
 func _on_merge_dialog_requested(conflicts: Array, non_conflicting_local_count: int, non_conflicting_remote_count: int, host_display_name: String) -> void:
 	_merge_resolution_dialog.setup(conflicts, non_conflicting_local_count, non_conflicting_remote_count, host_display_name)
-	_merge_resolution_dialog.popup_centered_clamped(Vector2i(900, 620))
+	PopupSizer.popup_fit(_merge_resolution_dialog, {"preferred": Vector2i(900, 620)})
 
 
 func _on_merge_dialog_close_requested() -> void:
@@ -3488,7 +3491,7 @@ func _on_co_author_sync_offer(_steam_id: int, persona: String, project_id: Strin
 	if MultiplayerService.is_in_session():
 		return
 	_coauthor_sync_offer_dialog.setup(_steam_id, persona, AppState.current_project.name, friend_lobby_id, divergence)
-	_coauthor_sync_offer_dialog.popup_centered_clamped(Vector2i(560, 320))
+	PopupSizer.popup_fit(_coauthor_sync_offer_dialog, {"preferred": Vector2i(560, 320)})
 
 
 func _on_sync_offer_accepted(_steam_id: int, friend_lobby_id: int) -> void:
@@ -3502,7 +3505,7 @@ func _on_sync_offer_accepted(_steam_id: int, friend_lobby_id: int) -> void:
 			_show_session_error("Failed to join Steam lobby: %s" % str(err))
 		return
 	if _host_dialog != null:
-		_host_dialog.popup_centered()
+		PopupSizer.popup_fit(_host_dialog)
 
 
 func _on_sync_offer_dismissed(_steam_id: int) -> void:

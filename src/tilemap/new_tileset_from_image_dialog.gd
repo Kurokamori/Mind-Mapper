@@ -23,12 +23,12 @@ func _ready() -> void:
 
 
 func open() -> void:
-	popup_centered()
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(520, 360)})
 	_name_edit.grab_focus()
 
 
 func _on_browse_pressed() -> void:
-	_file_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_file_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_file_chosen(path: String) -> void:

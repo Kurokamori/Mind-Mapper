@@ -73,7 +73,7 @@ func _refresh() -> void:
 func _on_add_pressed() -> void:
 	_import_field.text = ""
 	_import_name_field.text = ""
-	_import_dialog.popup_centered()
+	PopupSizer.popup_fit(_import_dialog)
 
 
 func _on_import_confirmed() -> void:

@@ -518,7 +518,7 @@ func _request_delete_tileset(tileset_id: String) -> void:
 	_confirm_action = "delete_tileset"
 	_confirm_payload = tileset_id
 	_confirm_dialog.dialog_text = "Delete this tileset? Layers using it will be unbound. Painted cells remain but won't render until re-bound."
-	_confirm_dialog.popup_centered()
+	PopupSizer.popup_fit(_confirm_dialog)
 
 
 func _on_confirm_dialog_confirmed() -> void:
@@ -582,7 +582,7 @@ func _on_layer_removed_requested(layer_id: String) -> void:
 	_confirm_action = "delete_layer"
 	_confirm_payload = layer_id
 	_confirm_dialog.dialog_text = "Delete this layer and all its painted cells?"
-	_confirm_dialog.popup_centered()
+	PopupSizer.popup_fit(_confirm_dialog)
 
 
 func _remove_layer_via_history(layer_id: String) -> void:
@@ -1221,9 +1221,9 @@ func _begin_add_overlay(type_id: String) -> void:
 		return
 	_pending_overlay_type = type_id
 	if type_id == ItemRegistry.TYPE_IMAGE:
-		_image_dialog.popup_centered_ratio(0.7)
+		PopupSizer.popup_fit(_image_dialog, {"ratio": Vector2(0.7, 0.7)})
 	elif type_id == ItemRegistry.TYPE_SOUND:
-		_sound_dialog.popup_centered_ratio(0.7)
+		PopupSizer.popup_fit(_sound_dialog, {"ratio": Vector2(0.7, 0.7)})
 	else:
 		_create_overlay_at_camera_center()
 
@@ -1280,7 +1280,7 @@ func _request_remove_object(object_id: String) -> void:
 	_confirm_action = "remove_object"
 	_confirm_payload = object_id
 	_confirm_dialog.dialog_text = "Remove this overlay object?"
-	_confirm_dialog.popup_centered()
+	PopupSizer.popup_fit(_confirm_dialog)
 
 
 func _remove_object_via_history(object_id: String) -> void:
@@ -1406,7 +1406,7 @@ func _on_tileset_setup_applied(updated: Dictionary) -> void:
 
 func _show_info(text: String) -> void:
 	_info_dialog.dialog_text = text
-	_info_dialog.popup_centered()
+	PopupSizer.popup_fit(_info_dialog)
 
 
 func _is_canvas_hovered() -> bool:

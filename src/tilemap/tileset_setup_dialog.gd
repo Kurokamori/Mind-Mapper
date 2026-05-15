@@ -53,7 +53,7 @@ func bind_tileset(ts: TileSetResource) -> void:
 
 
 func open() -> void:
-	popup_centered_ratio(0.55)
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(640, 520)})
 	_name_edit.grab_focus()
 
 

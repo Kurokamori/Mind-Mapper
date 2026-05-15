@@ -24,16 +24,16 @@ func _ready() -> void:
 
 
 func open() -> void:
-	popup_centered()
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(560, 320)})
 	_name_edit.grab_focus()
 
 
 func _on_tres_browse() -> void:
-	_tres_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_tres_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_root_browse() -> void:
-	_root_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_root_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_tres_chosen(path: String) -> void:

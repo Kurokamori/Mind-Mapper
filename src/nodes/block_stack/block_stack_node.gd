@@ -246,12 +246,12 @@ func _on_block_delete_requested(block_id: String) -> void:
 
 func _on_block_image_requested(block_id: String) -> void:
 	_pending_image_block_id = block_id
-	_image_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_image_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_image_selected(path: String) -> void:
 	_pending_image_path = path
-	_embed_choice.popup_centered()
+	PopupSizer.popup_fit(_embed_choice)
 
 
 func _on_embed_confirmed() -> void:

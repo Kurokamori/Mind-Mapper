@@ -30,7 +30,7 @@ func add_report(report: Dictionary) -> void:
 	_reports.append(report)
 	_build_tab_for_report(report)
 	_refresh_empty_state()
-	popup_centered_clamped(Vector2i(720, 480))
+	PopupSizer.popup_fit(self, {"preferred": Vector2i(720, 480)})
 
 
 func mark_op_rolled_back(report_id: String, op_id: String) -> void:

@@ -72,12 +72,12 @@ func _on_volume_drag_ended(_value_changed: bool) -> void:
 
 
 func _on_replace_pressed() -> void:
-	_file_dialog.popup_centered_ratio(0.7)
+	PopupSizer.popup_fit(_file_dialog, {"ratio": Vector2(0.7, 0.7)})
 
 
 func _on_file_selected(path: String) -> void:
 	_pending_audio_path = path
-	_embed_choice.popup_centered()
+	PopupSizer.popup_fit(_embed_choice)
 
 
 func _on_embed_confirmed() -> void:

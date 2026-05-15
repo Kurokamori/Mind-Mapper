@@ -350,7 +350,7 @@ func _on_card_details_requested(card_id: String) -> void:
 	dlg.bind(card)
 	get_tree().root.add_child(dlg)
 	dlg.applied.connect(_on_detail_applied)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(560, 640)})
 
 
 func _on_detail_applied(card_id: String, updated: Dictionary) -> void:

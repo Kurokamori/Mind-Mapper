@@ -130,7 +130,7 @@ func _open_editor_dialog() -> void:
 	dlg.bind(title, markdown_text, heading_sizes(), font_size, title_font_size, max_image_width)
 	get_tree().root.add_child(dlg)
 	dlg.applied.connect(_on_editor_applied)
-	dlg.popup_centered()
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(960, 660)})
 
 
 func _on_editor_applied(new_title: String, new_markdown: String) -> void:

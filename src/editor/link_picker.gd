@@ -37,7 +37,7 @@ func open_for(current_target: Dictionary, items_on_board: Array) -> void:
 	_kind_option.select(idx)
 	_repopulate_targets()
 	_select_existing(String(current_target.get("id", "")))
-	popup_centered()
+	PopupSizer.popup_fit(self)
 
 
 func _on_kind_selected(_index: int) -> void:

@@ -76,7 +76,7 @@ func _on_restore() -> void:
 	)
 	conf.canceled.connect(func() -> void: conf.queue_free())
 	add_child(conf)
-	conf.popup_centered()
+	PopupSizer.popup_fit(conf)
 
 
 func _on_delete() -> void:
