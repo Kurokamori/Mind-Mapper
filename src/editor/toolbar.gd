@@ -13,6 +13,7 @@ const ACTION_TOGGLE_MINIMAP: String = "toggle_minimap"
 const ACTION_TOGGLE_TIMER_TRAY: String = "toggle_timer_tray"
 const ACTION_TOGGLE_COMMENTS: String = "toggle_comments"
 const ACTION_TOGGLE_CHAT: String = "toggle_chat"
+const ACTION_OPEN_TODOS: String = "open_todos"
 const ACTION_OPEN_PALETTE: String = "open_palette"
 const ACTION_UNDO: String = "undo"
 const ACTION_REDO: String = "redo"
@@ -81,7 +82,6 @@ const TEMPLATE_ACTION_DELETE: String = "template_delete"
 const SETTINGS_ACTION_THEME: String = "settings_theme"
 const SETTINGS_ACTION_KEYBINDINGS: String = "settings_keybindings"
 const SETTINGS_ACTION_SNAPSHOTS: String = "settings_snapshots"
-const SETTINGS_ACTION_OPEN_TODOS: String = "settings_open_todos"
 
 @onready var _project_label: Label = %ProjectLabel
 @onready var _back_button: Button = %BackButton
@@ -99,6 +99,7 @@ const SETTINGS_ACTION_OPEN_TODOS: String = "settings_open_todos"
 @onready var _timer_tray_button: Button = %TimerTrayButton
 @onready var _comments_button: Button = %CommentsButton
 @onready var _chat_button: Button = %ChatButton
+@onready var _todos_button: Button = %TodosButton
 @onready var _tag_filter_button: MenuButton = %TagFilterButton
 @onready var _group_button: Button = %GroupButton
 @onready var _present_button: Button = %PresentButton
@@ -152,6 +153,7 @@ func _ready() -> void:
 	_timer_tray_button.toggled.connect(_on_timer_tray_toggled)
 	_comments_button.toggled.connect(_on_comments_toggled)
 	_chat_button.toggled.connect(_on_chat_toggled)
+	_todos_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_OPEN_TODOS, null))
 	_group_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_GROUP, null))
 	_present_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_PRESENT, null))
 	_pen_button.toggled.connect(func(pressed: bool) -> void: _on_annotation_tool_toggled(ANNOTATION_TOOL_PEN, pressed))
@@ -403,7 +405,6 @@ func _populate_settings_menu() -> void:
 		[SETTINGS_ACTION_THEME, "Theme & Background…"],
 		[SETTINGS_ACTION_KEYBINDINGS, "Keybindings…"],
 		[SETTINGS_ACTION_SNAPSHOTS, "Snapshots…"],
-		[SETTINGS_ACTION_OPEN_TODOS, "Open Todos Board"],
 	]
 	for i in range(entries.size()):
 		popup.add_item(String(entries[i][1]), i)

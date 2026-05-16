@@ -46,11 +46,8 @@ z_index = -1
 script = ExtResource("10_mbv_grid")
 camera_path = NodePath("../Camera")
 
-[node name="ItemsRoot" type="Control" parent="World" unique_id=976305521]
+[node name="ItemsRoot" type="Node2D" parent="World" unique_id=976305521]
 unique_name_in_owner = true
-layout_mode = 3
-anchors_preset = 0
-mouse_filter = 2
 
 [node name="ConnectionPainter" type="Node2D" parent="World" unique_id=264286009]
 unique_name_in_owner = true

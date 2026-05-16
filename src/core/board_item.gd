@@ -67,6 +67,7 @@ var _highlighted_port: String = ""
 
 const RESIZE_GRIP_SCENE: PackedScene = preload("res://src/core/board_resize_grip.tscn")
 var _resize_grip: BoardResizeGrip = null
+var _desktop_resize_grip_suppressed: bool = false
 
 
 func _ready() -> void:
@@ -204,7 +205,7 @@ func _install_resize_grip() -> void:
 func _refresh_resize_grip_visibility() -> void:
 	if _resize_grip == null:
 		return
-	_resize_grip.visible = _selected and not locked and not read_only
+	_resize_grip.visible = _selected and not locked and not read_only and not _desktop_resize_grip_suppressed
 	if not _resize_grip.visible and _resize_grip.is_active():
 		_resize_grip.cancel_press()
 		if _resize_active:
@@ -212,6 +213,15 @@ func _refresh_resize_grip_visibility() -> void:
 			emit_signal("resize_ended", self)
 	if _resize_grip.visible:
 		move_child(_resize_grip, get_child_count() - 1)
+
+
+func set_desktop_resize_grip_suppressed(value: bool) -> void:
+	if _desktop_resize_grip_suppressed == value:
+		return
+	_desktop_resize_grip_suppressed = value
+	if _resize_grip != null:
+		_resize_grip.mouse_filter = Control.MOUSE_FILTER_IGNORE if value else Control.MOUSE_FILTER_STOP
+	_refresh_resize_grip_visibility()
 
 
 func _on_resize_grip_pressed() -> void:

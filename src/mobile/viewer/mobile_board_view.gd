@@ -10,6 +10,7 @@ signal mode_changed(mode: String)
 signal selection_changed(selected_item_ids: Array)
 signal connection_tapped(connection_id: String)
 signal request_item_type_picker(world_position: Vector2)
+signal nodes_lock_changed(locked: bool)
 
 const TAP_HIT_PADDING_PX: float = 8.0
 const CONNECTION_TAP_TOLERANCE_PX: float = 16.0
@@ -29,7 +30,7 @@ const RESIZE_HANDLE_HIT_PX: float = 28.0
 
 @onready var _camera: MobileCameraController = %Camera
 @onready var _world: Node2D = %World
-@onready var _items_root: Control = %ItemsRoot
+@onready var _items_root: Node2D = %ItemsRoot
 @onready var _connection_painter: MobileConnectionPainter = %ConnectionPainter
 @onready var _annotation_painter: MobileAnnotationPainter = %AnnotationPainter
 @onready var _comment_marker_layer: MobileCommentMarkerLayer = %CommentMarkerLayer
@@ -49,6 +50,7 @@ var _save_pending: bool = false
 var _pending_focus_item_id: String = ""
 
 var _mode: String = MODE_VIEW
+var _nodes_locked: bool = false
 var _selected_item_ids: Array[String] = []
 var _selected_connection_id: String = ""
 
@@ -62,6 +64,9 @@ var _drag_start_positions: Dictionary = {}
 var _drag_start_size: Vector2 = Vector2.ZERO
 var _drag_start_pos: Vector2 = Vector2.ZERO
 var _drag_start_world: Vector2 = Vector2.ZERO
+var _camera_pan_started: bool = false
+var _camera_pan_last_screen: Vector2 = Vector2.ZERO
+var _view_drag_transient_id: String = ""
 
 var _long_press_timer: Timer = null
 var _long_press_world: Vector2 = Vector2.ZERO
@@ -79,10 +84,12 @@ var _annotation_width: float = 4.0
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_PASS
+	add_to_group(EditorLocator.GROUP_ACTIVE_BOARD_EDITOR)
 	_camera.user_tapped_world.connect(_on_camera_tap)
 	_camera.user_long_pressed_world.connect(_on_camera_long_press)
 	_camera.user_double_tapped_world.connect(_on_camera_double_tap)
 	_camera.pan_should_be_allowed = Callable(self, "_camera_pan_should_be_allowed")
+	_camera.single_touch_pan_enabled = false
 	_connection_painter.bind_items_lookup(_lookup_item_dict)
 	_comment_marker_layer.bind_items_lookup(_lookup_item_dict)
 	_save_timer = Timer.new()
@@ -155,6 +162,33 @@ func current_mode() -> String:
 	return _mode
 
 
+func nodes_locked() -> bool:
+	return _nodes_locked
+
+
+func set_nodes_locked(value: bool) -> void:
+	if _nodes_locked == value:
+		return
+	_nodes_locked = value
+	if _nodes_locked:
+		_finish_active_annotation_stroke()
+		_pending_connect_source = ""
+		_pending_connect_source_anchor = Connection.ANCHOR_AUTO
+		if _drag_started:
+			_cancel_drag()
+			_drag_started = false
+		_camera_pan_started = false
+		_long_press_timer.stop()
+		_selected_item_ids = []
+		_selected_connection_id = ""
+		_refresh_selection_visuals()
+	_apply_mobile_edit_state()
+	_port_overlay.set_enabled(_mode == MODE_CONNECT and not _nodes_locked)
+	nodes_lock_changed.emit(_nodes_locked)
+	if _nodes_locked:
+		selection_changed.emit([])
+
+
 func set_mode(new_mode: String) -> void:
 	if _mode == new_mode:
 		return
@@ -163,9 +197,10 @@ func set_mode(new_mode: String) -> void:
 		_pending_connect_source = ""
 		_pending_connect_source_anchor = Connection.ANCHOR_AUTO
 	_mode = new_mode
-	_port_overlay.set_enabled(_mode == MODE_CONNECT)
+	_port_overlay.set_enabled(_mode == MODE_CONNECT and not _nodes_locked)
 	_port_overlay.set_pending_source(_pending_connect_source, _pending_connect_source_anchor)
 	_refresh_selection_visuals()
+	_apply_mobile_edit_state()
 	mode_changed.emit(_mode)
 
 
@@ -186,6 +221,7 @@ func clear_selection() -> void:
 	_selected_item_ids = []
 	_selected_connection_id = ""
 	_refresh_selection_visuals()
+	_apply_mobile_edit_state()
 	selection_changed.emit([])
 
 
@@ -242,8 +278,10 @@ func update_item_payload(item_id: String, new_dict: Dictionary) -> bool:
 	_item_dicts_by_id[item_id] = new_dict.duplicate(true)
 	var node: BoardItem = find_item_node(item_id)
 	if node != null:
+		var was_editing: bool = node.is_editing()
 		node.apply_dict(new_dict.duplicate(true))
-		node.read_only = true
+		if was_editing and not node.is_editing() and _selected_item_ids.has(item_id) and _mode == MODE_EDIT:
+			node.begin_edit()
 	var err: Error = _project.write_board(_board)
 	if err == OK:
 		todo_payload_changed.emit(item_id)
@@ -306,7 +344,6 @@ func instantiate_item_from_dict(d: Dictionary) -> BoardItem:
 	_items_root.add_child(node)
 	node.position = _vector_of(d, "position", Vector2.ZERO)
 	node.size = _vector_of(d, "size", node.default_size())
-	node.read_only = true
 	_apply_mobile_item_flags(node)
 	_items_by_id[item_id] = node
 	_item_dicts_by_id[item_id] = d.duplicate(true)
@@ -389,6 +426,8 @@ func apply_stroke_delete_locally(stroke_id: String) -> void:
 
 
 func create_item_at(type_id: String, world_position: Vector2) -> bool:
+	if _nodes_locked:
+		return false
 	if not ItemRegistry.has_type(type_id) or _board == null:
 		return false
 	var payload: Dictionary = ItemRegistry.default_payload(type_id)
@@ -409,6 +448,8 @@ func create_item_at(type_id: String, world_position: Vector2) -> bool:
 
 
 func delete_selected() -> void:
+	if _nodes_locked:
+		return
 	if not _selected_item_ids.is_empty():
 		var nodes: Array = []
 		for id: String in _selected_item_ids:
@@ -427,6 +468,8 @@ func delete_selected() -> void:
 
 
 func duplicate_selected() -> void:
+	if _nodes_locked:
+		return
 	if _selected_item_ids.is_empty():
 		return
 	var dicts: Array = []
@@ -451,6 +494,8 @@ func duplicate_selected() -> void:
 
 
 func undo() -> void:
+	if _nodes_locked:
+		return
 	if not History.can_undo():
 		return
 	History.undo()
@@ -458,6 +503,8 @@ func undo() -> void:
 
 
 func redo() -> void:
+	if _nodes_locked:
+		return
 	if not History.can_redo():
 		return
 	History.redo()
@@ -465,6 +512,8 @@ func redo() -> void:
 
 
 func toggle_lock_for_selected() -> void:
+	if _nodes_locked:
+		return
 	for id: String in _selected_item_ids:
 		var node: BoardItem = find_item_node(id)
 		if node == null:
@@ -474,6 +523,8 @@ func toggle_lock_for_selected() -> void:
 
 
 func group_selected() -> bool:
+	if _nodes_locked:
+		return false
 	if _selected_item_ids.is_empty():
 		return false
 	var min_p: Vector2 = Vector2(INF, INF)
@@ -507,6 +558,8 @@ func group_selected() -> bool:
 
 
 func align_selected(op: String) -> void:
+	if _nodes_locked:
+		return
 	var movable: Array = []
 	var min_x: float = INF
 	var max_x: float = -INF
@@ -552,6 +605,8 @@ func align_selected(op: String) -> void:
 
 
 func distribute_selected(horizontal: bool) -> void:
+	if _nodes_locked:
+		return
 	var movable: Array = []
 	for id: String in _selected_item_ids:
 		var node: BoardItem = find_item_node(id)
@@ -594,6 +649,8 @@ func distribute_selected(horizontal: bool) -> void:
 
 
 func reorder_selected(direction: String) -> void:
+	if _nodes_locked:
+		return
 	if _selected_item_ids.is_empty():
 		return
 	var ids: Array = []
@@ -694,6 +751,8 @@ func focus_item(item_id: String) -> void:
 
 
 func set_property_for_item(item_id: String, key: String, value: Variant) -> void:
+	if _nodes_locked:
+		return
 	var node: BoardItem = find_item_node(item_id)
 	if node == null:
 		return
@@ -704,6 +763,8 @@ func set_property_for_item(item_id: String, key: String, value: Variant) -> void
 
 
 func update_connection_property(connection_id: String, key: String, value: Variant) -> void:
+	if _nodes_locked:
+		return
 	if not _connections_by_id.has(connection_id):
 		return
 	var c: Connection = _connections_by_id[connection_id]
@@ -834,7 +895,6 @@ func _rebuild_items() -> void:
 		_items_root.add_child(node)
 		node.position = _vector_of(entry, "position", Vector2.ZERO)
 		node.size = _vector_of(entry, "size", node.default_size())
-		node.read_only = true
 		_apply_mobile_item_flags(node)
 		_items_by_id[item_id] = node
 		_item_dicts_by_id[item_id] = entry.duplicate(true)
@@ -907,6 +967,13 @@ func _on_camera_long_press(world_pos: Vector2) -> void:
 	if _gesture_consumed:
 		_gesture_consumed = false
 		return
+	if _nodes_locked:
+		var hit_locked: BoardItem = _hit_test_item(world_pos)
+		if hit_locked == null:
+			empty_tapped.emit()
+			return
+		item_tapped.emit(hit_locked.item_id)
+		return
 	if _mode == MODE_VIEW:
 		var hit: BoardItem = _hit_test_item(world_pos)
 		if hit == null:
@@ -926,6 +993,11 @@ func _on_camera_double_tap(world_pos: Vector2) -> void:
 	if _gesture_consumed:
 		_gesture_consumed = false
 		return
+	if _nodes_locked:
+		var hit_locked: BoardItem = _hit_test_item(world_pos)
+		if hit_locked != null:
+			item_tapped.emit(hit_locked.item_id)
+		return
 	if _mode == MODE_PEN or _mode == MODE_ERASER:
 		return
 	if _mode == MODE_CONNECT:
@@ -940,6 +1012,13 @@ func _on_camera_double_tap(world_pos: Vector2) -> void:
 
 
 func _handle_tap_world(world_pos: Vector2) -> void:
+	if _nodes_locked:
+		var hit_locked: BoardItem = _hit_test_item(world_pos)
+		if hit_locked == null:
+			empty_tapped.emit()
+			return
+		item_tapped.emit(hit_locked.item_id)
+		return
 	match _mode:
 		MODE_VIEW:
 			var hit: BoardItem = _hit_test_item(world_pos)
@@ -1067,6 +1146,8 @@ func _begin_one_finger(screen_pos: Vector2) -> void:
 	_drag_item = null
 	_drag_resize = false
 	_drag_start_positions.clear()
+	_camera_pan_started = false
+	_camera_pan_last_screen = screen_pos
 	_long_press_screen = screen_pos
 	_long_press_world = _camera.screen_to_world(screen_pos)
 	_long_press_fired = false
@@ -1083,8 +1164,12 @@ func _continue_one_finger(screen_pos: Vector2) -> void:
 			return
 		if screen_pos.distance_to(_long_press_screen) < DRAG_THRESHOLD_PX:
 			return
-		if _try_start_drag(world_pos):
+		if _try_start_drag(_long_press_world):
 			_drag_started = true
+			_gesture_consumed = true
+			_long_press_timer.stop()
+		elif _can_pan_camera_for_current_gesture():
+			_camera_pan_started = true
 			_gesture_consumed = true
 			_long_press_timer.stop()
 		else:
@@ -1092,6 +1177,9 @@ func _continue_one_finger(screen_pos: Vector2) -> void:
 	if _drag_started:
 		_continue_drag(world_pos)
 		get_viewport().set_input_as_handled()
+		return
+	if _camera_pan_started:
+		_continue_camera_pan(screen_pos)
 
 
 func _end_one_finger(screen_pos: Vector2) -> void:
@@ -1101,6 +1189,9 @@ func _end_one_finger(screen_pos: Vector2) -> void:
 		_finish_drag(world_pos)
 		_drag_started = false
 		get_viewport().set_input_as_handled()
+		return
+	if _camera_pan_started:
+		_camera_pan_started = false
 		return
 	if _long_press_fired:
 		_long_press_fired = false
@@ -1114,6 +1205,7 @@ func _cancel_pending_one_finger_gesture() -> void:
 	if _drag_started:
 		_cancel_drag()
 		_drag_started = false
+	_camera_pan_started = false
 	_finish_active_annotation_stroke()
 
 
@@ -1125,6 +1217,13 @@ func _on_long_press_timeout() -> void:
 
 
 func _handle_long_press_world(world_pos: Vector2) -> void:
+	if _nodes_locked:
+		var hit_locked: BoardItem = _hit_test_item(world_pos)
+		if hit_locked != null:
+			item_tapped.emit(hit_locked.item_id)
+		else:
+			empty_tapped.emit()
+		return
 	match _mode:
 		MODE_VIEW:
 			var hit: BoardItem = _hit_test_item(world_pos)
@@ -1147,7 +1246,16 @@ func _handle_long_press_world(world_pos: Vector2) -> void:
 
 
 func _try_start_drag(world_pos: Vector2) -> bool:
+	if _nodes_locked:
+		return false
 	match _mode:
+		MODE_VIEW:
+			var hit_v: BoardItem = _hit_test_item(world_pos)
+			if hit_v == null or hit_v.locked:
+				return false
+			_view_drag_transient_id = hit_v.item_id
+			_selected_item_ids = [hit_v.item_id]
+			return _begin_move_drag(world_pos)
 		MODE_EDIT:
 			if _is_world_over_resize_handle(world_pos):
 				return _begin_resize_drag(world_pos)
@@ -1211,6 +1319,9 @@ func _cancel_drag() -> void:
 			node2.size = _drag_start_size
 			node2.position = _drag_start_pos
 		_drag_resize = false
+	if _view_drag_transient_id != "":
+		_view_drag_transient_id = ""
+		_selected_item_ids = []
 	_finish_active_annotation_stroke()
 	_refresh_overlay_state()
 
@@ -1270,6 +1381,9 @@ func _finish_move_drag(world_pos: Vector2) -> void:
 	if not entries.is_empty():
 		History.push_already_done(MoveItemsCommand.new(self, entries))
 		request_save()
+	if _view_drag_transient_id != "":
+		_view_drag_transient_id = ""
+		_selected_item_ids = []
 	_refresh_overlay_state()
 
 
@@ -1399,6 +1513,7 @@ func _set_selection(item_ids: Array[String]) -> void:
 			_selected_item_ids.append(id)
 	_selected_connection_id = ""
 	_refresh_selection_visuals()
+	_apply_mobile_edit_state()
 	selection_changed.emit(selected_item_ids())
 
 
@@ -1409,6 +1524,7 @@ func _toggle_selection(item_id: String) -> void:
 		_selected_item_ids.append(item_id)
 	_selected_connection_id = ""
 	_refresh_selection_visuals()
+	_apply_mobile_edit_state()
 	selection_changed.emit(selected_item_ids())
 
 
@@ -1433,14 +1549,34 @@ func _camera_pan_should_be_allowed(screen_pos: Vector2) -> bool:
 	return not _can_claim_gesture(screen_pos)
 
 
+func _can_pan_camera_for_current_gesture() -> bool:
+	if _nodes_locked:
+		return true
+	return _mode == MODE_VIEW or _mode == MODE_EDIT or _mode == MODE_CONNECT
+
+
+func _continue_camera_pan(screen_pos: Vector2) -> void:
+	var previous_world: Vector2 = _camera.screen_to_world(_camera_pan_last_screen)
+	var current_world: Vector2 = _camera.screen_to_world(screen_pos)
+	_camera_pan_last_screen = screen_pos
+	_camera.position += previous_world - current_world
+
+
 func _can_claim_gesture(screen_pos: Vector2) -> bool:
+	if _nodes_locked:
+		return false
 	var world_pos: Vector2 = _camera.screen_to_world(screen_pos)
 	match _mode:
+		MODE_VIEW:
+			var hit_v: BoardItem = _hit_test_item(world_pos)
+			if hit_v != null and not hit_v.locked:
+				return true
+			return false
 		MODE_EDIT:
 			if _is_world_over_resize_handle(world_pos):
 				return true
 			var hit: BoardItem = _hit_test_item(world_pos)
-			if hit != null and _selected_item_ids.has(hit.item_id) and not hit.locked:
+			if hit != null and not hit.locked:
 				return true
 			return false
 		MODE_PEN, MODE_ERASER:
@@ -1586,17 +1722,24 @@ func _refresh_item_snap_targets() -> void:
 
 
 func _apply_mobile_item_flags(node: BoardItem) -> void:
-	_disable_input_recursive(node)
-	call_deferred("_disable_input_recursive", node)
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.set_desktop_resize_grip_suppressed(true)
 
 
-func _disable_input_recursive(node: Node) -> void:
-	if not is_instance_valid(node):
-		return
-	if node is Control:
-		(node as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for child: Node in node.get_children():
-		_disable_input_recursive(child)
+func _apply_mobile_edit_state() -> void:
+	var allow_inline_edit: bool = _mode == MODE_EDIT and _selected_item_ids.size() == 1 and not _nodes_locked
+	var editable_id: String = _selected_item_ids[0] if allow_inline_edit else ""
+	for v in _items_by_id.values():
+		var node: BoardItem = v
+		if node == null:
+			continue
+		var should_edit: bool = node.item_id == editable_id and not node.locked
+		if should_edit:
+			if not node.is_editing():
+				node.begin_edit()
+		else:
+			if node.is_editing():
+				node.end_edit()
 
 
 func refresh_background() -> void:

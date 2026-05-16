@@ -281,7 +281,28 @@ func _apply_theme_to_popup(popup: PopupMenu, theme: Theme) -> void:
 		popup.remove_theme_font_override("font")
 	popup.add_theme_font_size_override("font_size", size)
 	popup.add_theme_font_size_override("font_separator_size", size)
+	var scaler: WindowDpiScaler = WindowDpiScaler.attach(popup)
+	if scaler != null:
+		scaler.refresh()
+	if not popup.has_meta(&"_theme_manager_about_to_show_bound"):
+		popup.set_meta(&"_theme_manager_about_to_show_bound", true)
+		popup.about_to_popup.connect(_on_popup_about_to_show.bind(popup))
 	popup.propagate_notification(Control.NOTIFICATION_THEME_CHANGED)
+	popup.reset_size()
+
+
+func _on_popup_about_to_show(popup: PopupMenu) -> void:
+	if popup == null:
+		return
+	var scaler_v: Variant = popup.get_meta(WindowDpiScaler.META_MARKER, null) if popup.has_meta(WindowDpiScaler.META_MARKER) else null
+	if scaler_v is WindowDpiScaler:
+		(scaler_v as WindowDpiScaler).refresh()
+	var font: Font = active_font()
+	var size: int = UserPrefs.font_size
+	if font != null:
+		popup.add_theme_font_override("font", font)
+	popup.add_theme_font_size_override("font_size", size)
+	popup.add_theme_font_size_override("font_separator_size", size)
 	popup.reset_size()
 
 

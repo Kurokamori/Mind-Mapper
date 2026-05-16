@@ -51,6 +51,7 @@ var keybindings: Dictionary = {}
 var _outliner_collapsed_by_project: Dictionary = {}
 var _panel_layouts: Dictionary = {}
 var _loaded: bool = false
+var _ui_zoom_explicit: bool = false
 
 
 func get_panel_layout(panel_id: String) -> Dictionary:
@@ -360,11 +361,17 @@ func set_font_size(value: int) -> void:
 
 func set_ui_zoom(value: float) -> void:
 	var clamped: float = clampf(value, UI_ZOOM_MIN, UI_ZOOM_MAX)
-	if is_equal_approx(ui_zoom, clamped):
+	var was_explicit: bool = _ui_zoom_explicit
+	if was_explicit and is_equal_approx(ui_zoom, clamped):
 		return
 	ui_zoom = clamped
+	_ui_zoom_explicit = true
 	_save()
 	emit_signal("ui_zoom_changed", ui_zoom)
+
+
+func has_explicit_ui_zoom() -> bool:
+	return _ui_zoom_explicit
 
 
 func set_keybinding(action_id: String, event: Variant) -> void:
@@ -463,6 +470,7 @@ func _load() -> void:
 	custom_font_mono_path = String(data.get("custom_font_mono_path", custom_font_mono_path))
 	font_size = int(data.get("font_size", font_size))
 	ui_zoom = clampf(float(data.get("ui_zoom", ui_zoom)), UI_ZOOM_MIN, UI_ZOOM_MAX)
+	_ui_zoom_explicit = data.has("ui_zoom")
 	var kb_raw: Variant = data.get("keybindings", {})
 	if typeof(kb_raw) == TYPE_DICTIONARY:
 		keybindings = (kb_raw as Dictionary).duplicate(true)

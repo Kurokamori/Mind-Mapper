@@ -3,16 +3,11 @@ extends PanelContainer
 
 signal crumb_selected(kind: String, target_id: String)
 
-const SEPARATOR_TEXT: String = " > "
+const SEPARATOR_TEXT: String = "›"
 const ROOT_LABEL: String = "All Projects"
 
 
 func _ready() -> void:
-	var sb: StyleBoxFlat = StyleBoxFlat.new()
-	sb.bg_color = Color(0.06, 0.07, 0.10, 0.85)
-	sb.set_corner_radius_all(6)
-	sb.set_content_margin_all(8.0)
-	add_theme_stylebox_override("panel", sb)
 	refresh()
 
 
@@ -24,12 +19,13 @@ func clear() -> void:
 func refresh() -> void:
 	clear()
 	var hbox: HBoxContainer = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 0)
+	hbox.add_theme_constant_override("separation", 4)
 	add_child(hbox)
 	var project: Project = AppState.current_project
 	if project == null:
 		var lbl: Label = Label.new()
 		lbl.text = ROOT_LABEL
+		lbl.theme_type_variation = &"BreadcrumbLabel"
 		hbox.add_child(lbl)
 		return
 	_append_project_crumb(hbox, project)
@@ -43,9 +39,8 @@ func refresh() -> void:
 func _append_project_crumb(hbox: HBoxContainer, project: Project) -> void:
 	var btn: Button = Button.new()
 	btn.text = project.name
-	btn.flat = true
-	btn.add_theme_font_size_override("font_size", 16)
-	btn.add_theme_color_override("font_color", Color(0.70, 0.80, 0.95))
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.theme_type_variation = &"BreadcrumbButton"
 	btn.pressed.connect(func() -> void:
 		if project.root_board_id != "":
 			crumb_selected.emit(AppState.PAGE_KIND_BOARD, project.root_board_id)
@@ -58,27 +53,31 @@ func _append_board_chain(hbox: HBoxContainer, project: Project, current: Board) 
 	for i: int in range(path.size()):
 		_append_separator(hbox)
 		var entry: Dictionary = path[i]
-		var btn: Button = Button.new()
-		btn.text = String(entry.get("name", "Board"))
-		btn.flat = true
-		btn.add_theme_font_size_override("font_size", 16)
 		var is_current: bool = i == path.size() - 1
-		btn.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0) if is_current else Color(0.70, 0.80, 0.95))
-		var target_id: String = String(entry.get("id", ""))
-		btn.pressed.connect(func() -> void: crumb_selected.emit(AppState.PAGE_KIND_BOARD, target_id))
-		hbox.add_child(btn)
+		if is_current:
+			var lbl: Label = Label.new()
+			lbl.text = String(entry.get("name", "Board"))
+			lbl.theme_type_variation = &"BreadcrumbLabel"
+			hbox.add_child(lbl)
+		else:
+			var btn: Button = Button.new()
+			btn.text = String(entry.get("name", "Board"))
+			btn.focus_mode = Control.FOCUS_NONE
+			btn.theme_type_variation = &"BreadcrumbButton"
+			var target_id: String = String(entry.get("id", ""))
+			btn.pressed.connect(func() -> void: crumb_selected.emit(AppState.PAGE_KIND_BOARD, target_id))
+			hbox.add_child(btn)
 
 
 func _append_map_crumb(hbox: HBoxContainer, page: MapPage) -> void:
 	var lbl: Label = Label.new()
 	lbl.text = page.name
-	lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	lbl.add_theme_font_size_override("font_size", 16)
+	lbl.theme_type_variation = &"BreadcrumbLabel"
 	hbox.add_child(lbl)
 
 
 func _append_separator(hbox: HBoxContainer) -> void:
 	var sep: Label = Label.new()
 	sep.text = SEPARATOR_TEXT
-	sep.add_theme_color_override("font_color", Color(0.50, 0.55, 0.65))
+	sep.theme_type_variation = &"MutedLabel"
 	hbox.add_child(sep)

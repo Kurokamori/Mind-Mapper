@@ -9,8 +9,11 @@
 [ext_resource type="PackedScene" uid="uid://b1mobilesheet" path="res://src/mobile/sheets/mobile_bottom_sheet.tscn" id="7_mapp_bs"]
 [ext_resource type="PackedScene" uid="uid://b1mobiletoast" path="res://src/mobile/mobile_toast_layer.tscn" id="8_mapp_tl"]
 [ext_resource type="PackedScene" path="res://src/mobile/viewer/mobile_zoom_overlay.tscn" id="9_mapp_zoom"]
+[ext_resource type="PackedScene" uid="uid://b1mobvmtog" path="res://src/mobile/viewer/mobile_view_mode_toggle.tscn" id="13_mapp_vmt"]
+[ext_resource type="PackedScene" uid="uid://b1mobnloct" path="res://src/mobile/viewer/mobile_nodes_lock_toggle.tscn" id="14_mapp_nlt"]
 [ext_resource type="Script" uid="uid://dt7vfcyl3pqki" path="res://src/mobile/viewer/mobile_viewport_background.gd" id="10_mapp_bgfit"]
 [ext_resource type="PackedScene" path="res://src/mobile/mobile_edit_action_bar.tscn" id="11_mapp_eab"]
+[ext_resource type="PackedScene" uid="uid://b1mobilesafearea" path="res://src/mobile/mobile_safe_area.tscn" id="12_mapp_safe"]
 
 [node name="MobileApp" type="Control" unique_id=1351488447]
 layout_mode = 3
@@ -121,6 +124,48 @@ layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 
+[node name="ViewModeToggleAnchor" type="Control" parent="CanvasLayer" unique_id=713150177]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -252.0
+offset_top = -72.0
+offset_right = -104.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="ViewModeToggle" parent="CanvasLayer/ViewModeToggleAnchor" unique_id=713150178 instance=ExtResource("13_mapp_vmt")]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="NodesLockToggleAnchor" type="Control" parent="CanvasLayer" unique_id=713150179]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -420.0
+offset_top = -72.0
+offset_right = -260.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="NodesLockToggle" parent="CanvasLayer/NodesLockToggleAnchor" unique_id=713150180 instance=ExtResource("14_mapp_nlt")]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
 [node name="EditActionBar" parent="CanvasLayer" unique_id=1190115102 instance=ExtResource("11_mapp_eab")]
 unique_name_in_owner = true
 anchors_preset = 12
@@ -140,3 +185,9 @@ anchors_preset = -1
 unique_name_in_owner = true
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="SafeAreaLayer" type="CanvasLayer" parent="." unique_id=1812044831]
+layer = 100
+
+[node name="SafeArea" parent="SafeAreaLayer" unique_id=1812044832 instance=ExtResource("12_mapp_safe")]
+unique_name_in_owner = true

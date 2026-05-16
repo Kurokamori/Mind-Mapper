@@ -21,7 +21,8 @@ const ACTION_FILE_TEMPLATES: String = "file_templates"
 const ACTION_FILE_TILESETS: String = "file_tilesets"
 const ACTION_FILE_IMPORT: String = "file_import"
 const ACTION_FILE_EXPORT: String = "file_export"
-const ACTION_FILE_SETTINGS: String = "file_settings"
+const ACTION_OPEN_THEME: String = "open_theme"
+const ACTION_OPEN_KEYBINDINGS: String = "open_keybindings"
 
 const GROUP_NONE: String = ""
 const GROUP_VIEW: String = "view"
@@ -39,7 +40,6 @@ const DRAW_TOOL_PICK: String = "pick"
 @onready var _boards_button: Button = %BoardsButton
 @onready var _maps_button: Button = %MapsButton
 @onready var _comments_button: Button = %CommentsButton
-@onready var _close_button: Button = %CloseToolbarButton
 @onready var _edit_button: Button = %EditButton
 @onready var _outliner_button: Button = %OutlinerButton
 @onready var _title_label: Label = %TitleLabel
@@ -52,6 +52,9 @@ const DRAW_TOOL_PICK: String = "pick"
 @onready var _view_group: HFlowContainer = %ViewGroup
 @onready var _draw_group: HFlowContainer = %DrawGroup
 @onready var _file_group: HFlowContainer = %FileGroup
+@onready var _view_margin: MarginContainer = %ViewMargin
+@onready var _draw_margin: MarginContainer = %DrawMargin
+@onready var _file_margin: MarginContainer = %FileMargin
 
 @onready var _draw_pen_button: Button = %DrawPenButton
 @onready var _draw_eraser_button: Button = %DrawEraserButton
@@ -63,7 +66,10 @@ const DRAW_TOOL_PICK: String = "pick"
 @onready var _tilesets_button: Button = %TilesetsButton
 @onready var _import_button: Button = %ImportButton
 @onready var _export_button: Button = %ExportButton
-@onready var _settings_button: Button = %SettingsButton
+@onready var _settings_menu_button: MenuButton = %SettingsMenuButton
+
+const SETTINGS_THEME_ID: int = 0
+const SETTINGS_KEYBINDINGS_ID: int = 1
 
 var _active_groups: Dictionary = {}
 var _active_draw_tool: String = DRAW_TOOL_NONE
@@ -77,7 +83,6 @@ func _ready() -> void:
 	_maps_button.pressed.connect(func() -> void: action_requested.emit(ACTION_TOGGLE_MAPS, null))
 	_comments_button.pressed.connect(func() -> void: action_requested.emit(ACTION_TOGGLE_COMMENTS, null))
 	_outliner_button.pressed.connect(func() -> void: action_requested.emit(ACTION_TOGGLE_OUTLINER, null))
-	_close_button.pressed.connect(func() -> void: action_requested.emit(ACTION_CLOSE_TOOLBAR, null))
 	_edit_button.pressed.connect(func() -> void: action_requested.emit(ACTION_TOGGLE_EDIT, null))
 
 	_view_group_button.toggled.connect(func(p: bool) -> void: _on_group_toggled(GROUP_VIEW, p))
@@ -99,9 +104,26 @@ func _ready() -> void:
 	_tilesets_button.pressed.connect(func() -> void: action_requested.emit(ACTION_FILE_TILESETS, null))
 	_import_button.pressed.connect(func() -> void: action_requested.emit(ACTION_FILE_IMPORT, null))
 	_export_button.pressed.connect(func() -> void: action_requested.emit(ACTION_FILE_EXPORT, null))
-	_settings_button.pressed.connect(func() -> void: action_requested.emit(ACTION_FILE_SETTINGS, null))
+	_setup_settings_menu()
 
 	_apply_active_group()
+
+
+func _setup_settings_menu() -> void:
+	var popup: PopupMenu = _settings_menu_button.get_popup()
+	popup.clear()
+	popup.add_item("Theme & Fonts", SETTINGS_THEME_ID)
+	popup.add_item("Keybindings", SETTINGS_KEYBINDINGS_ID)
+	if not popup.id_pressed.is_connected(_on_settings_menu_id_pressed):
+		popup.id_pressed.connect(_on_settings_menu_id_pressed)
+
+
+func _on_settings_menu_id_pressed(id: int) -> void:
+	match id:
+		SETTINGS_THEME_ID:
+			action_requested.emit(ACTION_OPEN_THEME, null)
+		SETTINGS_KEYBINDINGS_ID:
+			action_requested.emit(ACTION_OPEN_KEYBINDINGS, null)
 
 
 func set_edit_state(in_edit_mode: bool) -> void:
@@ -161,14 +183,14 @@ func _on_group_toggled(group: String, pressed: bool) -> void:
 
 func _apply_active_group() -> void:
 	var groups: Dictionary = {
-		GROUP_VIEW: [_view_group, _view_group_button],
-		GROUP_DRAW: [_draw_group, _draw_group_button],
-		GROUP_FILE: [_file_group, _file_group_button],
+		GROUP_VIEW: [_view_margin, _view_group_button],
+		GROUP_DRAW: [_draw_margin, _draw_group_button],
+		GROUP_FILE: [_file_margin, _file_group_button],
 	}
 	for key_v: Variant in groups.keys():
 		var key: String = key_v
 		var entry: Array = groups[key_v]
-		var container: HFlowContainer = entry[0]
+		var container: MarginContainer = entry[0]
 		var btn: Button = entry[1]
 		var is_active: bool = _active_groups.has(key)
 		if container != null:

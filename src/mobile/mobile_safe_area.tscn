@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://syhtnlagciki"]
+
+[ext_resource type="Script" path="res://src/mobile/mobile_safe_area.gd" id="1_safearea_script"]
+
+[node name="MobileSafeArea" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1_safearea_script")
+
+[node name="TopBand" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+mouse_filter = 2
+color = Color(0.11, 0.105, 0.135, 1)
+
+[node name="BottomBand" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.11, 0.105, 0.135, 1)
+
+[node name="LeftBand" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.11, 0.105, 0.135, 1)
+
+[node name="RightBand" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.11, 0.105, 0.135, 1)

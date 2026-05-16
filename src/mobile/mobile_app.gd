@@ -5,6 +5,14 @@ const VIEW_PICKER: String = "picker"
 const VIEW_BOARD: String = "board"
 const VIEW_MAP: String = "map"
 
+const BASE_VIEWPORT_SIZE: Vector2 = Vector2(1280.0, 800.0)
+const PORTRAIT_CONTENT_SCALE: float = BASE_VIEWPORT_SIZE.x / BASE_VIEWPORT_SIZE.y
+const LANDSCAPE_CONTENT_SCALE: float = 1.0
+const MOBILE_DEFAULT_UI_ZOOM: float = 1.5
+
+const THEME_DIALOG_SCENE: PackedScene = preload("res://src/editor/dialogs/theme_dialog.tscn")
+const KEYBINDINGS_DIALOG_SCENE: PackedScene = preload("res://src/editor/dialogs/keybindings_dialog.tscn")
+
 @onready var _content_stack: Control = %ContentStack
 @onready var _project_picker: MobileProjectPicker = %ProjectPicker
 @onready var _board_view: MobileBoardView = %BoardView
@@ -15,10 +23,42 @@ const VIEW_MAP: String = "map"
 @onready var _toast_layer: MobileToastLayer = %ToastLayer
 @onready var _breadcrumb: MobileBreadcrumbBar = %Breadcrumb
 @onready var _zoom_overlay: MobileZoomOverlay = %ZoomOverlay
+@onready var _view_mode_toggle: MobileViewModeToggle = %ViewModeToggle
+@onready var _nodes_lock_toggle: MobileNodesLockToggle = %NodesLockToggle
 @onready var _edit_action_bar: MobileEditActionBar = %EditActionBar
+@onready var _safe_area: MobileSafeArea = %SafeArea
+@onready var _top_bar: VBoxContainer = $CanvasLayer/TopBar
+@onready var _handle_anchor: Control = $CanvasLayer/HandleAnchor
+@onready var _zoom_overlay_anchor: Control = $CanvasLayer/ZoomOverlayAnchor
+@onready var _view_mode_toggle_anchor: Control = $CanvasLayer/ViewModeToggleAnchor
+@onready var _nodes_lock_toggle_anchor: Control = $CanvasLayer/NodesLockToggleAnchor
+
+const TOP_BAR_BASE_OFFSET: float = 8.0
+const HANDLE_BASE_TOP: float = 8.0
+const HANDLE_BASE_WIDTH: float = 64.0
+const HANDLE_BASE_RIGHT_MARGIN: float = 8.0
+const ZOOM_BASE_RIGHT_MARGIN: float = 16.0
+const ZOOM_BASE_BOTTOM_MARGIN: float = 16.0
+const ZOOM_BASE_WIDTH: float = 72.0
+const ZOOM_BASE_HEIGHT: float = 244.0
+const EDIT_BAR_BASE_HEIGHT: float = 148.0
+const VIEW_TOGGLE_BASE_WIDTH: float = 148.0
+const VIEW_TOGGLE_BASE_HEIGHT: float = 56.0
+const VIEW_TOGGLE_GAP_TO_ZOOM: float = 8.0
+const NODES_LOCK_BASE_WIDTH: float = 168.0
+const NODES_LOCK_BASE_HEIGHT: float = 56.0
+const NODES_LOCK_GAP_TO_VIEW_TOGGLE: float = 8.0
+const BOTTOM_OVERLAY_EDIT_GAP: float = 8.0
+const PICKER_BASE_MARGIN_TOP: float = 45.0
+const PICKER_BASE_MARGIN_SIDE: float = 15.0
+const PICKER_BASE_MARGIN_BOTTOM: float = 15.0
 
 var _active_view: String = VIEW_PICKER
 var _project: Project = null
+var _safe_inset_top: float = 0.0
+var _safe_inset_right: float = 0.0
+var _safe_inset_bottom: float = 0.0
+var _safe_inset_left: float = 0.0
 
 
 func _ready() -> void:
@@ -47,6 +87,13 @@ func _ready() -> void:
 	_zoom_overlay.zoom_out_requested.connect(_on_zoom_out_requested)
 	_zoom_overlay.fit_requested.connect(_on_zoom_fit_requested)
 	_zoom_overlay.visible = false
+	_view_mode_toggle.toggle_requested.connect(_on_view_mode_toggle_requested)
+	_view_mode_toggle.set_edit_active(false)
+	_view_mode_toggle_anchor.visible = false
+	_nodes_lock_toggle.toggle_requested.connect(_on_nodes_lock_toggle_requested)
+	_nodes_lock_toggle.set_locked(_board_view.nodes_locked())
+	_nodes_lock_toggle_anchor.visible = false
+	_board_view.nodes_lock_changed.connect(_on_board_nodes_lock_changed)
 	_edit_action_bar.action_requested.connect(_on_edit_action)
 	_edit_action_bar.annotation_color_picked.connect(_on_annotation_color_picked)
 	_edit_action_bar.annotation_width_picked.connect(_on_annotation_width_picked)
@@ -61,6 +108,112 @@ func _ready() -> void:
 	_toolbar.visible = false
 	_toolbar_handle.visible = false
 	_edit_action_bar.visible = false
+	get_viewport().size_changed.connect(_apply_orientation_scale)
+	if UserPrefs != null:
+		if not UserPrefs.has_explicit_ui_zoom():
+			UserPrefs.ui_zoom = MOBILE_DEFAULT_UI_ZOOM
+		if not UserPrefs.ui_zoom_changed.is_connected(_on_user_ui_zoom_changed):
+			UserPrefs.ui_zoom_changed.connect(_on_user_ui_zoom_changed)
+	_apply_orientation_scale()
+	get_tree().root.gui_embed_subwindows = true
+	_safe_area.insets_changed.connect(_on_safe_area_insets_changed)
+	_safe_area.force_refresh()
+
+
+func _apply_orientation_scale() -> void:
+	var root_window: Window = get_tree().root
+	if root_window == null:
+		return
+	var window_size: Vector2i = root_window.size
+	if window_size.x <= 0 or window_size.y <= 0:
+		return
+	var is_portrait: bool = window_size.y > window_size.x
+	var base_factor: float = PORTRAIT_CONTENT_SCALE if is_portrait else LANDSCAPE_CONTENT_SCALE
+	var target_factor: float = base_factor * _effective_ui_zoom()
+	if not is_equal_approx(root_window.content_scale_factor, target_factor):
+		root_window.content_scale_factor = target_factor
+
+
+func _effective_ui_zoom() -> float:
+	if UserPrefs == null:
+		return MOBILE_DEFAULT_UI_ZOOM
+	var z: float = UserPrefs.ui_zoom
+	if z <= 0.0:
+		return MOBILE_DEFAULT_UI_ZOOM
+	return z
+
+
+func _on_user_ui_zoom_changed(_value: float) -> void:
+	_apply_orientation_scale()
+
+
+func _on_safe_area_insets_changed(top: float, right: float, bottom: float, left: float) -> void:
+	if _top_bar != null:
+		_top_bar.offset_left = TOP_BAR_BASE_OFFSET + left
+		_top_bar.offset_right = -TOP_BAR_BASE_OFFSET - right
+		_top_bar.offset_top = TOP_BAR_BASE_OFFSET + top
+	if _handle_anchor != null:
+		_handle_anchor.offset_top = HANDLE_BASE_TOP + top
+		_handle_anchor.offset_right = -HANDLE_BASE_RIGHT_MARGIN - right
+		_handle_anchor.offset_left = _handle_anchor.offset_right - HANDLE_BASE_WIDTH
+		_handle_anchor.offset_bottom = _handle_anchor.offset_top + 56.0
+	_safe_inset_top = top
+	_safe_inset_right = right
+	_safe_inset_bottom = bottom
+	_safe_inset_left = left
+	_apply_bottom_overlay_layout()
+	if _edit_action_bar != null:
+		_edit_action_bar.offset_top = -EDIT_BAR_BASE_HEIGHT - bottom
+		_edit_action_bar.offset_left = left
+		_edit_action_bar.offset_right = -right
+		_edit_action_bar.offset_bottom = -bottom
+	_apply_picker_insets(top, right, bottom, left)
+	_apply_bottom_sheet_insets(right, bottom, left)
+
+
+func _apply_bottom_overlay_layout() -> void:
+	var edit_visible: bool = _edit_action_bar != null and _edit_action_bar.visible
+	var bottom_clearance: float = ZOOM_BASE_BOTTOM_MARGIN + _safe_inset_bottom
+	if edit_visible:
+		bottom_clearance = EDIT_BAR_BASE_HEIGHT + _safe_inset_bottom + BOTTOM_OVERLAY_EDIT_GAP
+	if _zoom_overlay_anchor != null:
+		_zoom_overlay_anchor.offset_right = -ZOOM_BASE_RIGHT_MARGIN - _safe_inset_right
+		_zoom_overlay_anchor.offset_left = _zoom_overlay_anchor.offset_right - ZOOM_BASE_WIDTH - 16.0
+		_zoom_overlay_anchor.offset_bottom = -bottom_clearance
+		_zoom_overlay_anchor.offset_top = _zoom_overlay_anchor.offset_bottom - ZOOM_BASE_HEIGHT
+	if _view_mode_toggle_anchor != null and _zoom_overlay_anchor != null:
+		_view_mode_toggle_anchor.offset_right = _zoom_overlay_anchor.offset_left - VIEW_TOGGLE_GAP_TO_ZOOM
+		_view_mode_toggle_anchor.offset_left = _view_mode_toggle_anchor.offset_right - VIEW_TOGGLE_BASE_WIDTH
+		_view_mode_toggle_anchor.offset_bottom = -bottom_clearance
+		_view_mode_toggle_anchor.offset_top = _view_mode_toggle_anchor.offset_bottom - VIEW_TOGGLE_BASE_HEIGHT
+	if _nodes_lock_toggle_anchor != null and _view_mode_toggle_anchor != null:
+		_nodes_lock_toggle_anchor.offset_right = _view_mode_toggle_anchor.offset_left - NODES_LOCK_GAP_TO_VIEW_TOGGLE
+		_nodes_lock_toggle_anchor.offset_left = _nodes_lock_toggle_anchor.offset_right - NODES_LOCK_BASE_WIDTH
+		_nodes_lock_toggle_anchor.offset_bottom = -bottom_clearance
+		_nodes_lock_toggle_anchor.offset_top = _nodes_lock_toggle_anchor.offset_bottom - NODES_LOCK_BASE_HEIGHT
+
+
+func _apply_bottom_sheet_insets(right: float, bottom: float, left: float) -> void:
+	if _bottom_sheet == null:
+		return
+	var content_root: MarginContainer = _bottom_sheet.get_node_or_null("LayoutColumn/ContentRoot") as MarginContainer
+	if content_root == null:
+		return
+	content_root.add_theme_constant_override("margin_left", int(8.0 + left))
+	content_root.add_theme_constant_override("margin_right", int(8.0 + right))
+	content_root.add_theme_constant_override("margin_bottom", int(8.0 + bottom))
+
+
+func _apply_picker_insets(top: float, right: float, bottom: float, left: float) -> void:
+	if _project_picker == null:
+		return
+	var margin: MarginContainer = _project_picker.get_node_or_null("MarginContainer") as MarginContainer
+	if margin == null:
+		return
+	margin.add_theme_constant_override("margin_top", int(PICKER_BASE_MARGIN_TOP + top))
+	margin.add_theme_constant_override("margin_left", int(PICKER_BASE_MARGIN_SIDE + left))
+	margin.add_theme_constant_override("margin_right", int(PICKER_BASE_MARGIN_SIDE + right))
+	margin.add_theme_constant_override("margin_bottom", int(PICKER_BASE_MARGIN_BOTTOM + bottom))
 
 
 func _on_picker_project_opened(project: Project, source: String, remote_label: String) -> void:
@@ -162,8 +315,22 @@ func _on_toolbar_action(action: String, payload: Variant = null) -> void:
 			_show_toast("info", "Import — use desktop")
 		MobileToolbar.ACTION_FILE_EXPORT:
 			_show_toast("info", "Export — use desktop")
-		MobileToolbar.ACTION_FILE_SETTINGS:
-			_show_toast("info", "Settings — open theme dialog from desktop for now")
+		MobileToolbar.ACTION_OPEN_THEME:
+			_open_theme_dialog()
+		MobileToolbar.ACTION_OPEN_KEYBINDINGS:
+			_open_keybindings_dialog()
+
+
+func _open_theme_dialog() -> void:
+	var dlg: Window = THEME_DIALOG_SCENE.instantiate()
+	add_child(dlg)
+	dlg.popup_centered_ratio(1.0)
+
+
+func _open_keybindings_dialog() -> void:
+	var dlg: Window = KEYBINDINGS_DIALOG_SCENE.instantiate()
+	add_child(dlg)
+	dlg.popup_centered_ratio(1.0)
 
 
 func _on_toolbar_draw_tool(mode: String, enable: bool) -> void:
@@ -252,7 +419,28 @@ func _on_board_mode_changed(mode: String) -> void:
 	_edit_action_bar.set_mode(mode)
 	_edit_action_bar.visible = mode != MobileBoardView.MODE_VIEW
 	_toolbar.set_draw_tool(_draw_tool_for_mode(mode))
+	_view_mode_toggle.set_edit_active(mode != MobileBoardView.MODE_VIEW)
+	_apply_bottom_overlay_layout()
 	_sync_selection_state()
+
+
+func _on_view_mode_toggle_requested() -> void:
+	_toggle_edit_mode()
+
+
+func _on_nodes_lock_toggle_requested() -> void:
+	if _board_view == null:
+		return
+	_board_view.set_nodes_locked(not _board_view.nodes_locked())
+
+
+func _on_board_nodes_lock_changed(locked: bool) -> void:
+	if _nodes_lock_toggle != null:
+		_nodes_lock_toggle.set_locked(locked)
+	if locked:
+		_show_toast("info", "Nodes locked — interactions only")
+	else:
+		_show_toast("info", "Nodes unlocked")
 
 
 func _draw_tool_for_mode(mode: String) -> String:
@@ -425,9 +613,12 @@ func _show_view(name: String) -> void:
 	_board_view.visible = name == VIEW_BOARD
 	_map_view.visible = name == VIEW_MAP
 	_zoom_overlay.visible = name == VIEW_BOARD or name == VIEW_MAP
+	_view_mode_toggle_anchor.visible = name == VIEW_BOARD
+	_nodes_lock_toggle_anchor.visible = name == VIEW_BOARD
 	_toolbar.set_edit_button_visible(name == VIEW_BOARD)
 	if name != VIEW_BOARD:
 		_edit_action_bar.visible = false
+	_apply_bottom_overlay_layout()
 	_apply_active_camera_current()
 
 

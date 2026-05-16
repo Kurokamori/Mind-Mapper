@@ -101,6 +101,7 @@ var _envelope_pass_running: bool = false
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_PASS
+	add_to_group(EditorLocator.GROUP_ACTIVE_BOARD_EDITOR)
 	_camera.make_current()
 	_toolbar.action_requested.connect(_on_toolbar_action)
 	if _top_bar != null:
@@ -1248,6 +1249,8 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			_toggle_comments_panel(bool(payload))
 		EditorToolbar.ACTION_TOGGLE_CHAT:
 			_toggle_chat_panel(bool(payload))
+		EditorToolbar.ACTION_OPEN_TODOS:
+			_open_open_todos_board()
 		EditorToolbar.ACTION_UNDO:
 			History.undo()
 		EditorToolbar.ACTION_REDO:
@@ -1636,8 +1639,6 @@ func _handle_settings(action: String) -> void:
 			_open_keybindings_dialog()
 		EditorToolbar.SETTINGS_ACTION_SNAPSHOTS:
 			_open_snapshots_dialog()
-		EditorToolbar.SETTINGS_ACTION_OPEN_TODOS:
-			_open_open_todos_board()
 
 
 func _open_theme_dialog() -> void:

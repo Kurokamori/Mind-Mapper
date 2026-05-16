@@ -1,234 +1,342 @@
-[gd_scene load_steps=2 format=3 uid="uid://b1mobilettlbr"]
+[gd_scene format=3 uid="uid://b1mobilettlbr"]
 
-[ext_resource type="Script" path="res://src/mobile/mobile_toolbar.gd" id="1_mt_script"]
+[ext_resource type="Script" uid="uid://dd5hvpp7h0dnc" path="res://src/mobile/mobile_toolbar.gd" id="1_mt_script"]
+[ext_resource type="PackedScene" path="res://src/util/automatic_buttons/automatic_menu_button.tscn" id="2_mt_ambtn"]
+[ext_resource type="Texture2D" uid="uid://dy00uw1lpectl" path="res://assets/ui/icons/settings.png" id="3_mt_settings_icon"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="4_mt_effect"]
 
-[node name="MobileToolbar" type="PanelContainer"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xd13j"]
+
+[sub_resource type="Resource" id="Resource_mt_normal"]
+script = ExtResource("4_mt_effect")
+
+[sub_resource type="Resource" id="Resource_mt_hover"]
+script = ExtResource("4_mt_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_mt_pressed"]
+script = ExtResource("4_mt_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_mt_disabled"]
+script = ExtResource("4_mt_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_mt_focused"]
+script = ExtResource("4_mt_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[node name="MobileToolbar" type="PanelContainer" unique_id=705487109]
 anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
 theme_type_variation = &"MobileToolbarPanel"
 script = ExtResource("1_mt_script")
 
-[node name="Layout" type="VBoxContainer" parent="."]
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1771445099]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PrimaryRow" type="HBoxContainer" parent="Layout"]
+[node name="ChromeMargins" type="MarginContainer" parent="Layout" unique_id=1563914384]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+
+[node name="ChromeRow" type="HBoxContainer" parent="Layout/ChromeMargins" unique_id=162638017]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="BackButton" type="Button" parent="Layout/PrimaryRow"]
+[node name="BackButton" type="Button" parent="Layout/ChromeMargins/ChromeRow" unique_id=798003893]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(56, 56)
 layout_mode = 2
+tooltip_text = "Back"
 theme_type_variation = &"MobileButton"
 text = "‹"
-tooltip_text = "Back"
 
-[node name="ProjectsButton" type="Button" parent="Layout/PrimaryRow"]
+[node name="ProjectsButton" type="Button" parent="Layout/ChromeMargins/ChromeRow" unique_id=1830137073]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Home"
 
-[node name="LabelsCol" type="VBoxContainer" parent="Layout/PrimaryRow"]
+[node name="LabelsCol" type="VBoxContainer" parent="Layout/ChromeMargins/ChromeRow" unique_id=1998987328]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
+alignment = 1
 
-[node name="TitleLabel" type="Label" parent="Layout/PrimaryRow/LabelsCol"]
+[node name="TitleLabel" type="Label" parent="Layout/ChromeMargins/ChromeRow/LabelsCol" unique_id=700698319]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"ToolbarTitleLabel"
 text = "Project"
+clip_text = true
 text_overrun_behavior = 3
 
-[node name="SubtitleLabel" type="Label" parent="Layout/PrimaryRow/LabelsCol"]
+[node name="SubtitleLabel" type="Label" parent="Layout/ChromeMargins/ChromeRow/LabelsCol" unique_id=25408466]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "Local"
+clip_text = true
 text_overrun_behavior = 3
 
-[node name="FrameButton" type="Button" parent="Layout/PrimaryRow"]
+[node name="SettingsMenuButton" parent="Layout/ChromeMargins/ChromeRow" unique_id=961942866 instance=ExtResource("2_mt_ambtn")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Settings"
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_disabled_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_normal_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_disabled_color = Color(0, 0, 0, 0)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_xd13j")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_xd13j")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_xd13j")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_xd13j")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_xd13j")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_xd13j")
+texture = ExtResource("3_mt_settings_icon")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_mt_normal")
+effect_hover = SubResource("Resource_mt_hover")
+effect_pressed = SubResource("Resource_mt_pressed")
+effect_disabled = SubResource("Resource_mt_disabled")
+effect_focused = SubResource("Resource_mt_focused")
+
+[node name="Control" type="Control" parent="Layout/ChromeMargins/ChromeRow" unique_id=1788020815]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Layout" unique_id=1253571975]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ActionsRow" type="HFlowContainer" parent="Layout/MarginContainer" unique_id=1277279179]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="FrameButton" type="Button" parent="Layout/MarginContainer/ActionsRow" unique_id=1061307487]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Fit"
 
-[node name="ViewGroupButton" type="Button" parent="Layout/PrimaryRow"]
+[node name="ViewGroupButton" type="Button" parent="Layout/MarginContainer/ActionsRow" unique_id=1549156266]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 56)
 layout_mode = 2
-toggle_mode = true
 theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
 text = "View"
 
-[node name="DrawGroupButton" type="Button" parent="Layout/PrimaryRow"]
+[node name="DrawGroupButton" type="Button" parent="Layout/MarginContainer/ActionsRow" unique_id=1605893592]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 56)
 layout_mode = 2
-toggle_mode = true
 theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
 text = "Draw"
 
-[node name="FileGroupButton" type="Button" parent="Layout/PrimaryRow"]
+[node name="FileGroupButton" type="Button" parent="Layout/MarginContainer/ActionsRow" unique_id=43277589]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 56)
 layout_mode = 2
-toggle_mode = true
 theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
 text = "File"
 
-[node name="EditButton" type="Button" parent="Layout/PrimaryRow"]
+[node name="EditButton" type="Button" parent="Layout/MarginContainer/ActionsRow" unique_id=599545486]
 unique_name_in_owner = true
-toggle_mode = true
 custom_minimum_size = Vector2(72, 56)
 layout_mode = 2
 theme_type_variation = &"MobilePrimaryButton"
+toggle_mode = true
 text = "Edit"
 
-[node name="CloseToolbarButton" type="Button" parent="Layout/PrimaryRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(56, 56)
-layout_mode = 2
-theme_type_variation = &"MobileButton"
-text = "✕"
-
-[node name="ExpansionPanel" type="PanelContainer" parent="Layout"]
+[node name="ExpansionPanel" type="PanelContainer" parent="Layout" unique_id=1439331627]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 theme_type_variation = &"MobileChromePanel"
 
-[node name="ExpansionStack" type="VBoxContainer" parent="Layout/ExpansionPanel"]
+[node name="ExpansionStack" type="VBoxContainer" parent="Layout/ExpansionPanel" unique_id=114745503]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="ViewGroup" type="HFlowContainer" parent="Layout/ExpansionPanel/ExpansionStack"]
+[node name="ViewMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=1930038714]
 unique_name_in_owner = true
 visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ViewGroup" type="HFlowContainer" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin" unique_id=1930038713]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="BoardsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewGroup"]
+[node name="BoardsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=291356722]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Boards"
 
-[node name="MapsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewGroup"]
+[node name="MapsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=836259332]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(80, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Maps"
 
-[node name="OutlinerButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewGroup"]
+[node name="OutlinerButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=1551152745]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Outline"
 
-[node name="CommentsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewGroup"]
+[node name="CommentsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=868464291]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(112, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Comments"
 
-[node name="DrawGroup" type="HFlowContainer" parent="Layout/ExpansionPanel/ExpansionStack"]
+[node name="DrawMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=981422621]
 unique_name_in_owner = true
 visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="DrawGroup" type="HFlowContainer" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin" unique_id=981422620]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="DrawPenButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawGroup"]
+[node name="DrawPenButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=1087192845]
 unique_name_in_owner = true
-toggle_mode = true
 custom_minimum_size = Vector2(80, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
+toggle_mode = true
 text = "Pen"
 
-[node name="DrawEraserButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawGroup"]
+[node name="DrawEraserButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=69054896]
 unique_name_in_owner = true
-toggle_mode = true
 custom_minimum_size = Vector2(96, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
+toggle_mode = true
 text = "Eraser"
 
-[node name="DrawPickButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawGroup"]
+[node name="DrawPickButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=708802833]
 unique_name_in_owner = true
-toggle_mode = true
 custom_minimum_size = Vector2(80, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
+toggle_mode = true
 text = "Pick"
 
-[node name="DrawColorButton" type="ColorPickerButton" parent="Layout/ExpansionPanel/ExpansionStack/DrawGroup"]
+[node name="DrawColorButton" type="ColorPickerButton" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=14822422]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 56)
 layout_mode = 2
 edit_alpha = false
 
-[node name="DrawWidthSlider" type="HSlider" parent="Layout/ExpansionPanel/ExpansionStack/DrawGroup"]
+[node name="DrawWidthSlider" type="HSlider" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=1093422692]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
 
-[node name="FileGroup" type="HFlowContainer" parent="Layout/ExpansionPanel/ExpansionStack"]
+[node name="FileMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=55325552]
 unique_name_in_owner = true
 visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="FileGroup" type="HFlowContainer" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin" unique_id=55325551]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="TemplatesButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileGroup"]
+[node name="TemplatesButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=1768759958]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(112, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Templates"
 
-[node name="TilesetsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileGroup"]
+[node name="TilesetsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=1425379975]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(160, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Maps & Tilesets"
 
-[node name="ImportButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileGroup"]
+[node name="ImportButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=1313878636]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Import"
 
-[node name="ExportButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileGroup"]
+[node name="ExportButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=872817778]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 56)
 layout_mode = 2
 theme_type_variation = &"MobileButton"
 text = "Export"
-
-[node name="SettingsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileGroup"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(112, 56)
-layout_mode = 2
-theme_type_variation = &"MobileButton"
-text = "Settings"
