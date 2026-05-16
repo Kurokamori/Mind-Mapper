@@ -4,84 +4,123 @@
 
 [node name="PrimitiveInspector" type="VBoxContainer"]
 script = ExtResource("1_pi")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Primitive"
 
-[node name="ShapeRow" type="HBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="ShapeLabel" type="Label" parent="ShapeRow"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ShapeRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ShapeLabel" type="Label" parent="Surface/Body/ShapeRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Shape"
 
-[node name="ShapeOption" type="OptionButton" parent="ShapeRow"]
+[node name="ShapeOption" type="OptionButton" parent="Surface/Body/ShapeRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="FillCheck" type="CheckBox" parent="."]
+[node name="FillSectionLabel" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "FILL"
+
+[node name="FillCheck" type="CheckBox" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Filled"
 button_pressed = true
 
-[node name="FillRow" type="HBoxContainer" parent="."]
+[node name="FillRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="FillLabel" type="Label" parent="FillRow"]
+[node name="FillLabel" type="Label" parent="Surface/Body/FillRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Fill color"
 
-[node name="FillPicker" type="ColorPickerButton" parent="FillRow"]
+[node name="FillPicker" type="ColorPickerButton" parent="Surface/Body/FillRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="OutlineRow" type="HBoxContainer" parent="."]
+[node name="OutlineSectionLabel" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "OUTLINE"
 
-[node name="OutlineLabel" type="Label" parent="OutlineRow"]
+[node name="OutlineRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="OutlineLabel" type="Label" parent="Surface/Body/OutlineRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Outline color"
+theme_type_variation = &"InspectorFieldLabel"
+text = "Color"
 
-[node name="OutlinePicker" type="ColorPickerButton" parent="OutlineRow"]
+[node name="OutlinePicker" type="ColorPickerButton" parent="Surface/Body/OutlineRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="OutlineWidthRow" type="HBoxContainer" parent="."]
+[node name="OutlineWidthRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="OutlineWidthLabel" type="Label" parent="OutlineWidthRow"]
+[node name="OutlineWidthLabel" type="Label" parent="Surface/Body/OutlineWidthRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Outline width"
+theme_type_variation = &"InspectorFieldLabel"
+text = "Width"
 
-[node name="OutlineWidthSpin" type="SpinBox" parent="OutlineWidthRow"]
+[node name="OutlineWidthSpin" type="SpinBox" parent="Surface/Body/OutlineWidthRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 32.0
 step = 0.5
 value = 2.0
+suffix = "px"
 
-[node name="CornerRow" type="HBoxContainer" parent="."]
+[node name="CornerRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="CornerLabel" type="Label" parent="CornerRow"]
+[node name="CornerLabel" type="Label" parent="Surface/Body/CornerRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Corner radius"
 
-[node name="CornerRadiusSpin" type="SpinBox" parent="CornerRow"]
+[node name="CornerRadiusSpin" type="SpinBox" parent="Surface/Body/CornerRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 64.0
 step = 1.0
 value = 12.0
+suffix = "px"

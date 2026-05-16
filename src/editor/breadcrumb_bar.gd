@@ -8,21 +8,10 @@ extends PanelContainer
 
 
 func _ready() -> void:
-	ThemeManager.theme_applied.connect(_apply_translucent_panel)
-	_apply_translucent_panel()
 	_back_button.pressed.connect(_on_back_pressed)
 	_root_button.pressed.connect(_on_root_pressed)
 	AppState.navigation_changed.connect(_refresh)
 	_refresh()
-
-
-func _apply_translucent_panel() -> void:
-	ThemeManager.apply_translucent_panel(self)
-	var sb: StyleBox = get_theme_stylebox("panel")
-	if sb is StyleBoxFlat:
-		var flat: StyleBoxFlat = sb as StyleBoxFlat
-		flat.content_margin_top = 0.0
-		flat.content_margin_bottom = 0.0
 
 
 func _refresh() -> void:
@@ -60,12 +49,13 @@ func _refresh() -> void:
 		else:
 			var btn := Button.new()
 			btn.text = String(entry.get("name", ""))
-			btn.flat = true
 			btn.focus_mode = Control.FOCUS_NONE
+			btn.theme_type_variation = &"BreadcrumbButton"
 			btn.pressed.connect(_on_segment_pressed.bind(String(entry.get("id", ""))))
 			_segments.add_child(btn)
 			var sep := Label.new()
 			sep.text = "›"
+			sep.theme_type_variation = &"MutedLabel"
 			_segments.add_child(sep)
 
 

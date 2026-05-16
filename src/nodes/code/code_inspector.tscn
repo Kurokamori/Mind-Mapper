@@ -4,47 +4,70 @@
 
 [node name="CodeInspector" type="VBoxContainer"]
 script = ExtResource("1_codei")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Code"
 
-[node name="LanguageRow" type="HBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="LanguageLabel" type="Label" parent="LanguageRow"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LanguageRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LanguageLabel" type="Label" parent="Surface/Body/LanguageRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Language"
 
-[node name="LanguageOption" type="OptionButton" parent="LanguageRow"]
+[node name="LanguageOption" type="OptionButton" parent="Surface/Body/LanguageRow"]
 unique_name_in_owner = true
-layout_mode = 2
-
-[node name="FontSizeRow" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+
+[node name="FontSizeRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FontSizeLabel" type="Label" parent="Surface/Body/FontSizeRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Font size"
 
-[node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
+[node name="FontSizeSpin" type="SpinBox" parent="Surface/Body/FontSizeRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 8.0
 max_value = 48.0
 value = 13.0
 
-[node name="CodeSection" type="VBoxContainer" parent="."]
+[node name="CodeSection" type="VBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 4
 
-[node name="CodeLabel" type="Label" parent="CodeSection"]
+[node name="CodeLabel" type="Label" parent="Surface/Body/CodeSection"]
 layout_mode = 2
-text = "Code"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "SOURCE"
 
-[node name="CodeEdit" type="CodeEdit" parent="CodeSection"]
+[node name="CodeEditPanel" type="PanelContainer" parent="Surface/Body/CodeSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorTextAreaPanel"
+
+[node name="CodeEdit" type="CodeEdit" parent="Surface/Body/CodeSection/CodeEditPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 220)
 layout_mode = 2

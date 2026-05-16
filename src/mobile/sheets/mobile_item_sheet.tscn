@@ -1,0 +1,76 @@
+[gd_scene format=3 uid="uid://diuc0wkole2lr"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_item_sheet.gd" id="1_mis_script"]
+
+[node name="MobileItemSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_mis_script")
+
+[node name="ItemTabs" type="TabContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="OverviewTab" type="ScrollContainer" parent="ItemTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="OverviewRoot" type="VBoxContainer" parent="ItemTabs/OverviewTab"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="TodoTab" type="Control" parent="ItemTabs"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="TodoRoot" type="MarginContainer" parent="ItemTabs/TodoTab"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="CommentsTab" type="Control" parent="ItemTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CommentsRoot" type="MarginContainer" parent="ItemTabs/CommentsTab"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="BacklinksTab" type="Control" parent="ItemTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BacklinksRoot" type="MarginContainer" parent="ItemTabs/BacklinksTab"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4

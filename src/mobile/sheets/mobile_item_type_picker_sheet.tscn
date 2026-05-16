@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://b1mobtypepck"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_item_type_picker_sheet.gd" id="1_mitp_script"]
+
+[node name="MobileItemTypePickerSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_mitp_script")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_scroll_mode = 0
+
+[node name="TypeGrid" type="GridContainer" parent="Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8

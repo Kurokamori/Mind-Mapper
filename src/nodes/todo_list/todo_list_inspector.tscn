@@ -4,129 +4,180 @@
 
 [node name="TodoListInspector" type="VBoxContainer"]
 script = ExtResource("1_tli")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Todo List"
 
-[node name="TitleSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="TitleLabel" type="Label" parent="TitleSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Title"
+theme_override_constants/separation = 8
 
-[node name="TitleEdit" type="LineEdit" parent="TitleSection"]
+[node name="TitleSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Surface/Body/TitleSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TITLE"
+
+[node name="TitleEdit" type="LineEdit" parent="Surface/Body/TitleSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="BgRow" type="HBoxContainer" parent="."]
+[node name="ContainerHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "CONTAINER COLORS"
 
-[node name="BgLabel" type="Label" parent="BgRow"]
+[node name="BgRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BgLabel" type="Label" parent="Surface/Body/BgRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Background"
 
-[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+[node name="BgPicker" type="ColorPickerButton" parent="Surface/Body/BgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="AccentRow" type="HBoxContainer" parent="."]
+[node name="AccentRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="AccentLabel" type="Label" parent="AccentRow"]
+[node name="AccentLabel" type="Label" parent="Surface/Body/AccentRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Header color"
 
-[node name="AccentPicker" type="ColorPickerButton" parent="AccentRow"]
+[node name="AccentPicker" type="ColorPickerButton" parent="Surface/Body/AccentRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="HeaderFgRow" type="HBoxContainer" parent="."]
+[node name="HeaderFgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="HeaderFgLabel" type="Label" parent="HeaderFgRow"]
+[node name="HeaderFgLabel" type="Label" parent="Surface/Body/HeaderFgRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Header text"
 
-[node name="HeaderFgPicker" type="ColorPickerButton" parent="HeaderFgRow"]
+[node name="HeaderFgPicker" type="ColorPickerButton" parent="Surface/Body/HeaderFgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="CardBgRow" type="HBoxContainer" parent="."]
+[node name="CardHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TASK CARD COLORS"
 
-[node name="CardBgLabel" type="Label" parent="CardBgRow"]
+[node name="CardBgRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CardBgLabel" type="Label" parent="Surface/Body/CardBgRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Card background"
 
-[node name="CardBgPicker" type="ColorPickerButton" parent="CardBgRow"]
+[node name="CardBgPicker" type="ColorPickerButton" parent="Surface/Body/CardBgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="CardFgRow" type="HBoxContainer" parent="."]
+[node name="CardFgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="CardFgLabel" type="Label" parent="CardFgRow"]
+[node name="CardFgLabel" type="Label" parent="Surface/Body/CardFgRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Card text"
 
-[node name="CardFgPicker" type="ColorPickerButton" parent="CardFgRow"]
+[node name="CardFgPicker" type="ColorPickerButton" parent="Surface/Body/CardFgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="CompletedBgRow" type="HBoxContainer" parent="."]
+[node name="CompletedBgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="CompletedBgLabel" type="Label" parent="CompletedBgRow"]
+[node name="CompletedBgLabel" type="Label" parent="Surface/Body/CompletedBgRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Completed background"
 
-[node name="CompletedBgPicker" type="ColorPickerButton" parent="CompletedBgRow"]
+[node name="CompletedBgPicker" type="ColorPickerButton" parent="Surface/Body/CompletedBgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="CompletedFgRow" type="HBoxContainer" parent="."]
+[node name="CompletedFgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="CompletedFgLabel" type="Label" parent="CompletedFgRow"]
+[node name="CompletedFgLabel" type="Label" parent="Surface/Body/CompletedFgRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Completed text"
 
-[node name="CompletedFgPicker" type="ColorPickerButton" parent="CompletedFgRow"]
+[node name="CompletedFgPicker" type="ColorPickerButton" parent="Surface/Body/CompletedFgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="CountLabel" type="Label" parent="."]
-unique_name_in_owner = true
+[node name="ActionsHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "ACTIONS"
 
-[node name="ClearCompletedButton" type="Button" parent="."]
+[node name="CountLabel" type="Label" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorValueLabel"
+
+[node name="ClearCompletedButton" type="Button" parent="Surface/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"GhostButton"
 text = "Clear completed"
 
-[node name="CompletedToBottomButton" type="Button" parent="."]
+[node name="CompletedToBottomButton" type="Button" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Completed to bottom"
+theme_type_variation = &"GhostButton"
+text = "Send completed to bottom"
 
-[node name="PlainTextEditButton" type="Button" parent="."]
+[node name="PlainTextEditButton" type="Button" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Edit as plain text..."
+theme_type_variation = &"GhostButton"
+text = "Edit as plain text…"

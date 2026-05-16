@@ -314,10 +314,6 @@ func _update_custom_section_visibility() -> void:
 		_custom_palette_section.visible = show_app_palette or show_node_palette
 	if _imported_section != null:
 		_imported_section.visible = is_imported
-	if show_app_palette or show_node_palette:
-		self.size.x = 750
-	else:
-		self.size.x = 425
 
 
 func _on_imported_browse() -> void:

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="FontPreset" format=3 uid="uid://dwsu5wm4xnhev"]
+
+[ext_resource type="FontFile" uid="uid://fsqcj32xmlmy" path="res://assets/fonts/atkinson_hyperlegible/AtkinsonHyperlegibleNext-Bold.ttf" id="1_u2hlt"]
+[ext_resource type="FontFile" uid="uid://clvqyl1k6st01" path="res://assets/fonts/atkinson_hyperlegible/AtkinsonHyperlegibleNext-BoldItalic.ttf" id="2_uy2dg"]
+[ext_resource type="FontFile" uid="uid://c4usjggrr3015" path="res://assets/fonts/atkinson_hyperlegible/AtkinsonHyperlegibleNext-Regular.ttf" id="3_38lvp"]
+[ext_resource type="FontFile" uid="uid://cvjoyywte0q2n" path="res://assets/fonts/atkinson_hyperlegible/AtkinsonHyperlegibleNext-Italic.ttf" id="4_unv4e"]
+[ext_resource type="FontFile" uid="uid://byse6e3klvgay" path="res://assets/fonts/atkinson_hyperlegible/AtkinsonHyperlegibleMono-Regular.ttf" id="5_bck1q"]
+[ext_resource type="Script" uid="uid://cb6i42qiqocak" path="res://src/resources/font_preset.gd" id="6_nhe3t"]
+
+[resource]
+script = ExtResource("6_nhe3t")
+id = "atkinson"
+display_name = "Atkinson Hyperlegible Next"
+font = ExtResource("3_38lvp")
+bold_font = ExtResource("1_u2hlt")
+italic_font = ExtResource("4_unv4e")
+bold_italic_font = ExtResource("2_uy2dg")
+mono_font = ExtResource("5_bck1q")
+metadata/_custom_type_script = "uid://cb6i42qiqocak"

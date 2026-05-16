@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://b1mobilemap"]
+
+[ext_resource type="Script" path="res://src/mobile/viewer/mobile_map_view.gd" id="1_mmv_script"]
+[ext_resource type="Script" path="res://src/mobile/viewer/mobile_camera_controller.gd" id="2_mmv_cam"]
+
+[node name="MobileMapView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("1_mmv_script")
+
+[node name="BackgroundCanvas" type="CanvasLayer" parent="."]
+layer = -50
+
+[node name="MapBackground" type="ColorRect" parent="BackgroundCanvas"]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.08, 0.08, 0.10, 1)
+
+[node name="World" type="Node2D" parent="."]
+unique_name_in_owner = true
+
+[node name="Camera" type="Camera2D" parent="World"]
+unique_name_in_owner = true
+script = ExtResource("2_mmv_cam")
+
+[node name="LayersRoot" type="Node2D" parent="World"]
+unique_name_in_owner = true
+
+[node name="ObjectsRoot" type="Control" parent="World"]
+unique_name_in_owner = true
+mouse_filter = 2
+anchors_preset = 0

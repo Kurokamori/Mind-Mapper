@@ -1,0 +1,142 @@
+[gd_scene format=3 uid="uid://b1mobileapp"]
+
+[ext_resource type="Script" uid="uid://dsxkvd4mu4iik" path="res://src/mobile/mobile_app.gd" id="1_mapp_script"]
+[ext_resource type="PackedScene" uid="uid://cnj8nqlw1bf1b" path="res://src/mobile/picker/mobile_project_picker.tscn" id="2_mapp_pick"]
+[ext_resource type="PackedScene" uid="uid://b1mobileboard" path="res://src/mobile/viewer/mobile_board_view.tscn" id="3_mapp_bv"]
+[ext_resource type="PackedScene" uid="uid://b1mobilemap" path="res://src/mobile/viewer/mobile_map_view.tscn" id="4_mapp_mv"]
+[ext_resource type="PackedScene" uid="uid://b1mobilettlbr" path="res://src/mobile/mobile_toolbar.tscn" id="5_mapp_tb"]
+[ext_resource type="PackedScene" uid="uid://b1mobilebcb" path="res://src/mobile/mobile_breadcrumb_bar.tscn" id="6_mapp_bcb"]
+[ext_resource type="PackedScene" uid="uid://b1mobilesheet" path="res://src/mobile/sheets/mobile_bottom_sheet.tscn" id="7_mapp_bs"]
+[ext_resource type="PackedScene" uid="uid://b1mobiletoast" path="res://src/mobile/mobile_toast_layer.tscn" id="8_mapp_tl"]
+[ext_resource type="PackedScene" path="res://src/mobile/viewer/mobile_zoom_overlay.tscn" id="9_mapp_zoom"]
+[ext_resource type="Script" uid="uid://dt7vfcyl3pqki" path="res://src/mobile/viewer/mobile_viewport_background.gd" id="10_mapp_bgfit"]
+[ext_resource type="PackedScene" path="res://src/mobile/mobile_edit_action_bar.tscn" id="11_mapp_eab"]
+
+[node name="MobileApp" type="Control" unique_id=1351488447]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_mapp_script")
+
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=740071383]
+layer = -100
+
+[node name="OpaqueBackground" type="ColorRect" parent="BackgroundLayer" unique_id=388706009]
+unique_name_in_owner = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.05, 0.06, 0.09, 1)
+script = ExtResource("10_mapp_bgfit")
+
+[node name="ContentStack" type="Control" parent="." unique_id=362098869]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ProjectPicker" parent="ContentStack" unique_id=1274849244 instance=ExtResource("2_mapp_pick")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="BoardView" parent="ContentStack" unique_id=248427194 instance=ExtResource("3_mapp_bv")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="MapView" parent="ContentStack" unique_id=221121051 instance=ExtResource("4_mapp_mv")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1440153356]
+
+[node name="TopBar" type="VBoxContainer" parent="CanvasLayer" unique_id=1523247453]
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 260.0
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Toolbar" parent="CanvasLayer/TopBar" unique_id=33860108 instance=ExtResource("5_mapp_tb")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Breadcrumb" parent="CanvasLayer/TopBar" unique_id=370855970 instance=ExtResource("6_mapp_bcb")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HandleAnchor" type="Control" parent="CanvasLayer" unique_id=2079375609]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -72.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = 64.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="ToolbarHandle" type="Button" parent="CanvasLayer/HandleAnchor" unique_id=1391011107]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 56)
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+text = "≡"
+
+[node name="ZoomOverlayAnchor" type="Control" parent="CanvasLayer" unique_id=713150176]
+layout_mode = 3
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -88.0
+offset_top = -260.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="ZoomOverlay" parent="CanvasLayer/ZoomOverlayAnchor" unique_id=1638373708 instance=ExtResource("9_mapp_zoom")]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="EditActionBar" parent="CanvasLayer" unique_id=1190115102 instance=ExtResource("11_mapp_eab")]
+unique_name_in_owner = true
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -148.0
+grow_horizontal = 2
+grow_vertical = 0
+visible = false
+
+[node name="BottomSheet" parent="CanvasLayer" unique_id=1190115101 instance=ExtResource("7_mapp_bs")]
+unique_name_in_owner = true
+anchors_preset = -1
+
+[node name="ToastLayer" parent="CanvasLayer" unique_id=343564020 instance=ExtResource("8_mapp_tl")]
+unique_name_in_owner = true
+grow_horizontal = 2
+grow_vertical = 2

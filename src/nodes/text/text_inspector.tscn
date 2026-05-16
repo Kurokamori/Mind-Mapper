@@ -4,79 +4,106 @@
 
 [node name="TextInspector" type="VBoxContainer"]
 script = ExtResource("1_txi")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Text"
 
-[node name="TextSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="TextLabel" type="Label" parent="TextSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Text"
+theme_override_constants/separation = 8
 
-[node name="TextEdit" type="TextEdit" parent="TextSection"]
+[node name="TextSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TextLabel" type="Label" parent="Surface/Body/TextSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "CONTENT"
+
+[node name="TextEditPanel" type="PanelContainer" parent="Surface/Body/TextSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorTextAreaPanel"
+
+[node name="TextEdit" type="TextEdit" parent="Surface/Body/TextSection/TextEditPanel"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 wrap_mode = 1
 
-[node name="FontSizeRow" type="HBoxContainer" parent="."]
+[node name="FontSizeRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
+[node name="FontSizeLabel" type="Label" parent="Surface/Body/FontSizeRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Font size"
 
-[node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
+[node name="FontSizeSpin" type="SpinBox" parent="Surface/Body/FontSizeRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 6.0
 max_value = 96.0
 value = 18.0
 
-[node name="BgRow" type="HBoxContainer" parent="."]
+[node name="BgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="BgLabel" type="Label" parent="BgRow"]
+[node name="BgLabel" type="Label" parent="Surface/Body/BgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Background"
 
-[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+[node name="BgPicker" type="ColorPickerButton" parent="Surface/Body/BgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="FgRow" type="HBoxContainer" parent="."]
+[node name="FgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="FgLabel" type="Label" parent="FgRow"]
+[node name="FgLabel" type="Label" parent="Surface/Body/FgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Text color"
 
-[node name="FgPicker" type="ColorPickerButton" parent="FgRow"]
+[node name="FgPicker" type="ColorPickerButton" parent="Surface/Body/FgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="AutoFitLabel" type="Label" parent="."]
+[node name="AutoFitLabel" type="Label" parent="Surface/Body"]
 layout_mode = 2
-text = "Auto-fit to content"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "AUTO-FIT TO CONTENT"
 
-[node name="AutoFitRow" type="HBoxContainer" parent="."]
+[node name="AutoFitRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 12
 
-[node name="AutoWidthCheck" type="CheckBox" parent="AutoFitRow"]
+[node name="AutoWidthCheck" type="CheckBox" parent="Surface/Body/AutoFitRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Width"
 
-[node name="AutoHeightCheck" type="CheckBox" parent="AutoFitRow"]
+[node name="AutoHeightCheck" type="CheckBox" parent="Surface/Body/AutoFitRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Height"

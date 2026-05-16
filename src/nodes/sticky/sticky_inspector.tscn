@@ -4,78 +4,99 @@
 
 [node name="StickyInspector" type="VBoxContainer"]
 script = ExtResource("1_sti")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
-text = "Sticky"
+theme_type_variation = &"InspectorTitleLabel"
+text = "Sticky Note"
 
-[node name="TextSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="TextLabel" type="Label" parent="TextSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Text"
+theme_override_constants/separation = 8
 
-[node name="TextEdit" type="TextEdit" parent="TextSection"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 120)
-layout_mode = 2
-wrap_mode = 1
-
-[node name="ColorSection" type="VBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="ColorLabel" type="Label" parent="ColorSection"]
-layout_mode = 2
-text = "Color"
-
-[node name="ColorRow" type="HBoxContainer" parent="ColorSection"]
-unique_name_in_owner = true
+[node name="TextSection" type="VBoxContainer" parent="Surface/Body"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Color0" type="Button" parent="ColorSection/ColorRow"]
+[node name="TextLabel" type="Label" parent="Surface/Body/TextSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "NOTE"
+
+[node name="TextEditPanel" type="PanelContainer" parent="Surface/Body/TextSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorTextAreaPanel"
+
+[node name="TextEdit" type="TextEdit" parent="Surface/Body/TextSection/TextEditPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(0, 130)
 layout_mode = 2
+wrap_mode = 1
 
-[node name="Color1" type="Button" parent="ColorSection/ColorRow"]
+[node name="ColorSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ColorLabel" type="Label" parent="Surface/Body/ColorSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "COLOR"
+
+[node name="ColorRow" type="HBoxContainer" parent="Surface/Body/ColorSection"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="Color2" type="Button" parent="ColorSection/ColorRow"]
+[node name="Color0" type="Button" parent="Surface/Body/ColorSection/ColorRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 
-[node name="Color3" type="Button" parent="ColorSection/ColorRow"]
+[node name="Color1" type="Button" parent="Surface/Body/ColorSection/ColorRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 
-[node name="Color4" type="Button" parent="ColorSection/ColorRow"]
+[node name="Color2" type="Button" parent="Surface/Body/ColorSection/ColorRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 
-[node name="Color5" type="Button" parent="ColorSection/ColorRow"]
+[node name="Color3" type="Button" parent="Surface/Body/ColorSection/ColorRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(28, 28)
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 
-[node name="FontSizeRow" type="HBoxContainer" parent="."]
+[node name="Color4" type="Button" parent="Surface/Body/ColorSection/ColorRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 
-[node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
+[node name="Color5" type="Button" parent="Surface/Body/ColorSection/ColorRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+
+[node name="FontSizeRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FontSizeLabel" type="Label" parent="Surface/Body/FontSizeRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Font size"
 
-[node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
+[node name="FontSizeSpin" type="SpinBox" parent="Surface/Body/FontSizeRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 8.0
 max_value = 96.0
 value = 16.0

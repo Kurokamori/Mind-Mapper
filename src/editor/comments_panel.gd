@@ -35,9 +35,6 @@ func _ready() -> void:
 	_scope_button.add_item("All comments on board", SCOPE_ALL)
 	_scope_button.add_item("On selected item only", SCOPE_SELECTED_ITEM)
 	_scope_button.item_selected.connect(_on_scope_changed)
-	if Engine.has_singleton("ThemeManager") or _has_theme_manager():
-		ThemeManager.theme_applied.connect(_apply_translucent_panel)
-		_apply_translucent_panel()
 	if Engine.has_singleton("SelectionBus") or _has_selection_bus():
 		SelectionBus.selection_changed.connect(_on_selection_changed)
 
@@ -50,11 +47,6 @@ func _has_theme_manager() -> bool:
 func _has_selection_bus() -> bool:
 	var root: Node = get_tree().root if get_tree() != null else null
 	return root != null and root.has_node("SelectionBus")
-
-
-func _apply_translucent_panel() -> void:
-	if Engine.has_singleton("ThemeManager") or _has_theme_manager():
-		ThemeManager.apply_translucent_panel(self)
 
 
 func bind_editor(editor: Node) -> void:

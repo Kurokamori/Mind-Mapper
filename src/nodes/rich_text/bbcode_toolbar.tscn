@@ -1,116 +1,118 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://u5oati23jbqd"]
 
-[ext_resource type="Script" path="res://src/nodes/rich_text/bbcode_toolbar.gd" id="1_bbtb"]
+[ext_resource type="Script" uid="uid://b0qe37c6801cl" path="res://src/nodes/rich_text/bbcode_toolbar.gd" id="1_bbtb"]
 
-[node name="BBCodeToolbar" type="HFlowContainer"]
-script = ExtResource("1_bbtb")
+[node name="BBCodeToolbar" type="HFlowContainer" unique_id=1651366431]
+offset_right = 337.0
+offset_bottom = 64.0
 theme_override_constants/h_separation = 2
 theme_override_constants/v_separation = 2
+script = ExtResource("1_bbtb")
 
-[node name="BoldButton" type="Button" parent="."]
+[node name="BoldButton" type="Button" parent="." unique_id=39100560]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Bold — wraps selection in [b][/b]"
+focus_mode = 0
 text = "B"
 
-[node name="ItalicButton" type="Button" parent="."]
+[node name="ItalicButton" type="Button" parent="." unique_id=376344499]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Italic — wraps selection in [i][/i]"
+focus_mode = 0
 text = "I"
 
-[node name="UnderlineButton" type="Button" parent="."]
+[node name="UnderlineButton" type="Button" parent="." unique_id=2032892274]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Underline — wraps selection in [u][/u]"
+focus_mode = 0
 text = "U"
 
-[node name="StrikeButton" type="Button" parent="."]
+[node name="StrikeButton" type="Button" parent="." unique_id=1557309527]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Strikethrough — wraps selection in [s][/s]"
+focus_mode = 0
 text = "S"
 
-[node name="CodeButton" type="Button" parent="."]
+[node name="CodeButton" type="Button" parent="." unique_id=236397562]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Code — wraps selection in [code][/code]"
+focus_mode = 0
 text = "</>"
 
-[node name="Sep1" type="VSeparator" parent="."]
+[node name="Sep1" type="VSeparator" parent="." unique_id=1461409475]
 layout_mode = 2
 
-[node name="H1Button" type="Button" parent="."]
+[node name="H1Button" type="Button" parent="." unique_id=1387284088]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Heading 1 (font_size=28)"
+focus_mode = 0
 text = "H1"
 
-[node name="H2Button" type="Button" parent="."]
+[node name="H2Button" type="Button" parent="." unique_id=867843266]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Heading 2 (font_size=22)"
+focus_mode = 0
 text = "H2"
 
-[node name="H3Button" type="Button" parent="."]
+[node name="H3Button" type="Button" parent="." unique_id=342505821]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Heading 3 (font_size=18)"
+focus_mode = 0
 text = "H3"
 
-[node name="Sep2" type="VSeparator" parent="."]
+[node name="Sep2" type="VSeparator" parent="." unique_id=1225421081]
 layout_mode = 2
 
-[node name="ListButton" type="Button" parent="."]
+[node name="ListButton" type="Button" parent="." unique_id=699777869]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Bulleted list — wraps each line of the selection in [ul][/ul]"
+focus_mode = 0
 text = "• List"
 
-[node name="LinkButton" type="Button" parent="."]
+[node name="LinkButton" type="Button" parent="." unique_id=1716419764]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Link — wraps selection in [url][/url]"
+focus_mode = 0
 text = "🔗"
 
-[node name="InternalLinkButton" type="Button" parent="."]
+[node name="InternalLinkButton" type="Button" parent="." unique_id=1979888361]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Internal link to a board or item (uses LinkPicker)"
+focus_mode = 0
 text = "🧭"
 
-[node name="Sep3" type="VSeparator" parent="."]
+[node name="Sep3" type="VSeparator" parent="." unique_id=1411262544]
 layout_mode = 2
 
-[node name="ColorPicker" type="ColorPickerButton" parent="."]
+[node name="ColorPicker" type="ColorPickerButton" parent="." unique_id=307480408]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(48, 0)
 layout_mode = 2
 focus_mode = 0
 color = Color(0.45, 0.78, 1, 1)
 
-[node name="ColorApplyButton" type="Button" parent="."]
+[node name="ColorApplyButton" type="Button" parent="." unique_id=1694335391]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Apply color to selection"
+focus_mode = 0
 text = "Apply"
 
-[node name="Sep4" type="VSeparator" parent="."]
+[node name="Sep4" type="VSeparator" parent="." unique_id=1927282555]
 layout_mode = 2
 
-[node name="SizeSpin" type="SpinBox" parent="."]
+[node name="SizeSpin" type="SpinBox" parent="." unique_id=202292043]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 0)
 layout_mode = 2
@@ -118,19 +120,19 @@ min_value = 6.0
 max_value = 96.0
 value = 18.0
 
-[node name="SizeApplyButton" type="Button" parent="."]
+[node name="SizeApplyButton" type="Button" parent="." unique_id=877509417]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Apply font size to selection"
+focus_mode = 0
 text = "Aa"
 
-[node name="Sep5" type="VSeparator" parent="."]
+[node name="Sep5" type="VSeparator" parent="." unique_id=1083872835]
 layout_mode = 2
 
-[node name="ClearButton" type="Button" parent="."]
+[node name="ClearButton" type="Button" parent="." unique_id=1337448431]
 unique_name_in_owner = true
 layout_mode = 2
-focus_mode = 0
 tooltip_text = "Strip BBCode tags from selection"
+focus_mode = 0
 text = "Clear"

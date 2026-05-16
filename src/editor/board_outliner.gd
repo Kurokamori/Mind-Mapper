@@ -34,8 +34,6 @@ var _rebuild_pending: bool = false
 
 func _ready() -> void:
 	super._ready()
-	ThemeManager.theme_applied.connect(_apply_translucent_panel)
-	_apply_translucent_panel()
 	_tree.item_selected.connect(_on_item_selected)
 	_tree.item_edited.connect(_on_item_edited)
 	_tree.item_mouse_selected.connect(_on_item_mouse_selected)
@@ -614,7 +612,3 @@ func _broadcast_delete_board(board_id: String) -> void:
 	OpBus.record_local_change(OpKinds.DELETE_BOARD, {
 		"board_id": board_id,
 	}, "")
-
-
-func _apply_translucent_panel() -> void:
-	ThemeManager.apply_translucent_panel(self)

@@ -5,56 +5,72 @@
 [node name="TimerInspector" type="VBoxContainer"]
 custom_minimum_size = Vector2(280, 0)
 script = ExtResource("1_ti")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Timer"
 
-[node name="LabelSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="LabelText" type="Label" parent="LabelSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Label"
+theme_override_constants/separation = 8
 
-[node name="LabelEdit" type="LineEdit" parent="LabelSection"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="ModeSection" type="VBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="ModeLabel" type="Label" parent="ModeSection"]
-layout_mode = 2
-text = "Mode"
-
-[node name="ModeSelect" type="OptionButton" parent="ModeSection"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="DurationPanel" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
+[node name="LabelSection" type="VBoxContainer" parent="Surface/Body"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="DurationLabel" type="Label" parent="DurationPanel"]
+[node name="LabelText" type="Label" parent="Surface/Body/LabelSection"]
 layout_mode = 2
-text = "Initial duration"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "LABEL"
 
-[node name="DurationRow1" type="HBoxContainer" parent="DurationPanel"]
+[node name="LabelEdit" type="LineEdit" parent="Surface/Body/LabelSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ModeSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ModeLabel" type="Label" parent="Surface/Body/ModeSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "MODE"
+
+[node name="ModeSelect" type="OptionButton" parent="Surface/Body/ModeSection"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="DurationPanel" type="VBoxContainer" parent="Surface/Body"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="YearsVBox" type="VBoxContainer" parent="DurationPanel/DurationRow1"]
+[node name="DurationLabel" type="Label" parent="Surface/Body/DurationPanel"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "INITIAL DURATION"
+
+[node name="DurationRow1" type="HBoxContainer" parent="Surface/Body/DurationPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="YearsVBox" type="VBoxContainer" parent="Surface/Body/DurationPanel/DurationRow1"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="YearsLabel" type="Label" parent="DurationPanel/DurationRow1/YearsVBox"]
+[node name="YearsLabel" type="Label" parent="Surface/Body/DurationPanel/DurationRow1/YearsVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Years"
 
-[node name="YearsSpin" type="SpinBox" parent="DurationPanel/DurationRow1/YearsVBox"]
+[node name="YearsSpin" type="SpinBox" parent="Surface/Body/DurationPanel/DurationRow1/YearsVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -62,15 +78,17 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 9999.0
 
-[node name="WeeksVBox" type="VBoxContainer" parent="DurationPanel/DurationRow1"]
+[node name="WeeksVBox" type="VBoxContainer" parent="Surface/Body/DurationPanel/DurationRow1"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="WeeksLabel" type="Label" parent="DurationPanel/DurationRow1/WeeksVBox"]
+[node name="WeeksLabel" type="Label" parent="Surface/Body/DurationPanel/DurationRow1/WeeksVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Weeks"
 
-[node name="WeeksSpin" type="SpinBox" parent="DurationPanel/DurationRow1/WeeksVBox"]
+[node name="WeeksSpin" type="SpinBox" parent="Surface/Body/DurationPanel/DurationRow1/WeeksVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -78,15 +96,17 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 9999.0
 
-[node name="DaysVBox" type="VBoxContainer" parent="DurationPanel/DurationRow1"]
+[node name="DaysVBox" type="VBoxContainer" parent="Surface/Body/DurationPanel/DurationRow1"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="DaysLabel" type="Label" parent="DurationPanel/DurationRow1/DaysVBox"]
+[node name="DaysLabel" type="Label" parent="Surface/Body/DurationPanel/DurationRow1/DaysVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Days"
 
-[node name="DaysSpin" type="SpinBox" parent="DurationPanel/DurationRow1/DaysVBox"]
+[node name="DaysSpin" type="SpinBox" parent="Surface/Body/DurationPanel/DurationRow1/DaysVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -94,19 +114,21 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 9999.0
 
-[node name="DurationRow2" type="HBoxContainer" parent="DurationPanel"]
+[node name="DurationRow2" type="HBoxContainer" parent="Surface/Body/DurationPanel"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="HoursVBox" type="VBoxContainer" parent="DurationPanel/DurationRow2"]
+[node name="HoursVBox" type="VBoxContainer" parent="Surface/Body/DurationPanel/DurationRow2"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="HoursLabel" type="Label" parent="DurationPanel/DurationRow2/HoursVBox"]
+[node name="HoursLabel" type="Label" parent="Surface/Body/DurationPanel/DurationRow2/HoursVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Hours"
 
-[node name="HoursSpin" type="SpinBox" parent="DurationPanel/DurationRow2/HoursVBox"]
+[node name="HoursSpin" type="SpinBox" parent="Surface/Body/DurationPanel/DurationRow2/HoursVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -114,15 +136,17 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 9999.0
 
-[node name="MinutesVBox" type="VBoxContainer" parent="DurationPanel/DurationRow2"]
+[node name="MinutesVBox" type="VBoxContainer" parent="Surface/Body/DurationPanel/DurationRow2"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="MinutesLabel" type="Label" parent="DurationPanel/DurationRow2/MinutesVBox"]
+[node name="MinutesLabel" type="Label" parent="Surface/Body/DurationPanel/DurationRow2/MinutesVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Minutes"
 
-[node name="MinutesSpin" type="SpinBox" parent="DurationPanel/DurationRow2/MinutesVBox"]
+[node name="MinutesSpin" type="SpinBox" parent="Surface/Body/DurationPanel/DurationRow2/MinutesVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -130,15 +154,17 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 9999.0
 
-[node name="SecondsVBox" type="VBoxContainer" parent="DurationPanel/DurationRow2"]
+[node name="SecondsVBox" type="VBoxContainer" parent="Surface/Body/DurationPanel/DurationRow2"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="SecondsLabel" type="Label" parent="DurationPanel/DurationRow2/SecondsVBox"]
+[node name="SecondsLabel" type="Label" parent="Surface/Body/DurationPanel/DurationRow2/SecondsVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Seconds"
 
-[node name="SecondsSpin" type="SpinBox" parent="DurationPanel/DurationRow2/SecondsVBox"]
+[node name="SecondsSpin" type="SpinBox" parent="Surface/Body/DurationPanel/DurationRow2/SecondsVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -146,29 +172,32 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 9999.0
 
-[node name="TargetPanel" type="VBoxContainer" parent="."]
+[node name="TargetPanel" type="VBoxContainer" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 visible = false
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
-[node name="TargetHeader" type="Label" parent="TargetPanel"]
+[node name="TargetHeader" type="Label" parent="Surface/Body/TargetPanel"]
 layout_mode = 2
-text = "Target date / time"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TARGET DATE / TIME"
 
-[node name="TargetDateRow" type="HBoxContainer" parent="TargetPanel"]
+[node name="TargetDateRow" type="HBoxContainer" parent="Surface/Body/TargetPanel"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TargetYearVBox" type="VBoxContainer" parent="TargetPanel/TargetDateRow"]
+[node name="TargetYearVBox" type="VBoxContainer" parent="Surface/Body/TargetPanel/TargetDateRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="TargetYearLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetYearVBox"]
+[node name="TargetYearLabel" type="Label" parent="Surface/Body/TargetPanel/TargetDateRow/TargetYearVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Year"
 
-[node name="TargetYearSpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetYearVBox"]
+[node name="TargetYearSpin" type="SpinBox" parent="Surface/Body/TargetPanel/TargetDateRow/TargetYearVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(82, 0)
 layout_mode = 2
@@ -177,15 +206,17 @@ min_value = 1970.0
 max_value = 9999.0
 value = 2026.0
 
-[node name="TargetMonthVBox" type="VBoxContainer" parent="TargetPanel/TargetDateRow"]
+[node name="TargetMonthVBox" type="VBoxContainer" parent="Surface/Body/TargetPanel/TargetDateRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="TargetMonthLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetMonthVBox"]
+[node name="TargetMonthLabel" type="Label" parent="Surface/Body/TargetPanel/TargetDateRow/TargetMonthVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Month"
 
-[node name="TargetMonthSpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetMonthVBox"]
+[node name="TargetMonthSpin" type="SpinBox" parent="Surface/Body/TargetPanel/TargetDateRow/TargetMonthVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -194,15 +225,17 @@ min_value = 1.0
 max_value = 12.0
 value = 1.0
 
-[node name="TargetDayVBox" type="VBoxContainer" parent="TargetPanel/TargetDateRow"]
+[node name="TargetDayVBox" type="VBoxContainer" parent="Surface/Body/TargetPanel/TargetDateRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="TargetDayLabel" type="Label" parent="TargetPanel/TargetDateRow/TargetDayVBox"]
+[node name="TargetDayLabel" type="Label" parent="Surface/Body/TargetPanel/TargetDateRow/TargetDayVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Day"
 
-[node name="TargetDaySpin" type="SpinBox" parent="TargetPanel/TargetDateRow/TargetDayVBox"]
+[node name="TargetDaySpin" type="SpinBox" parent="Surface/Body/TargetPanel/TargetDateRow/TargetDayVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -211,19 +244,21 @@ min_value = 1.0
 max_value = 31.0
 value = 1.0
 
-[node name="TargetTimeRow" type="HBoxContainer" parent="TargetPanel"]
+[node name="TargetTimeRow" type="HBoxContainer" parent="Surface/Body/TargetPanel"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TargetHourVBox" type="VBoxContainer" parent="TargetPanel/TargetTimeRow"]
+[node name="TargetHourVBox" type="VBoxContainer" parent="Surface/Body/TargetPanel/TargetTimeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="TargetHourLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetHourVBox"]
+[node name="TargetHourLabel" type="Label" parent="Surface/Body/TargetPanel/TargetTimeRow/TargetHourVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Hour"
 
-[node name="TargetHourSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetHourVBox"]
+[node name="TargetHourSpin" type="SpinBox" parent="Surface/Body/TargetPanel/TargetTimeRow/TargetHourVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -231,15 +266,17 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 23.0
 
-[node name="TargetMinuteVBox" type="VBoxContainer" parent="TargetPanel/TargetTimeRow"]
+[node name="TargetMinuteVBox" type="VBoxContainer" parent="Surface/Body/TargetPanel/TargetTimeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="TargetMinuteLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetMinuteVBox"]
+[node name="TargetMinuteLabel" type="Label" parent="Surface/Body/TargetPanel/TargetTimeRow/TargetMinuteVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Minute"
 
-[node name="TargetMinuteSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetMinuteVBox"]
+[node name="TargetMinuteSpin" type="SpinBox" parent="Surface/Body/TargetPanel/TargetTimeRow/TargetMinuteVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -247,15 +284,17 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 59.0
 
-[node name="TargetSecondVBox" type="VBoxContainer" parent="TargetPanel/TargetTimeRow"]
+[node name="TargetSecondVBox" type="VBoxContainer" parent="Surface/Body/TargetPanel/TargetTimeRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
 
-[node name="TargetSecondLabel" type="Label" parent="TargetPanel/TargetTimeRow/TargetSecondVBox"]
+[node name="TargetSecondLabel" type="Label" parent="Surface/Body/TargetPanel/TargetTimeRow/TargetSecondVBox"]
 layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Second"
 
-[node name="TargetSecondSpin" type="SpinBox" parent="TargetPanel/TargetTimeRow/TargetSecondVBox"]
+[node name="TargetSecondSpin" type="SpinBox" parent="Surface/Body/TargetPanel/TargetTimeRow/TargetSecondVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
@@ -263,36 +302,41 @@ size_flags_horizontal = 3
 min_value = 0.0
 max_value = 59.0
 
-[node name="TargetQuickRow" type="HBoxContainer" parent="TargetPanel"]
+[node name="TargetQuickRow" type="HBoxContainer" parent="Surface/Body/TargetPanel"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 
-[node name="NowButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+[node name="NowButton" type="Button" parent="Surface/Body/TargetPanel/TargetQuickRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"GhostButton"
 text = "Now"
 
-[node name="PlusHourButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+[node name="PlusHourButton" type="Button" parent="Surface/Body/TargetPanel/TargetQuickRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"GhostButton"
 text = "+1h"
 
-[node name="PlusDayButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+[node name="PlusDayButton" type="Button" parent="Surface/Body/TargetPanel/TargetQuickRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"GhostButton"
 text = "+1d"
 
-[node name="PlusWeekButton" type="Button" parent="TargetPanel/TargetQuickRow"]
+[node name="PlusWeekButton" type="Button" parent="Surface/Body/TargetPanel/TargetQuickRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"GhostButton"
 text = "+1w"
 
-[node name="TargetPreview" type="Label" parent="TargetPanel"]
+[node name="TargetPreview" type="Label" parent="Surface/Body/TargetPanel"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
 autowrap_mode = 2
 text = ""

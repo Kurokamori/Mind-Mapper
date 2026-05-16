@@ -5,6 +5,7 @@ signal project_chosen(project: Project)
 
 @onready var _grid_container: VBoxContainer = %GridContainer
 @onready var _empty_label: Label = %EmptyLabel
+@onready var _scroll: ScrollContainer = %Scroll
 @onready var _new_button: Button = %NewButton
 @onready var _open_button: Button = %OpenButton
 @onready var _create_dialog: FileDialog = %CreateDialog
@@ -21,10 +22,7 @@ var _live_lobbies_by_project_id: Dictionary = {}
 
 
 func _ready() -> void:
-	ThemeManager.apply_relative_font_sizes(self, {
-		"Margins/VBox/Title": 2.30,
-		"Margins/VBox/SectionHeader": 1.30,
-	})
+	_apply_prominent_scrollbar()
 	_name_dialog.add_cancel_button("Cancel")
 	_new_button.pressed.connect(_on_new_pressed)
 	_open_button.pressed.connect(_on_open_pressed)
@@ -38,6 +36,19 @@ func _ready() -> void:
 	MultiplayerService.lobby_list_updated.connect(_on_lobby_list_updated)
 	_refresh()
 	_request_lobby_discovery()
+
+
+func _apply_prominent_scrollbar() -> void:
+	if _scroll == null:
+		return
+	var vbar: VScrollBar = _scroll.get_v_scroll_bar()
+	if vbar != null:
+		vbar.theme_type_variation = &"ProminentScrollbar"
+		vbar.custom_minimum_size = Vector2(14, 0)
+	var hbar: HScrollBar = _scroll.get_h_scroll_bar()
+	if hbar != null:
+		hbar.theme_type_variation = &"ProminentScrollbarH"
+		hbar.custom_minimum_size = Vector2(0, 14)
 
 
 func _request_lobby_discovery() -> void:

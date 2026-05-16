@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1mobilebcb"]
+
+[ext_resource type="Script" path="res://src/mobile/mobile_breadcrumb_bar.gd" id="1_bcb_script"]
+
+[node name="MobileBreadcrumbBar" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 32)
+theme_type_variation = &"BreadcrumbPanel"
+script = ExtResource("1_bcb_script")

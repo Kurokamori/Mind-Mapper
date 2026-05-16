@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://b1mobsnapsh"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_snap_settings_sheet.gd" id="1_msss_script"]
+
+[node name="MobileSnapSettingsSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_msss_script")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_scroll_mode = 0
+
+[node name="Layout" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="SnapEnabledCheck" type="CheckBox" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Enable snap"
+
+[node name="SnapGridCheck" type="CheckBox" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Snap to grid"
+
+[node name="GridSizeRow" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GridSizeLabel" type="Label" parent="Scroll/Layout/GridSizeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Grid size"
+
+[node name="GridSizeSpin" type="SpinBox" parent="Scroll/Layout/GridSizeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+
+[node name="SnapItemsCheck" type="CheckBox" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Snap to items"
+
+[node name="AlignmentCheck" type="CheckBox" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Show alignment guides while dragging"
+
+[node name="Notes" type="Label" parent="Scroll/Layout"]
+layout_mode = 2
+autowrap_mode = 2
+text = "Alignment guides match adjacent edges and gaps between items as you drag or resize."
+theme_override_font_sizes/font_size = 12

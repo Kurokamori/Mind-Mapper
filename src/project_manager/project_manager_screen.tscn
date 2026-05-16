@@ -4,9 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://b8mphost0001" path="res://src/multiplayer/dialogs/host_session_dialog.tscn" id="2_pms_host"]
 [ext_resource type="PackedScene" uid="uid://b8mpjoin0001" path="res://src/multiplayer/dialogs/join_session_dialog.tscn" id="3_pms_join"]
 
-[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_llrq2"]
-blend_mode = 3
-
 [node name="ProjectManagerScreen" type="Control" unique_id=1810215280]
 layout_mode = 3
 anchors_preset = 15
@@ -25,80 +22,114 @@ mouse_filter = 2
 
 [node name="Overlay" type="ColorRect" parent="." unique_id=1650085256]
 unique_name_in_owner = true
-material = SubResource("CanvasItemMaterial_llrq2")
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0.85125214, 0.7346745, 0.78196084, 1)
+color = Color(0, 0, 0, 0.25)
 
-[node name="Margins" type="MarginContainer" parent="." unique_id=1043964381]
+[node name="CenterMargin" type="MarginContainer" parent="." unique_id=1043964381]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-theme_override_constants/margin_left = 36
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 36
+
+[node name="ContentLimit" type="CenterContainer" parent="CenterMargin" unique_id=1043964382]
+layout_mode = 2
+
+[node name="ContentPanel" type="PanelContainer" parent="CenterMargin/ContentLimit" unique_id=1043964383]
+custom_minimum_size = Vector2(720, 520)
+layout_mode = 2
+theme_type_variation = &"CardPanel"
+
+[node name="Margins" type="MarginContainer" parent="CenterMargin/ContentLimit/ContentPanel" unique_id=1043964384]
+layout_mode = 2
+theme_override_constants/margin_left = 28
 theme_override_constants/margin_top = 28
-theme_override_constants/margin_right = 36
-theme_override_constants/margin_bottom = 28
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
 
-[node name="VBox" type="VBoxContainer" parent="Margins" unique_id=1413395857]
+[node name="VBox" type="VBoxContainer" parent="CenterMargin/ContentLimit/ContentPanel/Margins" unique_id=1413395857]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 
-[node name="Title" type="Label" parent="Margins/VBox" unique_id=391425348]
+[node name="Title" type="Label" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=391425348]
 layout_mode = 2
-theme_override_font_sizes/font_size = 85
-text = "LOOM"
+theme_type_variation = &"HeroTitle"
+text = "Loom"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Margins/VBox" unique_id=1878359120]
+[node name="Subtitle" type="Label" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=1878359120]
 layout_mode = 2
-text = "Your mind visualized and interconnected."
+theme_type_variation = &"HeroSubtitle"
+text = "Your mind, visualized and interconnected."
 horizontal_alignment = 1
 
-[node name="Actions" type="HBoxContainer" parent="Margins/VBox" unique_id=2135057860]
+[node name="ActionsSpacer" type="Control" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=1209839781]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Actions" type="HBoxContainer" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=2135057860]
 layout_mode = 2
 theme_override_constants/separation = 8
+alignment = 1
 
-[node name="NewButton" type="Button" parent="Margins/VBox/Actions" unique_id=1224940368]
+[node name="NewButton" type="Button" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/Actions" unique_id=1224940368]
 unique_name_in_owner = true
 layout_mode = 2
-text = "New Project…"
+theme_type_variation = &"AccentButton"
+text = "+ New Project"
 
-[node name="OpenButton" type="Button" parent="Margins/VBox/Actions" unique_id=1825214084]
+[node name="OpenButton" type="Button" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/Actions" unique_id=1825214084]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Open Project…"
+theme_type_variation = &"GhostButton"
+text = "Open Folder"
 
-[node name="ActionSpacer" type="Control" parent="Margins/VBox/Actions" unique_id=1209839786]
+[node name="ActionSpacer" type="Control" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/Actions" unique_id=1209839786]
+custom_minimum_size = Vector2(24, 0)
 layout_mode = 2
-size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="JoinSessionButton" type="Button" parent="Margins/VBox/Actions" unique_id=303683600]
+[node name="JoinSessionButton" type="Button" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/Actions" unique_id=303683600]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Join session…"
+theme_type_variation = &"GhostButton"
+text = "Join Session"
 
-[node name="SectionHeader" type="Label" parent="Margins/VBox" unique_id=2090480832]
+[node name="DividerSpacer" type="Control" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=1209839782]
+custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
-text = "Recent projects"
+mouse_filter = 2
 
-[node name="Scroll" type="ScrollContainer" parent="Margins/VBox" unique_id=1259681053]
+[node name="SectionHeader" type="Label" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=2090480832]
+layout_mode = 2
+theme_type_variation = &"SectionHeader"
+text = "RECENT PROJECTS"
+
+[node name="Scroll" type="ScrollContainer" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=1259681053]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
 
-[node name="GridContainer" type="VBoxContainer" parent="Margins/VBox/Scroll" unique_id=155648691]
+[node name="GridContainer" type="VBoxContainer" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/Scroll" unique_id=155648691]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="EmptyLabel" type="Label" parent="Margins/VBox" unique_id=884455943]
+[node name="EmptyLabel" type="Label" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=884455943]
 unique_name_in_owner = true
 layout_mode = 2
-text = "No recent projects yet. Click \"New Project…\" to begin."
+theme_type_variation = &"MutedLabel"
+text = "No recent projects yet. Click \"+ New Project\" to begin."
+horizontal_alignment = 1
 
 [node name="CreateDialog" type="FileDialog" parent="." unique_id=1058513665]
 unique_name_in_owner = true

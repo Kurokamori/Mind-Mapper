@@ -5,7 +5,8 @@
 
 [node name="ChatPanel" type="PanelContainer" unique_id=2107411222]
 visible = false
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(260, 0)
+theme_type_variation = &"SidebarPanel"
 script = ExtResource("1_chat_panel")
 dock_id = "chat"
 drag_handle_path = NodePath("Margin/VBox/Header/ChatTitle")
@@ -14,14 +15,14 @@ grip_bottom_path = NodePath("ChatGripBottom")
 grip_left_path = NodePath("ChatGripLeft")
 grip_right_path = NodePath("ChatGripRight")
 default_floating_position = Vector2(180, 220)
-default_floating_size = Vector2(360, 420)
-default_dock_size = 320.0
+default_floating_size = Vector2(340, 420)
+default_dock_size = 300.0
 
 [node name="Margin" type="MarginContainer" parent="." unique_id=1160544518]
 layout_mode = 2
-theme_override_constants/margin_left = 8
+theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
+theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="Margin" unique_id=762887901]
@@ -36,15 +37,17 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-text = "Chat"
+theme_type_variation = &"SectionHeader"
+text = "CHAT"
 
 [node name="ChatCloseButton" type="Button" parent="Margin/VBox/Header" unique_id=771154773]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 tooltip_text = "Close chat panel"
 focus_mode = 0
-text = "X"
-flat = true
+theme_type_variation = &"CloseIconButton"
+text = "✕"
 
 [node name="ChatHistoryLabel" type="RichTextLabel" parent="Margin/VBox" unique_id=445778098]
 unique_name_in_owner = true
@@ -60,7 +63,7 @@ selection_enabled = true
 [node name="ChatEmptyLabel" type="Label" parent="Margin/VBox" unique_id=1090827213]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.55)
+theme_type_variation = &"MutedLabel"
 text = "No messages yet."
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -68,7 +71,7 @@ autowrap_mode = 2
 [node name="ChatStatusLabel" type="Label" parent="Margin/VBox" unique_id=1716919546]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.55)
+theme_type_variation = &"MutedLabel"
 text = "Join or host a session to chat."
 horizontal_alignment = 1
 autowrap_mode = 2
@@ -90,6 +93,7 @@ unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 disabled = true
+theme_type_variation = &"AccentButton"
 text = "Send"
 
 [node name="ChatGripTop" parent="." unique_id=829346501 instance=ExtResource("2_grip")]

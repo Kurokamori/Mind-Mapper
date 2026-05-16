@@ -4,10 +4,11 @@
 [ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
 
 [node name="TimerTray" type="PanelContainer"]
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(240, 0)
+theme_type_variation = &"SidebarPanel"
 script = ExtResource("1_tray")
 dock_id = "timer_tray"
-drag_handle_path = NodePath("VBox/HeaderRow/HeaderLabel")
+drag_handle_path = NodePath("Margin/VBox/HeaderRow/HeaderLabel")
 grip_top_path = NodePath("GripTop")
 grip_bottom_path = NodePath("GripBottom")
 grip_left_path = NodePath("GripLeft")
@@ -17,37 +18,50 @@ default_floating_position = Vector2(160, 200)
 default_floating_size = Vector2(320, 280)
 default_dock_size = 260.0
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="HeaderRow" type="HBoxContainer" parent="VBox"]
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
 
-[node name="HeaderLabel" type="Label" parent="VBox/HeaderRow"]
+[node name="HeaderLabel" type="Label" parent="Margin/VBox/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-text = "Timers"
+theme_type_variation = &"SectionHeader"
+text = "TIMERS"
 
-[node name="CloseButton" type="Button" parent="VBox/HeaderRow"]
+[node name="CloseButton" type="Button" parent="Margin/VBox/HeaderRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
-text = "×"
+focus_mode = 0
+theme_type_variation = &"CloseIconButton"
+text = "✕"
 
-[node name="Scroll" type="ScrollContainer" parent="VBox"]
+[node name="Scroll" type="ScrollContainer" parent="Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 custom_minimum_size = Vector2(0, 200)
 
-[node name="List" type="VBoxContainer" parent="VBox/Scroll"]
+[node name="List" type="VBoxContainer" parent="Margin/VBox/Scroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="EmptyLabel" type="Label" parent="VBox"]
+[node name="EmptyLabel" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"MutedLabel"
 horizontal_alignment = 1
 text = "(no timers)"
 

@@ -8,252 +8,414 @@ theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Table"
 
-[node name="TitleRow" type="HBoxContainer" parent="."]
+[node name="TitleSurface" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
+
+[node name="TitleBody" type="VBoxContainer" parent="TitleSurface"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="TitleLabel" type="Label" parent="TitleRow"]
+[node name="TitleRow" type="HBoxContainer" parent="TitleSurface/TitleBody"]
 layout_mode = 2
-text = "Title"
-custom_minimum_size = Vector2(72, 0)
+theme_override_constants/separation = 8
 
-[node name="TitleEdit" type="LineEdit" parent="TitleRow"]
+[node name="TitleLabel" type="Label" parent="TitleSurface/TitleBody/TitleRow"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Title"
+
+[node name="TitleEdit" type="LineEdit" parent="TitleSurface/TitleBody/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Untitled table"
 
-[node name="DimensionsLabel" type="Label" parent="."]
+[node name="DimensionsLabel" type="Label" parent="TitleSurface/TitleBody"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
 text = "3 × 3"
-modulate = Color(1, 1, 1, 0.7)
 
-[node name="RowsRow" type="HBoxContainer" parent="."]
+[node name="DimsRow" type="HBoxContainer" parent="TitleSurface/TitleBody"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="RowsLabel" type="Label" parent="RowsRow"]
+[node name="RowsRow" type="VBoxContainer" parent="TitleSurface/TitleBody/DimsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="RowsLabel" type="Label" parent="TitleSurface/TitleBody/DimsRow/RowsRow"]
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Rows"
 
-[node name="RowsSpin" type="SpinBox" parent="RowsRow"]
+[node name="RowsSpin" type="SpinBox" parent="TitleSurface/TitleBody/DimsRow/RowsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 1.0
 max_value = 100.0
 value = 3.0
 
-[node name="ColsRow" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="ColsLabel" type="Label" parent="ColsRow"]
+[node name="ColsRow" type="VBoxContainer" parent="TitleSurface/TitleBody/DimsRow"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="ColsLabel" type="Label" parent="TitleSurface/TitleBody/DimsRow/ColsRow"]
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
 text = "Columns"
 
-[node name="ColsSpin" type="SpinBox" parent="ColsRow"]
+[node name="ColsSpin" type="SpinBox" parent="TitleSurface/TitleBody/DimsRow/ColsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 1.0
 max_value = 100.0
 value = 3.0
 
-[node name="HeaderRowCheck" type="CheckBox" parent="."]
+[node name="HeaderRowCheck" type="CheckBox" parent="TitleSurface/TitleBody"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "First row is a header"
 
-[node name="AlignmentsHeader" type="Label" parent="."]
+[node name="StructureSurface" type="PanelContainer" parent="."]
 layout_mode = 2
-text = "Column alignment"
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="AlignmentsContainer" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="CellHeader" type="Label" parent="."]
-layout_mode = 2
-text = "Cell formatting"
-
-[node name="CellTargetRow" type="HBoxContainer" parent="."]
+[node name="StructureBody" type="VBoxContainer" parent="StructureSurface"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CellLabel" type="Label" parent="CellTargetRow"]
+[node name="StructureHeader" type="Label" parent="StructureSurface/StructureBody"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Cell"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "STRUCTURE"
 
-[node name="CellRowSpin" type="SpinBox" parent="CellTargetRow"]
+[node name="StructureHint" type="Label" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
+autowrap_mode = 3
+text = "Click the left/right edge of a row, or the top/bottom edge of a column, to select it. The floating handle lets you insert above/below (or left/right) and delete."
+
+[node name="AxisActionLabel" type="Label" parent="StructureSurface/StructureBody"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorValueLabel"
+text = "Selection: none"
+
+[node name="AxisActionRow" type="HBoxContainer" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AxisInsertBeforeBtn" type="Button" parent="StructureSurface/StructureBody/AxisActionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"GhostButton"
+text = "Insert ↑"
+
+[node name="AxisInsertAfterBtn" type="Button" parent="StructureSurface/StructureBody/AxisActionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"GhostButton"
+text = "Insert ↓"
+
+[node name="AxisDeleteBtn" type="Button" parent="StructureSurface/StructureBody/AxisActionRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+theme_type_variation = &"DangerButton"
+text = "Delete"
+
+[node name="AlignmentsHeader" type="Label" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "COLUMN ALIGNMENT"
+
+[node name="ColumnAlignmentScroll" type="ScrollContainer" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="AlignmentsContainer" type="HBoxContainer" parent="StructureSurface/StructureBody/ColumnAlignmentScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="RowAlignmentsHeader" type="Label" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "ROW ALIGNMENT"
+
+[node name="RowAlignmentScroll" type="ScrollContainer" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="RowAlignmentsContainer" type="HBoxContainer" parent="StructureSurface/StructureBody/RowAlignmentScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="CellSurface" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
+
+[node name="CellBody" type="VBoxContainer" parent="CellSurface"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CellHeader" type="Label" parent="CellSurface/CellBody"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "CELL FORMATTING"
+
+[node name="CellTargetRow" type="HBoxContainer" parent="CellSurface/CellBody"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CellLabel" type="Label" parent="CellSurface/CellBody/CellTargetRow"]
+custom_minimum_size = Vector2(56, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Cell"
+
+[node name="CellRowSpin" type="SpinBox" parent="CellSurface/CellBody/CellTargetRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 99.0
 value = 0.0
 prefix = "R"
 
-[node name="CellColSpin" type="SpinBox" parent="CellTargetRow"]
+[node name="CellColSpin" type="SpinBox" parent="CellSurface/CellBody/CellTargetRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 99.0
 value = 0.0
 prefix = "C"
 
-[node name="CellBgRow" type="HBoxContainer" parent="."]
+[node name="CellAlignSection" type="HBoxContainer" parent="CellSurface/CellBody"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CellAlignLabel" type="Label" parent="CellSurface/CellBody/CellAlignSection"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Alignment"
+
+[node name="CellAlignmentSlot" type="Control" parent="CellSurface/CellBody/CellAlignSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 96)
+layout_mode = 2
+
+[node name="CellBgRow" type="HBoxContainer" parent="CellSurface/CellBody"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CellUseBg" type="CheckBox" parent="CellBgRow"]
+[node name="CellUseBg" type="CheckBox" parent="CellSurface/CellBody/CellBgRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Background"
 
-[node name="CellBgPicker" type="ColorPickerButton" parent="CellBgRow"]
+[node name="CellBgPicker" type="ColorPickerButton" parent="CellSurface/CellBody/CellBgRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(64, 22)
 color = Color(1, 1, 1, 1)
 
-[node name="CellFgRow" type="HBoxContainer" parent="."]
+[node name="CellFgRow" type="HBoxContainer" parent="CellSurface/CellBody"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CellUseFg" type="CheckBox" parent="CellFgRow"]
+[node name="CellUseFg" type="CheckBox" parent="CellSurface/CellBody/CellFgRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Text color"
 
-[node name="CellFgPicker" type="ColorPickerButton" parent="CellFgRow"]
+[node name="CellFgPicker" type="ColorPickerButton" parent="CellSurface/CellBody/CellFgRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 size_flags_horizontal = 3
-custom_minimum_size = Vector2(64, 22)
 color = Color(0, 0, 0, 1)
 
-[node name="CellStyleRow" type="HBoxContainer" parent="."]
+[node name="CellStyleRow" type="HBoxContainer" parent="CellSurface/CellBody"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="CellBold" type="CheckBox" parent="CellStyleRow"]
+[node name="CellBold" type="CheckBox" parent="CellSurface/CellBody/CellStyleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Bold"
 
-[node name="CellItalic" type="CheckBox" parent="CellStyleRow"]
+[node name="CellItalic" type="CheckBox" parent="CellSurface/CellBody/CellStyleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Italic"
 
-[node name="CellClear" type="Button" parent="CellStyleRow"]
+[node name="CellClear" type="Button" parent="CellSurface/CellBody/CellStyleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"FlatButton"
 text = "Clear cell"
 
-[node name="CellHint" type="Label" parent="."]
+[node name="CellHint" type="Label" parent="CellSurface/CellBody"]
 layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
 autowrap_mode = 3
-text = "Click a cell on the canvas to select it, or use the spinners above."
-modulate = Color(1, 1, 1, 0.55)
+text = "Click a cell on the canvas to select it, or use the spinners above. The 3×3 picker covers all 9 (horizontal × vertical) combinations; choose Inherit to fall back to the row/column default."
 
-[node name="RulesHeader" type="Label" parent="."]
+[node name="RulesSurface" type="PanelContainer" parent="."]
 layout_mode = 2
-text = "Conditional formatting"
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="RulesContainer" type="VBoxContainer" parent="."]
+[node name="RulesBody" type="VBoxContainer" parent="RulesSurface"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RulesHeader" type="Label" parent="RulesSurface/RulesBody"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "CONDITIONAL FORMATTING"
+
+[node name="RulesContainer" type="VBoxContainer" parent="RulesSurface/RulesBody"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="AddRuleBtn" type="Button" parent="."]
+[node name="AddRuleBtn" type="Button" parent="RulesSurface/RulesBody"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"GhostButton"
 text = "+ Add rule"
 
-[node name="ColorsHeader" type="Label" parent="."]
+[node name="ColorsSurface" type="PanelContainer" parent="."]
 layout_mode = 2
-text = "Appearance"
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="BgRow" type="HBoxContainer" parent="."]
+[node name="ColorsBody" type="VBoxContainer" parent="ColorsSurface"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="BgLabel" type="Label" parent="BgRow"]
+[node name="ColorsHeader" type="Label" parent="ColorsSurface/ColorsBody"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "APPEARANCE"
+
+[node name="BgRow" type="HBoxContainer" parent="ColorsSurface/ColorsBody"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BgLabel" type="Label" parent="ColorsSurface/ColorsBody/BgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Background"
 
-[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+[node name="BgPicker" type="ColorPickerButton" parent="ColorsSurface/ColorsBody/BgRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
-custom_minimum_size = Vector2(64, 22)
 
-[node name="BgReset" type="Button" parent="BgRow"]
+[node name="BgReset" type="Button" parent="ColorsSurface/ColorsBody/BgRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"FlatButton"
 text = "Reset"
 
-[node name="AccentRow" type="HBoxContainer" parent="."]
+[node name="AccentRow" type="HBoxContainer" parent="ColorsSurface/ColorsBody"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="AccentLabel" type="Label" parent="AccentRow"]
+[node name="AccentLabel" type="Label" parent="ColorsSurface/ColorsBody/AccentRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Header color"
 
-[node name="AccentPicker" type="ColorPickerButton" parent="AccentRow"]
+[node name="AccentPicker" type="ColorPickerButton" parent="ColorsSurface/ColorsBody/AccentRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
-custom_minimum_size = Vector2(64, 22)
 
-[node name="AccentReset" type="Button" parent="AccentRow"]
+[node name="AccentReset" type="Button" parent="ColorsSurface/ColorsBody/AccentRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"FlatButton"
 text = "Reset"
 
-[node name="HeaderFgRow" type="HBoxContainer" parent="."]
+[node name="HeaderFgRow" type="HBoxContainer" parent="ColorsSurface/ColorsBody"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="HeaderFgLabel" type="Label" parent="HeaderFgRow"]
+[node name="HeaderFgLabel" type="Label" parent="ColorsSurface/ColorsBody/HeaderFgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Header text"
 
-[node name="HeaderFgPicker" type="ColorPickerButton" parent="HeaderFgRow"]
+[node name="HeaderFgPicker" type="ColorPickerButton" parent="ColorsSurface/ColorsBody/HeaderFgRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
-custom_minimum_size = Vector2(64, 22)
 
-[node name="HeaderFgReset" type="Button" parent="HeaderFgRow"]
+[node name="HeaderFgReset" type="Button" parent="ColorsSurface/ColorsBody/HeaderFgRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"FlatButton"
 text = "Reset"
 
-[node name="GridLineRow" type="HBoxContainer" parent="."]
+[node name="GridLineRow" type="HBoxContainer" parent="ColorsSurface/ColorsBody"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="GridLineLabel" type="Label" parent="GridLineRow"]
+[node name="GridLineLabel" type="Label" parent="ColorsSurface/ColorsBody/GridLineRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Grid line"
 
-[node name="GridLinePicker" type="ColorPickerButton" parent="GridLineRow"]
+[node name="GridLinePicker" type="ColorPickerButton" parent="ColorsSurface/ColorsBody/GridLineRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
-custom_minimum_size = Vector2(64, 22)
 
-[node name="GridLineReset" type="Button" parent="GridLineRow"]
+[node name="GridLineReset" type="Button" parent="ColorsSurface/ColorsBody/GridLineRow"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"FlatButton"
 text = "Reset"
 
 [node name="HintLabel" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
 autowrap_mode = 3
 text = "Double-click the table header to rename. Double-click a cell to edit it. Click elsewhere or press Esc to exit edit mode."
-modulate = Color(1, 1, 1, 0.55)

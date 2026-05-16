@@ -4,60 +4,89 @@
 
 [node name="EquationInspector" type="VBoxContainer"]
 script = ExtResource("1_eqi")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Equation"
 
-[node name="LatexSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="LatexLabel" type="Label" parent="LatexSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "LaTeX source"
+theme_override_constants/separation = 8
 
-[node name="LatexEdit" type="TextEdit" parent="LatexSection"]
+[node name="LatexSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LatexLabel" type="Label" parent="Surface/Body/LatexSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "LATEX SOURCE"
+
+[node name="LatexEditPanel" type="PanelContainer" parent="Surface/Body/LatexSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorTextAreaPanel"
+
+[node name="LatexEdit" type="TextEdit" parent="Surface/Body/LatexSection/LatexEditPanel"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
+custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 wrap_mode = 1
 
-[node name="FontSizeRow" type="HBoxContainer" parent="."]
+[node name="FontSizeRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
+[node name="FontSizeLabel" type="Label" parent="Surface/Body/FontSizeRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Font size"
 
-[node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
+[node name="FontSizeSpin" type="SpinBox" parent="Surface/Body/FontSizeRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 8.0
 max_value = 96.0
 value = 22.0
 
-[node name="ModeRow" type="HBoxContainer" parent="."]
+[node name="ModeRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="ModeLabel" type="Label" parent="ModeRow"]
+[node name="ModeLabel" type="Label" parent="Surface/Body/ModeRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Display"
 
-[node name="ModeOption" type="OptionButton" parent="ModeRow"]
+[node name="ModeOption" type="OptionButton" parent="Surface/Body/ModeRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 
-[node name="PreviewSection" type="VBoxContainer" parent="."]
+[node name="PreviewSection" type="VBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 4
 
-[node name="PreviewLabel" type="Label" parent="PreviewSection"]
+[node name="PreviewLabel" type="Label" parent="Surface/Body/PreviewSection"]
 layout_mode = 2
-text = "Preview"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "PREVIEW"
 
-[node name="FormattedPreview" type="RichTextLabel" parent="PreviewSection"]
+[node name="PreviewPanel" type="PanelContainer" parent="Surface/Body/PreviewSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorTextAreaPanel"
+
+[node name="FormattedPreview" type="RichTextLabel" parent="Surface/Body/PreviewSection/PreviewPanel"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 90)
 layout_mode = 2
@@ -66,8 +95,9 @@ fit_content = true
 scroll_active = false
 autowrap_mode = 3
 
-[node name="SolvedPreview" type="Label" parent="PreviewSection"]
+[node name="SolvedPreview" type="Label" parent="Surface/Body/PreviewSection"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
 text = "Solved: —"
 autowrap_mode = 3

@@ -10,14 +10,8 @@ var _refresh_timer: Timer
 func _ready() -> void:
 	super._ready()
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	ThemeManager.theme_applied.connect(_apply_translucent_panel)
-	_apply_translucent_panel()
 	_close_btn.pressed.connect(func() -> void: visible = false)
 	TimerRegistry.timers_changed.connect(_rebuild)
-
-
-func _apply_translucent_panel() -> void:
-	ThemeManager.apply_translucent_panel(self)
 	_refresh_timer = Timer.new()
 	_refresh_timer.wait_time = 0.5
 	_refresh_timer.one_shot = false

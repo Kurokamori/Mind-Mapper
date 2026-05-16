@@ -51,8 +51,6 @@ func _has_multiplayer_service() -> bool:
 
 
 func _apply_theme_dependent_state() -> void:
-	if _has_theme_manager():
-		ThemeManager.apply_translucent_panel(self)
 	if _empty_label != null and _has_theme_manager():
 		_empty_label.add_theme_color_override("font_color", ThemeManager.dim_foreground_color())
 	if _status_label != null and _has_theme_manager():

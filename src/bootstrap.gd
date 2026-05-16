@@ -5,6 +5,9 @@ const SPLASH_SCENE := preload("res://src/editor/auxilary/splash.tscn")
 const PROJECT_MANAGER_SCENE := preload("res://src/project_manager/project_manager_screen.tscn")
 const EDITOR_SCENE := preload("res://src/editor/editor.tscn")
 const TILEMAP_EDITOR_SCENE := preload("res://src/tilemap/tilemap_editor.tscn")
+const MOBILE_APP_SCENE := preload("res://src/mobile/mobile_app.tscn")
+const MOBILE_CLI_FLAG: String = "--mobile"
+const MOBILE_ENV_VAR: String = "MM_MOBILE"
 
 var _current: Node = null
 
@@ -12,7 +15,41 @@ var _current: Node = null
 func _ready() -> void:
 	get_tree().set_auto_accept_quit(false)
 	AppState.current_page_kind_changed.connect(_on_page_kind_changed)
+	if _is_mobile_runtime():
+		_apply_mobile_window_mode()
+		_show_mobile_app()
+		return
 	_show_splash()
+
+
+func _apply_mobile_window_mode() -> void:
+	var platform: String = OS.get_name()
+	if platform == "Android" or platform == "iOS":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+		return
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+	var size: Vector2i = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen()).size
+	DisplayServer.window_set_size(size)
+	DisplayServer.window_set_position(Vector2i.ZERO)
+
+
+static func _is_mobile_runtime() -> bool:
+	var platform: String = OS.get_name()
+	if platform == "Android" or platform == "iOS":
+		return true
+	if OS.get_environment(MOBILE_ENV_VAR) != "":
+		return true
+	for arg: String in OS.get_cmdline_user_args():
+		if arg == MOBILE_CLI_FLAG:
+			return true
+	for arg: String in OS.get_cmdline_args():
+		if arg == MOBILE_CLI_FLAG:
+			return true
+	return false
+
+
+func _show_mobile_app() -> void:
+	_replace_with(MOBILE_APP_SCENE.instantiate())
 
 
 func _notification(what: int) -> void:
@@ -89,10 +126,14 @@ func _on_back_to_projects() -> void:
 
 
 func _on_page_kind_changed(_kind: String) -> void:
+	if _is_mobile_runtime():
+		return
 	if AppState.current_project == null:
 		return
 	if _current == null:
 		return
 	if _current is ProjectManagerScreen or _current is Splash:
+		return
+	if _current is MobileApp:
 		return
 	_show_editor_for_current_kind()

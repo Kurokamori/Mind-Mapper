@@ -1,149 +1,151 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene format=3 uid="uid://r1srf75pcg8t"]
 
-[ext_resource type="Script" path="res://src/nodes/rich_text/rich_text_inspector.gd" id="1_rti"]
-[ext_resource type="PackedScene" path="res://src/nodes/rich_text/bbcode_toolbar.tscn" id="2_bbtb"]
+[ext_resource type="Script" uid="uid://drjufvjm5iw4y" path="res://src/nodes/rich_text/rich_text_inspector.gd" id="1_rti"]
+[ext_resource type="PackedScene" uid="uid://u5oati23jbqd" path="res://src/nodes/rich_text/bbcode_toolbar.tscn" id="2_bbtb"]
 [ext_resource type="PackedScene" path="res://src/nodes/rich_text/wysiwyg/wysiwyg_rich_editor.tscn" id="3_wyse"]
 
-[node name="RichTextInspector" type="VBoxContainer"]
-custom_minimum_size = Vector2(0, 0)
+[node name="RichTextInspector" type="VBoxContainer" unique_id=1009947810]
 size_flags_horizontal = 3
+theme_override_constants/separation = 8
 script = ExtResource("1_rti")
-theme_override_constants/separation = 6
 
-[node name="Header" type="Label" parent="."]
+[node name="Header" type="Label" parent="." unique_id=1096773425]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorTitleLabel"
 text = "Rich Text"
 clip_text = true
 
-[node name="HelpLabel" type="Label" parent="."]
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Edit directly — formatting from the toolbar applies to the selection."
-autowrap_mode = 2
-
-[node name="FormatToolbar" parent="." instance=ExtResource("2_bbtb")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="EditorPanel" type="PanelContainer" parent="."]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 220)
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="EditorMargin" type="MarginContainer" parent="EditorPanel"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="HelpLabel" type="Label" parent="Surface/Body" unique_id=1731833123]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorHintLabel"
+text = "Edit directly — formatting from the toolbar applies to the selection."
+autowrap_mode = 2
+
+[node name="FormatToolbar" parent="Surface/Body" unique_id=1241711696 instance=ExtResource("2_bbtb")]
+unique_name_in_owner = true
+z_index = 200
+layout_mode = 2
+
+[node name="EditorPanel" type="PanelContainer" parent="Surface/Body" unique_id=404360040]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 240)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"InspectorTextAreaPanel"
+
+[node name="EditorMargin" type="MarginContainer" parent="Surface/Body/EditorPanel" unique_id=788726442]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 6
 
-[node name="WysiwygEditor" parent="EditorPanel/EditorMargin" instance=ExtResource("3_wyse")]
+[node name="WysiwygEditor" parent="Surface/Body/EditorPanel/EditorMargin" unique_id=1361980703 instance=ExtResource("3_wyse")]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="FontSizeRow" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(0, 0)
+[node name="FontSizeRow" type="HBoxContainer" parent="Surface/Body" unique_id=619674825]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FontSizeLabel" type="Label" parent="Surface/Body/FontSizeRow" unique_id=1389754750]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-
-[node name="FontSizeLabel" type="Label" parent="FontSizeRow"]
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Font size"
-clip_text = true
 
-[node name="FontSizeSpin" type="SpinBox" parent="FontSizeRow"]
+[node name="FontSizeSpin" type="SpinBox" parent="Surface/Body/FontSizeRow" unique_id=462949373]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 6.0
 max_value = 72.0
 value = 16.0
 
-[node name="BgRow" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(0, 0)
+[node name="BgRow" type="HBoxContainer" parent="Surface/Body" unique_id=399378525]
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
-[node name="BgLabel" type="Label" parent="BgRow"]
-custom_minimum_size = Vector2(0, 0)
+[node name="BgLabel" type="Label" parent="Surface/Body/BgRow" unique_id=140914791]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Background"
-clip_text = true
 
-[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+[node name="BgPicker" type="ColorPickerButton" parent="Surface/Body/BgRow" unique_id=1811566533]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="FgRow" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(0, 0)
+[node name="FgRow" type="HBoxContainer" parent="Surface/Body" unique_id=260152759]
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
-[node name="FgLabel" type="Label" parent="FgRow"]
-custom_minimum_size = Vector2(0, 0)
+[node name="FgLabel" type="Label" parent="Surface/Body/FgRow" unique_id=516390978]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Default text"
-clip_text = true
 
-[node name="FgPicker" type="ColorPickerButton" parent="FgRow"]
+[node name="FgPicker" type="ColorPickerButton" parent="Surface/Body/FgRow" unique_id=60112995]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="AutoFitLabel" type="Label" parent="."]
+[node name="AutoFitLabel" type="Label" parent="Surface/Body" unique_id=953668119]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "Auto-fit to content"
-clip_text = true
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "AUTO-FIT TO CONTENT"
 
-[node name="AutoFitRow" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(0, 0)
+[node name="AutoFitRow" type="HBoxContainer" parent="Surface/Body" unique_id=1339380975]
 layout_mode = 2
-size_flags_horizontal = 3
+theme_override_constants/separation = 12
 
-[node name="AutoWidthCheck" type="CheckBox" parent="AutoFitRow"]
+[node name="AutoWidthCheck" type="CheckBox" parent="Surface/Body/AutoFitRow" unique_id=927448780]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Width"
-clip_text = true
 
-[node name="AutoHeightCheck" type="CheckBox" parent="AutoFitRow"]
+[node name="AutoHeightCheck" type="CheckBox" parent="Surface/Body/AutoFitRow" unique_id=1918586982]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Height"
-clip_text = true
 
-[node name="MaxImageWidthRow" type="HBoxContainer" parent="."]
-custom_minimum_size = Vector2(0, 0)
+[node name="MaxImageWidthRow" type="HBoxContainer" parent="Surface/Body" unique_id=1427156910]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MaxImageWidthLabel" type="Label" parent="Surface/Body/MaxImageWidthRow" unique_id=481355442]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Max image width"
+tooltip_text = "0 = native"
 
-[node name="MaxImageWidthLabel" type="Label" parent="MaxImageWidthRow"]
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Max image width (0 = native)"
-autowrap_mode = 2
-
-[node name="MaxImageWidthSpin" type="SpinBox" parent="MaxImageWidthRow"]
+[node name="MaxImageWidthSpin" type="SpinBox" parent="Surface/Body/MaxImageWidthRow" unique_id=454280275]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
-min_value = 0.0
+size_flags_horizontal = 3
 max_value = 4096.0
-value = 0.0
+suffix = "px"

@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://b1mobilesheet"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_bottom_sheet.gd" id="1_mbs_script"]
+
+[node name="MobileBottomSheet" type="PanelContainer"]
+anchors_preset = 12
+anchor_top = 0.45
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"BottomSheetPanel"
+script = ExtResource("1_mbs_script")
+
+[node name="LayoutColumn" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="LayoutColumn"]
+layout_mode = 2
+
+[node name="DragHandleButton" type="Button" parent="LayoutColumn/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 40)
+layout_mode = 2
+theme_type_variation = &"FlatButton"
+text = "—"
+tooltip_text = "Drag to resize"
+
+[node name="HeaderLabel" type="Label" parent="LayoutColumn/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"ToolbarTitleLabel"
+text = "Details"
+
+[node name="CloseSheetButton" type="Button" parent="LayoutColumn/Header"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+theme_type_variation = &"CloseIconButton"
+text = "✕"
+
+[node name="ContentRoot" type="MarginContainer" parent="LayoutColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 8

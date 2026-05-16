@@ -4,58 +4,83 @@
 
 [node name="GroupInspector" type="VBoxContainer"]
 script = ExtResource("1_gi")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Group"
 
-[node name="TitleSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="TitleLabel" type="Label" parent="TitleSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Title"
+theme_override_constants/separation = 8
 
-[node name="TitleEdit" type="LineEdit" parent="TitleSection"]
+[node name="TitleSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Surface/Body/TitleSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TITLE"
+
+[node name="TitleEdit" type="LineEdit" parent="Surface/Body/TitleSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="BgRow" type="HBoxContainer" parent="."]
+[node name="ColorsHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "APPEARANCE"
 
-[node name="BgLabel" type="Label" parent="BgRow"]
+[node name="BgRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BgLabel" type="Label" parent="Surface/Body/BgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Background"
 
-[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+[node name="BgPicker" type="ColorPickerButton" parent="Surface/Body/BgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="TitleBgRow" type="HBoxContainer" parent="."]
+[node name="TitleBgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="TitleBgLabel" type="Label" parent="TitleBgRow"]
+[node name="TitleBgLabel" type="Label" parent="Surface/Body/TitleBgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Title bar"
 
-[node name="TitleBgPicker" type="ColorPickerButton" parent="TitleBgRow"]
+[node name="TitleBgPicker" type="ColorPickerButton" parent="Surface/Body/TitleBgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="TitleFgRow" type="HBoxContainer" parent="."]
+[node name="TitleFgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="TitleFgLabel" type="Label" parent="TitleFgRow"]
+[node name="TitleFgLabel" type="Label" parent="Surface/Body/TitleFgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Title text"
 
-[node name="TitleFgPicker" type="ColorPickerButton" parent="TitleFgRow"]
+[node name="TitleFgPicker" type="ColorPickerButton" parent="Surface/Body/TitleFgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2

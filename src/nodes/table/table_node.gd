@@ -2,6 +2,7 @@ class_name TableNode
 extends BoardItem
 
 signal active_cell_changed(row: int, col: int)
+signal axis_selection_changed(axis: String, index: int)
 
 const HEADER_HEIGHT: float = 36.0
 const PADDING: Vector2 = Vector2(8, 8)
@@ -26,11 +27,30 @@ const ACTIVE_OUTLINE_WIDTH: int = 2
 const EDIT_OUTLINE_WIDTH: int = 3
 const ACTIVE_OUTLINE_COLOR: Color = Color(0.35, 0.70, 1.00, 1.0)
 const EDIT_OUTLINE_COLOR: Color = Color(0.95, 0.78, 0.30, 1.0)
+const AXIS_SELECT_OUTLINE_WIDTH: int = 2
+const EDGE_STRIP_WIDTH: float = 8.0
+const STRIP_INDICATOR_HOVER_ALPHA: float = 0.55
+const STRIP_INDICATOR_ACTIVE_ALPHA: float = 1.0
+const AXIS_ACTIONS_GAP: float = 6.0
+
+const SIDE_LEFT: String = "left"
+const SIDE_RIGHT: String = "right"
+const SIDE_TOP: String = "top"
+const SIDE_BOTTOM: String = "bottom"
 const COLUMN_RESIZE_HANDLE_SCENE: PackedScene = preload("res://src/nodes/table/column_resize_handle.tscn")
 
 const ALIGN_LEFT: int = 0
 const ALIGN_CENTER: int = 1
 const ALIGN_RIGHT: int = 2
+
+const VALIGN_TOP: int = 0
+const VALIGN_MIDDLE: int = 1
+const VALIGN_BOTTOM: int = 2
+
+const ALIGN_INHERIT: int = -1
+
+const AXIS_ROW: String = "row"
+const AXIS_COL: String = "col"
 
 const LEGACY_BG: Color = Color(0.13, 0.14, 0.17, 1.0)
 const LEGACY_ACCENT: Color = Color(0.20, 0.30, 0.45, 1.0)
@@ -42,6 +62,9 @@ const LEGACY_GRID_LINE: Color = Color(0.30, 0.34, 0.40, 1.0)
 @export var cols: int = 3
 @export var cells: Array = []
 @export var col_aligns: Array = []
+@export var col_valigns: Array = []
+@export var row_aligns: Array = []
+@export var row_valigns: Array = []
 @export var has_header_row: bool = false
 @export var rules: Array = []
 @export var cell_formats: Dictionary = {}
@@ -64,6 +87,11 @@ const LEGACY_GRID_LINE: Color = Color(0.30, 0.34, 0.40, 1.0)
 @onready var _del_row_btn: Button = %DelRowBtn
 @onready var _del_col_btn: Button = %DelColBtn
 @onready var _resize_handles: Control = %ResizeHandles
+@onready var _row_strip_left: Control = %RowSelectStripLeft
+@onready var _row_strip_right: Control = %RowSelectStripRight
+@onready var _col_strip_top: Control = %ColSelectStripTop
+@onready var _col_strip_bottom: Control = %ColSelectStripBottom
+@onready var _axis_actions: TableAxisActions = %AxisActions
 
 var _commit_lock: bool = false
 var _pre_edit_title: String = ""
@@ -76,6 +104,13 @@ var _col_widths_before_drag: Array = []
 var _drag_active_column: int = -1
 var _handles_position_pending: bool = false
 
+var _selected_axis: String = ""
+var _selected_axis_index: int = -1
+var _selected_axis_side: String = ""
+var _strip_hover_axis: String = ""
+var _strip_hover_index: int = -1
+var _strip_hover_side: String = ""
+
 
 func _ready() -> void:
 	super._ready()
@@ -87,6 +122,10 @@ func _ready() -> void:
 	ThemeManager.theme_applied.connect(_refresh_visuals)
 	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _refresh_visuals())
 	SelectionBus.selection_changed.connect(_on_selection_changed)
+	_connect_axis_strip_signals()
+	if _axis_actions != null:
+		_axis_actions.action_requested.connect(_on_axis_action_requested)
+		_axis_actions.visible = false
 	if read_only:
 		return
 	_add_row_btn.pressed.connect(func() -> void: _commit_dimensions(rows + 1, cols))
@@ -126,6 +165,8 @@ func _draw_body() -> void:
 		_resolved_accent(),
 	)
 	_draw_grid_frame()
+	_draw_axis_hover_highlight()
+	_draw_axis_selection_highlight()
 
 
 func _draw_grid_frame() -> void:
@@ -138,6 +179,64 @@ func _draw_grid_frame() -> void:
 	frame_sb.set_border_width_all(GRID_FRAME_WIDTH)
 	frame_sb.set_corner_radius_all(0)
 	draw_style_box(frame_sb, frame_rect)
+
+
+func _draw_axis_hover_highlight() -> void:
+	if _grid == null:
+		return
+	if _strip_hover_axis == "" or _strip_hover_index < 0 or _strip_hover_side == "":
+		return
+	if _selected_axis == _strip_hover_axis and _selected_axis_index == _strip_hover_index and _selected_axis_side == _strip_hover_side:
+		return
+	var rect: Rect2 = _side_indicator_rect(_strip_hover_axis, _strip_hover_index, _strip_hover_side)
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return
+	var color: Color = _resolved_accent()
+	color.a = STRIP_INDICATOR_HOVER_ALPHA
+	draw_rect(rect, color, true)
+
+
+func _draw_axis_selection_highlight() -> void:
+	if _grid == null or _selected_axis == "" or _selected_axis_index < 0:
+		return
+	var bar_rect: Rect2 = _side_indicator_rect(_selected_axis, _selected_axis_index, _selected_axis_side)
+	if bar_rect.size.x > 0.0 and bar_rect.size.y > 0.0:
+		var fill: Color = ACTIVE_OUTLINE_COLOR
+		fill.a = STRIP_INDICATOR_ACTIVE_ALPHA
+		draw_rect(bar_rect, fill, true)
+	var rect: Rect2
+	if _selected_axis == AXIS_ROW:
+		rect = _row_world_rect(_selected_axis_index)
+	else:
+		rect = _col_world_rect(_selected_axis_index)
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return
+	var outline_sb: StyleBoxFlat = StyleBoxFlat.new()
+	outline_sb.draw_center = false
+	outline_sb.border_color = ACTIVE_OUTLINE_COLOR
+	outline_sb.set_border_width_all(AXIS_SELECT_OUTLINE_WIDTH)
+	outline_sb.set_corner_radius_all(0)
+	draw_style_box(outline_sb, rect)
+
+
+func _side_indicator_rect(axis: String, index: int, side: String) -> Rect2:
+	if axis == AXIS_ROW:
+		var row_rect: Rect2 = _row_world_rect(index)
+		if row_rect.size.x <= 0.0 or row_rect.size.y <= 0.0:
+			return Rect2()
+		var strip: Control = _row_strip_right if side == SIDE_RIGHT else _row_strip_left
+		if strip == null:
+			return Rect2()
+		return Rect2(Vector2(strip.position.x, row_rect.position.y), Vector2(strip.size.x, row_rect.size.y))
+	if axis == AXIS_COL:
+		var col_rect: Rect2 = _col_world_rect(index)
+		if col_rect.size.x <= 0.0 or col_rect.size.y <= 0.0:
+			return Rect2()
+		var strip_c: Control = _col_strip_bottom if side == SIDE_BOTTOM else _col_strip_top
+		if strip_c == null:
+			return Rect2()
+		return Rect2(Vector2(col_rect.position.x, strip_c.position.y), Vector2(col_rect.size.x, strip_c.size.y))
+	return Rect2()
 
 
 func _resolved_bg() -> Color:
@@ -193,6 +292,24 @@ func _ensure_arrays() -> void:
 		col_aligns.resize(cols)
 	for c in range(cols):
 		col_aligns[c] = clamp(int(col_aligns[c]), ALIGN_LEFT, ALIGN_RIGHT)
+	while col_valigns.size() < cols:
+		col_valigns.append(VALIGN_MIDDLE)
+	if col_valigns.size() > cols:
+		col_valigns.resize(cols)
+	for c in range(cols):
+		col_valigns[c] = clamp(int(col_valigns[c]), VALIGN_TOP, VALIGN_BOTTOM)
+	while row_aligns.size() < rows:
+		row_aligns.append(ALIGN_INHERIT)
+	if row_aligns.size() > rows:
+		row_aligns.resize(rows)
+	for r in range(rows):
+		row_aligns[r] = _normalize_h_align_with_inherit(row_aligns[r])
+	while row_valigns.size() < rows:
+		row_valigns.append(ALIGN_INHERIT)
+	if row_valigns.size() > rows:
+		row_valigns.resize(rows)
+	for r in range(rows):
+		row_valigns[r] = _normalize_v_align_with_inherit(row_valigns[r])
 	while col_widths.size() < cols:
 		col_widths.append(0.0)
 	if col_widths.size() > cols:
@@ -200,6 +317,21 @@ func _ensure_arrays() -> void:
 	for c in range(cols):
 		col_widths[c] = max(0.0, float(col_widths[c]))
 	rules = TableRule.normalize_array(rules)
+	cell_formats = _normalize_cell_formats(cell_formats)
+
+
+func _normalize_h_align_with_inherit(value: Variant) -> int:
+	var v: int = int(value)
+	if v == ALIGN_INHERIT:
+		return ALIGN_INHERIT
+	return clamp(v, ALIGN_LEFT, ALIGN_RIGHT)
+
+
+func _normalize_v_align_with_inherit(value: Variant) -> int:
+	var v: int = int(value)
+	if v == ALIGN_INHERIT:
+		return ALIGN_INHERIT
+	return clamp(v, VALIGN_TOP, VALIGN_BOTTOM)
 
 
 func _layout() -> void:
@@ -228,13 +360,32 @@ func _layout() -> void:
 	if _title_edit != null:
 		_title_edit.position = Vector2(title_left, title_y)
 		_title_edit.size = Vector2(title_width, 22.0)
+	var grid_top: float = HEADER_HEIGHT + PADDING.y
+	var grid_bottom: float = size.y - GRID_BOTTOM_PADDING
+	var grid_left: float = PADDING.x
+	var grid_right: float = size.x - PADDING.x
+	var grid_width: float = max(0.0, grid_right - grid_left)
+	var grid_height: float = max(0.0, grid_bottom - grid_top)
 	if _grid != null:
-		_grid.position = Vector2(PADDING.x, HEADER_HEIGHT + PADDING.y)
-		_grid.size = Vector2(size.x - PADDING.x * 2, size.y - HEADER_HEIGHT - PADDING.y - GRID_BOTTOM_PADDING)
+		_grid.position = Vector2(grid_left, grid_top)
+		_grid.size = Vector2(grid_width, grid_height)
 	if _resize_handles != null:
-		_resize_handles.position = Vector2(PADDING.x, HEADER_HEIGHT + PADDING.y)
-		_resize_handles.size = Vector2(size.x - PADDING.x * 2, size.y - HEADER_HEIGHT - PADDING.y - GRID_BOTTOM_PADDING)
+		_resize_handles.position = Vector2(grid_left, grid_top)
+		_resize_handles.size = Vector2(grid_width, grid_height)
 		_request_handle_reposition()
+	if _row_strip_left != null:
+		_row_strip_left.position = Vector2(0.0, grid_top)
+		_row_strip_left.size = Vector2(EDGE_STRIP_WIDTH, grid_height)
+	if _row_strip_right != null:
+		_row_strip_right.position = Vector2(grid_right, grid_top)
+		_row_strip_right.size = Vector2(EDGE_STRIP_WIDTH, grid_height)
+	if _col_strip_top != null:
+		_col_strip_top.position = Vector2(grid_left, grid_top - EDGE_STRIP_WIDTH)
+		_col_strip_top.size = Vector2(grid_width, EDGE_STRIP_WIDTH)
+	if _col_strip_bottom != null:
+		_col_strip_bottom.position = Vector2(grid_left, grid_bottom)
+		_col_strip_bottom.size = Vector2(grid_width, EDGE_STRIP_WIDTH)
+	_reposition_axis_actions()
 
 
 func _notification(what: int) -> void:
@@ -306,6 +457,7 @@ func _rebuild_grid() -> void:
 	if editing and _pending_edit_cell.x >= 0 and _pending_edit_cell.y >= 0:
 		_focus_cell_after_build(_pending_edit_cell.x, _pending_edit_cell.y)
 		_pending_edit_cell = Vector2i(-1, -1)
+	_reposition_axis_actions()
 
 
 func _rebuild_resize_handles() -> void:
@@ -363,6 +515,7 @@ func _reposition_handles_async() -> void:
 		handle.position = Vector2(edge_x - TableColumnResizeHandle.HANDLE_WIDTH * 0.5, 0.0)
 		handle.size = Vector2(TableColumnResizeHandle.HANDLE_WIDTH, handle_height)
 		handle.visible = true
+	_reposition_axis_actions()
 
 
 func _on_resize_drag_started(column: int) -> void:
@@ -470,6 +623,7 @@ func _build_cell(r: int, c: int, value: String, editing: bool) -> PanelContainer
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.set_meta("cell_row", r)
 	panel.set_meta("cell_col", c)
+	panel.clip_contents = true
 	var margin: MarginContainer = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", CELL_PADDING_LEFT)
 	margin.add_theme_constant_override("margin_right", CELL_PADDING_RIGHT)
@@ -479,11 +633,19 @@ func _build_cell(r: int, c: int, value: String, editing: bool) -> PanelContainer
 	margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.add_child(margin)
+	var valign_box: VBoxContainer = VBoxContainer.new()
+	valign_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	valign_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	valign_box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	valign_box.add_theme_constant_override("separation", 0)
+	margin.add_child(valign_box)
+	var h_align: int = _effective_h_align(r, c)
+	var v_align: int = _effective_v_align(r, c)
 	if editing:
 		var le: LineEdit = LineEdit.new()
 		le.text = value
 		le.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		le.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		le.size_flags_vertical = _vbox_size_flag_for_valign(v_align)
 		le.context_menu_enabled = false
 		le.expand_to_text_length = false
 		le.flat = true
@@ -499,39 +661,60 @@ func _build_cell(r: int, c: int, value: String, editing: bool) -> PanelContainer
 		le.focus_exited.connect(func() -> void: _on_cell_focus_exited(rr, cc, le))
 		le.focus_entered.connect(func() -> void: set_active_cell(rr, cc))
 		le.gui_input.connect(func(ev: InputEvent) -> void: _on_cell_line_edit_input(ev))
-		_align_line_edit(le, _effective_col_align(c))
-		margin.add_child(le)
+		_align_line_edit(le, h_align)
+		valign_box.add_child(le)
 		_active_line_edits.append(le)
 	else:
 		var rtl: RichTextLabel = RichTextLabel.new()
 		rtl.bbcode_enabled = true
-		rtl.fit_content = false
+		rtl.fit_content = true
 		rtl.scroll_active = false
 		rtl.selection_enabled = false
 		rtl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		rtl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		rtl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		rtl.size_flags_vertical = _vbox_size_flag_for_valign(v_align)
 		rtl.custom_minimum_size = Vector2(0, 0)
 		rtl.clip_contents = true
-		_apply_rtl_alignment(rtl, _effective_col_align(c))
-		margin.add_child(rtl)
+		valign_box.add_child(rtl)
 	return panel
 
 
-func _effective_col_align(c: int) -> int:
-	if c < 0 or c >= col_aligns.size():
-		return ALIGN_LEFT
-	return clamp(int(col_aligns[c]), ALIGN_LEFT, ALIGN_RIGHT)
-
-
-func _apply_rtl_alignment(rtl: RichTextLabel, align_id: int) -> void:
-	match align_id:
-		ALIGN_CENTER:
-			rtl.set_meta("align_id", ALIGN_CENTER)
-		ALIGN_RIGHT:
-			rtl.set_meta("align_id", ALIGN_RIGHT)
+func _vbox_size_flag_for_valign(v_align: int) -> int:
+	match v_align:
+		VALIGN_TOP:
+			return Control.SIZE_EXPAND | Control.SIZE_SHRINK_BEGIN
+		VALIGN_BOTTOM:
+			return Control.SIZE_EXPAND | Control.SIZE_SHRINK_END
 		_:
-			rtl.set_meta("align_id", ALIGN_LEFT)
+			return Control.SIZE_EXPAND | Control.SIZE_SHRINK_CENTER
+
+
+func _effective_h_align(r: int, c: int) -> int:
+	var fmt: Dictionary = get_cell_format(r, c)
+	var cell_h: int = int(fmt.get("align_h", ALIGN_INHERIT))
+	if cell_h != ALIGN_INHERIT:
+		return clamp(cell_h, ALIGN_LEFT, ALIGN_RIGHT)
+	if r >= 0 and r < row_aligns.size():
+		var row_h: int = int(row_aligns[r])
+		if row_h != ALIGN_INHERIT:
+			return clamp(row_h, ALIGN_LEFT, ALIGN_RIGHT)
+	if c >= 0 and c < col_aligns.size():
+		return clamp(int(col_aligns[c]), ALIGN_LEFT, ALIGN_RIGHT)
+	return ALIGN_LEFT
+
+
+func _effective_v_align(r: int, c: int) -> int:
+	var fmt: Dictionary = get_cell_format(r, c)
+	var cell_v: int = int(fmt.get("align_v", ALIGN_INHERIT))
+	if cell_v != ALIGN_INHERIT:
+		return clamp(cell_v, VALIGN_TOP, VALIGN_BOTTOM)
+	if r >= 0 and r < row_valigns.size():
+		var row_v: int = int(row_valigns[r])
+		if row_v != ALIGN_INHERIT:
+			return clamp(row_v, VALIGN_TOP, VALIGN_BOTTOM)
+	if c >= 0 and c < col_valigns.size():
+		return clamp(int(col_valigns[c]), VALIGN_TOP, VALIGN_BOTTOM)
+	return VALIGN_MIDDLE
 
 
 func _align_line_edit(le: LineEdit, align_id: int) -> void:
@@ -591,10 +774,15 @@ func _apply_cell_styling() -> void:
 		if bool(cell_override.get("italic", false)):
 			italic = true
 		_style_cell_panel(panel, bg, bg_set, r, c)
+		var h_align: int = _effective_h_align(r, c)
+		var v_align: int = _effective_v_align(r, c)
 		var inner: Control = _find_cell_inner(panel)
 		if inner is RichTextLabel:
-			_apply_rtl_text(inner as RichTextLabel, cell_text, fg, fg_set, bold, italic, _effective_col_align(c))
+			_apply_rtl_text(inner as RichTextLabel, cell_text, fg, fg_set, bold, italic, h_align)
+			inner.size_flags_vertical = _vbox_size_flag_for_valign(v_align)
 		elif inner is LineEdit:
+			_align_line_edit(inner as LineEdit, h_align)
+			inner.size_flags_vertical = _vbox_size_flag_for_valign(v_align)
 			if fg_set:
 				inner.add_theme_color_override("font_color", fg)
 				inner.add_theme_color_override("font_selected_color", fg)
@@ -609,7 +797,10 @@ func _find_cell_inner(panel: PanelContainer) -> Control:
 	var margin: Node = panel.get_child(0)
 	if margin == null or margin.get_child_count() == 0:
 		return null
-	var inner: Node = margin.get_child(0)
+	var box: Node = margin.get_child(0)
+	if box == null or box.get_child_count() == 0:
+		return null
+	var inner: Node = box.get_child(0)
 	return inner as Control
 
 
@@ -671,10 +862,11 @@ func set_cell_format(r: int, c: int, fmt: Dictionary) -> void:
 	var before: Dictionary = _normalize_cell_formats(cell_formats)
 	var new_formats: Dictionary = before.duplicate(true)
 	var key: String = _cell_format_key(r, c)
-	if _cell_format_is_empty(fmt):
+	var normalized_entry: Dictionary = _normalize_single_cell_format(fmt)
+	if _cell_format_is_empty(normalized_entry):
 		new_formats.erase(key)
 	else:
-		new_formats[key] = fmt.duplicate(true)
+		new_formats[key] = normalized_entry
 	if new_formats.hash() == before.hash():
 		return
 	var editor: Node = _find_editor()
@@ -700,7 +892,28 @@ func _cell_format_is_empty(fmt: Dictionary) -> bool:
 		return false
 	if bool(fmt.get("italic", false)):
 		return false
+	if int(fmt.get("align_h", ALIGN_INHERIT)) != ALIGN_INHERIT:
+		return false
+	if int(fmt.get("align_v", ALIGN_INHERIT)) != ALIGN_INHERIT:
+		return false
 	return true
+
+
+func _normalize_single_cell_format(d: Dictionary) -> Dictionary:
+	var raw_h: int = int(d.get("align_h", ALIGN_INHERIT))
+	var align_h: int = raw_h if raw_h == ALIGN_INHERIT else clamp(raw_h, ALIGN_LEFT, ALIGN_RIGHT)
+	var raw_v: int = int(d.get("align_v", ALIGN_INHERIT))
+	var align_v: int = raw_v if raw_v == ALIGN_INHERIT else clamp(raw_v, VALIGN_TOP, VALIGN_BOTTOM)
+	return {
+		"use_bg": bool(d.get("use_bg", false)),
+		"bg": d.get("bg", [1.0, 1.0, 1.0, 1.0]),
+		"use_fg": bool(d.get("use_fg", false)),
+		"fg": d.get("fg", [0.0, 0.0, 0.0, 1.0]),
+		"bold": bool(d.get("bold", false)),
+		"italic": bool(d.get("italic", false)),
+		"align_h": align_h,
+		"align_v": align_v,
+	}
 
 
 func _normalize_cell_formats(raw: Variant) -> Dictionary:
@@ -711,17 +924,10 @@ func _normalize_cell_formats(raw: Variant) -> Dictionary:
 		var v: Variant = src[key_v]
 		if typeof(v) != TYPE_DICTIONARY:
 			continue
-		var d: Dictionary = v
-		if _cell_format_is_empty(d):
+		var normalized: Dictionary = _normalize_single_cell_format(v)
+		if _cell_format_is_empty(normalized):
 			continue
-		out[k] = {
-			"use_bg": bool(d.get("use_bg", false)),
-			"bg": d.get("bg", [1.0, 1.0, 1.0, 1.0]),
-			"use_fg": bool(d.get("use_fg", false)),
-			"fg": d.get("fg", [0.0, 0.0, 0.0, 1.0]),
-			"bold": bool(d.get("bold", false)),
-			"italic": bool(d.get("italic", false)),
-		}
+		out[k] = normalized
 	return out
 
 
@@ -730,6 +936,7 @@ func set_active_cell(r: int, c: int) -> void:
 		return
 	var clamped_r: int = clamp(r, 0, rows - 1)
 	var clamped_c: int = clamp(c, 0, cols - 1)
+	clear_axis_selection()
 	if _active_cell.x == clamped_r and _active_cell.y == clamped_c:
 		return
 	_active_cell = Vector2i(clamped_r, clamped_c)
@@ -859,32 +1066,210 @@ func _commit_dimensions(new_rows: int, new_cols: int) -> void:
 	new_cols = max(1, new_cols)
 	if new_rows == rows and new_cols == cols:
 		return
-	var before_payload: Dictionary = {
-		"rows": rows,
-		"cols": cols,
-		"cells": cells.duplicate(true),
-		"col_aligns": col_aligns.duplicate(true),
-		"col_widths": col_widths.duplicate(true),
-	}
+	var before_payload: Dictionary = _table_dims_payload()
 	rows = new_rows
 	cols = new_cols
 	_ensure_arrays()
 	_clamp_active_cell()
+	_clamp_axis_selection()
 	_rebuild_grid()
 	_request_grow_to_fit()
-	var after_payload: Dictionary = {
-		"rows": rows,
-		"cols": cols,
-		"cells": cells.duplicate(true),
-		"col_aligns": col_aligns.duplicate(true),
-		"col_widths": col_widths.duplicate(true),
-	}
+	var after_payload: Dictionary = _table_dims_payload()
 	var editor: Node = _find_editor()
 	if editor == null:
 		return
 	History.push_already_done(ModifyPropertyCommand.new(editor, item_id, "table_dims", before_payload, after_payload))
 	if editor.has_method("request_save"):
 		editor.request_save()
+
+
+func _table_dims_payload() -> Dictionary:
+	return {
+		"rows": rows,
+		"cols": cols,
+		"cells": cells.duplicate(true),
+		"col_aligns": col_aligns.duplicate(true),
+		"col_valigns": col_valigns.duplicate(true),
+		"row_aligns": row_aligns.duplicate(true),
+		"row_valigns": row_valigns.duplicate(true),
+		"col_widths": col_widths.duplicate(true),
+		"cell_formats": cell_formats.duplicate(true),
+	}
+
+
+func insert_row_at(index: int) -> void:
+	_ensure_arrays()
+	var clamped: int = clamp(index, 0, rows)
+	var before_payload: Dictionary = _table_dims_payload()
+	var new_row: Array = []
+	for c in range(cols):
+		new_row.append("")
+	cells.insert(clamped, new_row)
+	row_aligns.insert(clamped, ALIGN_INHERIT)
+	row_valigns.insert(clamped, ALIGN_INHERIT)
+	cell_formats = _shift_cell_formats_for_row_insert(cell_formats, clamped)
+	rows += 1
+	_clamp_active_cell()
+	_set_axis_selection(AXIS_ROW, clamped)
+	_rebuild_grid()
+	_request_grow_to_fit()
+	_push_table_dims_history(before_payload)
+
+
+func delete_row_at(index: int) -> void:
+	_ensure_arrays()
+	if rows <= 1:
+		return
+	if index < 0 or index >= rows:
+		return
+	var before_payload: Dictionary = _table_dims_payload()
+	cells.remove_at(index)
+	row_aligns.remove_at(index)
+	row_valigns.remove_at(index)
+	cell_formats = _shift_cell_formats_for_row_delete(cell_formats, index)
+	rows -= 1
+	_clamp_active_cell()
+	if _selected_axis == AXIS_ROW:
+		var new_index: int = clamp(index, 0, rows - 1)
+		_set_axis_selection(AXIS_ROW, new_index)
+	else:
+		_clamp_axis_selection()
+	_rebuild_grid()
+	_request_grow_to_fit()
+	_push_table_dims_history(before_payload)
+
+
+func insert_col_at(index: int) -> void:
+	_ensure_arrays()
+	var clamped: int = clamp(index, 0, cols)
+	var before_payload: Dictionary = _table_dims_payload()
+	for r in range(rows):
+		var row: Array = cells[r]
+		row.insert(clamped, "")
+		cells[r] = row
+	col_aligns.insert(clamped, ALIGN_LEFT)
+	col_valigns.insert(clamped, VALIGN_MIDDLE)
+	col_widths.insert(clamped, 0.0)
+	cell_formats = _shift_cell_formats_for_col_insert(cell_formats, clamped)
+	cols += 1
+	_clamp_active_cell()
+	_set_axis_selection(AXIS_COL, clamped)
+	_rebuild_grid()
+	_request_grow_to_fit()
+	_push_table_dims_history(before_payload)
+
+
+func delete_col_at(index: int) -> void:
+	_ensure_arrays()
+	if cols <= 1:
+		return
+	if index < 0 or index >= cols:
+		return
+	var before_payload: Dictionary = _table_dims_payload()
+	for r in range(rows):
+		var row: Array = cells[r]
+		row.remove_at(index)
+		cells[r] = row
+	col_aligns.remove_at(index)
+	col_valigns.remove_at(index)
+	col_widths.remove_at(index)
+	cell_formats = _shift_cell_formats_for_col_delete(cell_formats, index)
+	cols -= 1
+	_clamp_active_cell()
+	if _selected_axis == AXIS_COL:
+		var new_index: int = clamp(index, 0, cols - 1)
+		_set_axis_selection(AXIS_COL, new_index)
+	else:
+		_clamp_axis_selection()
+	_rebuild_grid()
+	_request_grow_to_fit()
+	_push_table_dims_history(before_payload)
+
+
+func _push_table_dims_history(before_payload: Dictionary) -> void:
+	var after_payload: Dictionary = _table_dims_payload()
+	var editor: Node = _find_editor()
+	if editor == null:
+		return
+	History.push_already_done(ModifyPropertyCommand.new(editor, item_id, "table_dims", before_payload, after_payload))
+	if editor.has_method("request_save"):
+		editor.request_save()
+
+
+func _shift_cell_formats_for_row_insert(src: Dictionary, inserted_row: int) -> Dictionary:
+	var out: Dictionary = {}
+	for key_v: Variant in src.keys():
+		var k: String = String(key_v)
+		var coords: PackedInt32Array = _split_cell_format_key(k)
+		if coords.size() != 2:
+			continue
+		var r: int = coords[0]
+		var c: int = coords[1]
+		if r >= inserted_row:
+			r += 1
+		out[_cell_format_key(r, c)] = (src[key_v] as Dictionary).duplicate(true)
+	return out
+
+
+func _shift_cell_formats_for_row_delete(src: Dictionary, deleted_row: int) -> Dictionary:
+	var out: Dictionary = {}
+	for key_v: Variant in src.keys():
+		var k: String = String(key_v)
+		var coords: PackedInt32Array = _split_cell_format_key(k)
+		if coords.size() != 2:
+			continue
+		var r: int = coords[0]
+		var c: int = coords[1]
+		if r == deleted_row:
+			continue
+		if r > deleted_row:
+			r -= 1
+		out[_cell_format_key(r, c)] = (src[key_v] as Dictionary).duplicate(true)
+	return out
+
+
+func _shift_cell_formats_for_col_insert(src: Dictionary, inserted_col: int) -> Dictionary:
+	var out: Dictionary = {}
+	for key_v: Variant in src.keys():
+		var k: String = String(key_v)
+		var coords: PackedInt32Array = _split_cell_format_key(k)
+		if coords.size() != 2:
+			continue
+		var r: int = coords[0]
+		var c: int = coords[1]
+		if c >= inserted_col:
+			c += 1
+		out[_cell_format_key(r, c)] = (src[key_v] as Dictionary).duplicate(true)
+	return out
+
+
+func _shift_cell_formats_for_col_delete(src: Dictionary, deleted_col: int) -> Dictionary:
+	var out: Dictionary = {}
+	for key_v: Variant in src.keys():
+		var k: String = String(key_v)
+		var coords: PackedInt32Array = _split_cell_format_key(k)
+		if coords.size() != 2:
+			continue
+		var r: int = coords[0]
+		var c: int = coords[1]
+		if c == deleted_col:
+			continue
+		if c > deleted_col:
+			c -= 1
+		out[_cell_format_key(r, c)] = (src[key_v] as Dictionary).duplicate(true)
+	return out
+
+
+func _split_cell_format_key(k: String) -> PackedInt32Array:
+	var parts: PackedStringArray = k.split(",")
+	if parts.size() != 2:
+		return PackedInt32Array()
+	if not parts[0].is_valid_int() or not parts[1].is_valid_int():
+		return PackedInt32Array()
+	var arr: PackedInt32Array = PackedInt32Array()
+	arr.append(parts[0].to_int())
+	arr.append(parts[1].to_int())
+	return arr
 
 
 func _clamp_active_cell() -> void:
@@ -945,6 +1330,336 @@ func _find_editor() -> Node:
 			return n
 		n = n.get_parent()
 	return null
+
+
+func _connect_axis_strip_signals() -> void:
+	if _row_strip_left != null:
+		_row_strip_left.gui_input.connect(_on_row_strip_input.bind(_row_strip_left))
+		_row_strip_left.mouse_exited.connect(_on_axis_strip_mouse_exited)
+	if _row_strip_right != null:
+		_row_strip_right.gui_input.connect(_on_row_strip_input.bind(_row_strip_right))
+		_row_strip_right.mouse_exited.connect(_on_axis_strip_mouse_exited)
+	if _col_strip_top != null:
+		_col_strip_top.gui_input.connect(_on_col_strip_input.bind(_col_strip_top))
+		_col_strip_top.mouse_exited.connect(_on_axis_strip_mouse_exited)
+	if _col_strip_bottom != null:
+		_col_strip_bottom.gui_input.connect(_on_col_strip_input.bind(_col_strip_bottom))
+		_col_strip_bottom.mouse_exited.connect(_on_axis_strip_mouse_exited)
+
+
+func _on_row_strip_input(event: InputEvent, strip: Control) -> void:
+	var side: String = SIDE_LEFT if strip == _row_strip_left else SIDE_RIGHT
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event
+		var idx: int = _row_index_for_strip_local(strip, motion.position)
+		_update_strip_hover(AXIS_ROW, idx, side)
+	elif event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			var idx: int = _row_index_for_strip_local(strip, mb.position)
+			if idx >= 0:
+				_handle_axis_click(AXIS_ROW, idx, side)
+				strip.accept_event()
+
+
+func _on_col_strip_input(event: InputEvent, strip: Control) -> void:
+	var side: String = SIDE_TOP if strip == _col_strip_top else SIDE_BOTTOM
+	if event is InputEventMouseMotion:
+		var motion: InputEventMouseMotion = event
+		var idx: int = _col_index_for_strip_local(strip, motion.position)
+		_update_strip_hover(AXIS_COL, idx, side)
+	elif event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event
+		if mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			var idx: int = _col_index_for_strip_local(strip, mb.position)
+			if idx >= 0:
+				_handle_axis_click(AXIS_COL, idx, side)
+				strip.accept_event()
+
+
+func _on_axis_strip_mouse_exited() -> void:
+	_update_strip_hover("", -1, "")
+
+
+func _update_strip_hover(axis: String, index: int, side: String) -> void:
+	if _strip_hover_axis == axis and _strip_hover_index == index and _strip_hover_side == side:
+		return
+	_strip_hover_axis = axis
+	_strip_hover_index = index
+	_strip_hover_side = side
+	queue_redraw()
+
+
+func _row_index_for_strip_local(strip: Control, local_pos: Vector2) -> int:
+	if _grid == null or strip == null:
+		return -1
+	var y_in_grid: float = strip.position.y + local_pos.y - _grid.position.y
+	return _row_index_at_grid_y(y_in_grid)
+
+
+func _col_index_for_strip_local(strip: Control, local_pos: Vector2) -> int:
+	if _grid == null or strip == null:
+		return -1
+	var x_in_grid: float = strip.position.x + local_pos.x - _grid.position.x
+	return _col_index_at_grid_x(x_in_grid)
+
+
+func _row_index_at_grid_y(y_in_grid: float) -> int:
+	if y_in_grid < 0.0:
+		return -1
+	var grid_children: Array = _grid.get_children()
+	for r in range(rows):
+		var rect: Rect2 = _grid_row_rect(r, grid_children)
+		if rect.size.y <= 0.0:
+			continue
+		if y_in_grid >= rect.position.y and y_in_grid < rect.position.y + rect.size.y:
+			return r
+	return -1
+
+
+func _col_index_at_grid_x(x_in_grid: float) -> int:
+	if x_in_grid < 0.0:
+		return -1
+	var grid_children: Array = _grid.get_children()
+	for c in range(cols):
+		var rect: Rect2 = _grid_col_rect(c, grid_children)
+		if rect.size.x <= 0.0:
+			continue
+		if x_in_grid >= rect.position.x and x_in_grid < rect.position.x + rect.size.x:
+			return c
+	return -1
+
+
+func _grid_row_rect(r: int, grid_children: Array) -> Rect2:
+	if r < 0 or r >= rows:
+		return Rect2()
+	var first_idx: int = r * cols
+	if first_idx >= grid_children.size():
+		return Rect2()
+	var last_idx: int = first_idx + cols - 1
+	if last_idx >= grid_children.size():
+		last_idx = grid_children.size() - 1
+	var first_panel: PanelContainer = grid_children[first_idx] as PanelContainer
+	var last_panel: PanelContainer = grid_children[last_idx] as PanelContainer
+	if first_panel == null or last_panel == null:
+		return Rect2()
+	var y: float = first_panel.position.y
+	var h: float = (last_panel.position.y + last_panel.size.y) - y
+	var x: float = first_panel.position.x
+	var w: float = (last_panel.position.x + last_panel.size.x) - x
+	return Rect2(Vector2(x, y), Vector2(w, h))
+
+
+func _grid_col_rect(c: int, grid_children: Array) -> Rect2:
+	if c < 0 or c >= cols:
+		return Rect2()
+	if grid_children.size() == 0:
+		return Rect2()
+	var first_panel: PanelContainer = grid_children[c] as PanelContainer
+	var last_row_first: int = (rows - 1) * cols
+	var last_panel_idx: int = last_row_first + c
+	if last_panel_idx >= grid_children.size():
+		last_panel_idx = grid_children.size() - 1
+	var last_panel: PanelContainer = grid_children[last_panel_idx] as PanelContainer
+	if first_panel == null or last_panel == null:
+		return Rect2()
+	var x: float = first_panel.position.x
+	var w: float = first_panel.size.x
+	var y: float = first_panel.position.y
+	var h: float = (last_panel.position.y + last_panel.size.y) - y
+	return Rect2(Vector2(x, y), Vector2(w, h))
+
+
+func _row_world_rect(r: int) -> Rect2:
+	if _grid == null:
+		return Rect2()
+	var grid_children: Array = _grid.get_children()
+	var rect: Rect2 = _grid_row_rect(r, grid_children)
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return Rect2()
+	rect.position += _grid.position
+	return rect
+
+
+func _col_world_rect(c: int) -> Rect2:
+	if _grid == null:
+		return Rect2()
+	var grid_children: Array = _grid.get_children()
+	var rect: Rect2 = _grid_col_rect(c, grid_children)
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return Rect2()
+	rect.position += _grid.position
+	return rect
+
+
+func _handle_axis_click(axis: String, index: int, side: String) -> void:
+	if read_only:
+		return
+	emit_signal("selection_requested", self, false)
+	_set_axis_selection(axis, index, side)
+
+
+func _set_axis_selection(axis: String, index: int, side: String = "") -> void:
+	if axis == AXIS_ROW:
+		if index < 0 or index >= rows:
+			return
+	elif axis == AXIS_COL:
+		if index < 0 or index >= cols:
+			return
+	else:
+		return
+	var resolved_side: String = _resolve_axis_side(axis, side)
+	if _selected_axis == axis and _selected_axis_index == index and _selected_axis_side == resolved_side:
+		_show_axis_actions_for_selection()
+		return
+	_selected_axis = axis
+	_selected_axis_index = index
+	_selected_axis_side = resolved_side
+	_show_axis_actions_for_selection()
+	emit_signal("axis_selection_changed", axis, index)
+	queue_redraw()
+
+
+func _resolve_axis_side(axis: String, side: String) -> String:
+	if axis == AXIS_ROW:
+		if side == SIDE_LEFT or side == SIDE_RIGHT:
+			return side
+		if _selected_axis == AXIS_ROW and (_selected_axis_side == SIDE_LEFT or _selected_axis_side == SIDE_RIGHT):
+			return _selected_axis_side
+		return SIDE_RIGHT
+	if axis == AXIS_COL:
+		if side == SIDE_TOP or side == SIDE_BOTTOM:
+			return side
+		if _selected_axis == AXIS_COL and (_selected_axis_side == SIDE_TOP or _selected_axis_side == SIDE_BOTTOM):
+			return _selected_axis_side
+		return SIDE_BOTTOM
+	return ""
+
+
+func clear_axis_selection() -> void:
+	if _selected_axis == "" and _selected_axis_index == -1:
+		return
+	_selected_axis = ""
+	_selected_axis_index = -1
+	_selected_axis_side = ""
+	if _axis_actions != null:
+		_axis_actions.visible = false
+	emit_signal("axis_selection_changed", "", -1)
+	queue_redraw()
+
+
+func _clamp_axis_selection() -> void:
+	if _selected_axis == AXIS_ROW:
+		if rows <= 0 or _selected_axis_index >= rows:
+			clear_axis_selection()
+	elif _selected_axis == AXIS_COL:
+		if cols <= 0 or _selected_axis_index >= cols:
+			clear_axis_selection()
+
+
+func selected_axis() -> String:
+	return _selected_axis
+
+
+func selected_axis_index() -> int:
+	return _selected_axis_index
+
+
+func select_row(index: int, side: String = "") -> void:
+	_set_axis_selection(AXIS_ROW, index, side)
+
+
+func select_column(index: int, side: String = "") -> void:
+	_set_axis_selection(AXIS_COL, index, side)
+
+
+func _show_axis_actions_for_selection() -> void:
+	if _axis_actions == null:
+		return
+	if _selected_axis == "" or _selected_axis_index < 0 or read_only or locked:
+		_axis_actions.visible = false
+		return
+	_axis_actions.configure(_selected_axis, _selected_axis_index)
+	_axis_actions.visible = true
+	_reposition_axis_actions()
+
+
+func _reposition_axis_actions() -> void:
+	if _axis_actions == null or not _axis_actions.visible:
+		return
+	if _grid == null:
+		return
+	_axis_actions.reset_size()
+	var size_v: Vector2 = _axis_actions.get_combined_minimum_size()
+	var grid_top: float = _grid.position.y
+	var grid_bottom: float = grid_top + _grid.size.y
+	var grid_left: float = _grid.position.x
+	var grid_right: float = grid_left + _grid.size.x
+	if _selected_axis == AXIS_ROW:
+		var rect: Rect2 = _row_world_rect(_selected_axis_index)
+		var y: float = rect.position.y + (rect.size.y - size_v.y) * 0.5
+		var prefers_left: bool = _selected_axis_side == SIDE_LEFT
+		var x_left: float = grid_left - size_v.x - AXIS_ACTIONS_GAP
+		var x_right: float = grid_right + AXIS_ACTIONS_GAP
+		var x: float
+		if prefers_left:
+			x = x_left
+			if x < 2.0:
+				x = x_right
+		else:
+			x = x_right
+			if x + size_v.x > size.x - 2.0:
+				x = x_left
+		if x < 2.0:
+			x = 2.0
+		if x + size_v.x > size.x - 2.0:
+			x = max(2.0, size.x - size_v.x - 2.0)
+		y = clamp(y, 2.0, max(2.0, size.y - size_v.y - 2.0))
+		_axis_actions.position = Vector2(x, y)
+		_axis_actions.size = size_v
+	else:
+		var rect_c: Rect2 = _col_world_rect(_selected_axis_index)
+		var x_c: float = rect_c.position.x + (rect_c.size.x - size_v.x) * 0.5
+		var prefers_top: bool = _selected_axis_side == SIDE_TOP
+		var y_top: float = grid_top - size_v.y - AXIS_ACTIONS_GAP
+		var y_bottom: float = grid_bottom + AXIS_ACTIONS_GAP
+		var y_c: float
+		if prefers_top:
+			y_c = y_top
+			if y_c < HEADER_HEIGHT + 2.0:
+				y_c = y_bottom
+		else:
+			y_c = y_bottom
+			if y_c + size_v.y > size.y - 2.0:
+				y_c = y_top
+		if y_c < HEADER_HEIGHT + 2.0:
+			y_c = HEADER_HEIGHT + 2.0
+		if y_c + size_v.y > size.y - 2.0:
+			y_c = max(HEADER_HEIGHT + 2.0, size.y - size_v.y - 2.0)
+		x_c = clamp(x_c, 2.0, max(2.0, size.x - size_v.x - 2.0))
+		_axis_actions.position = Vector2(x_c, y_c)
+		_axis_actions.size = size_v
+
+
+func _on_axis_action_requested(action: String) -> void:
+	if _selected_axis == "" or _selected_axis_index < 0:
+		return
+	if _selected_axis == AXIS_ROW:
+		match action:
+			TableAxisActions.ACTION_INSERT_BEFORE:
+				insert_row_at(_selected_axis_index)
+			TableAxisActions.ACTION_INSERT_AFTER:
+				insert_row_at(_selected_axis_index + 1)
+			TableAxisActions.ACTION_DELETE:
+				delete_row_at(_selected_axis_index)
+	else:
+		match action:
+			TableAxisActions.ACTION_INSERT_BEFORE:
+				insert_col_at(_selected_axis_index)
+			TableAxisActions.ACTION_INSERT_AFTER:
+				insert_col_at(_selected_axis_index + 1)
+			TableAxisActions.ACTION_DELETE:
+				delete_col_at(_selected_axis_index)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -1053,6 +1768,8 @@ func _on_title_submitted(_t: String) -> void:
 func _on_selection_changed(selected: Array) -> void:
 	if is_editing() and not selected.has(self):
 		end_edit()
+	if not selected.has(self):
+		clear_axis_selection()
 	_apply_cell_styling()
 
 
@@ -1063,6 +1780,9 @@ func serialize_payload() -> Dictionary:
 		"cols": cols,
 		"cells": cells.duplicate(true),
 		"col_aligns": col_aligns.duplicate(true),
+		"col_valigns": col_valigns.duplicate(true),
+		"row_aligns": row_aligns.duplicate(true),
+		"row_valigns": row_valigns.duplicate(true),
 		"col_widths": col_widths.duplicate(true),
 		"has_header_row": has_header_row,
 		"rules": rules.duplicate(true),
@@ -1093,6 +1813,21 @@ func deserialize_payload(d: Dictionary) -> void:
 	var a_raw: Variant = d.get("col_aligns", [])
 	if typeof(a_raw) == TYPE_ARRAY:
 		col_aligns = (a_raw as Array).duplicate(true)
+	var av_raw: Variant = d.get("col_valigns", [])
+	if typeof(av_raw) == TYPE_ARRAY:
+		col_valigns = (av_raw as Array).duplicate(true)
+	else:
+		col_valigns = []
+	var ra_raw: Variant = d.get("row_aligns", [])
+	if typeof(ra_raw) == TYPE_ARRAY:
+		row_aligns = (ra_raw as Array).duplicate(true)
+	else:
+		row_aligns = []
+	var rav_raw: Variant = d.get("row_valigns", [])
+	if typeof(rav_raw) == TYPE_ARRAY:
+		row_valigns = (rav_raw as Array).duplicate(true)
+	else:
+		row_valigns = []
 	var w_raw: Variant = d.get("col_widths", [])
 	if typeof(w_raw) == TYPE_ARRAY:
 		col_widths = (w_raw as Array).duplicate(true)
@@ -1157,7 +1892,22 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			if typeof(value) == TYPE_ARRAY:
 				col_aligns = (value as Array).duplicate(true)
 				_ensure_arrays()
-				_apply_cell_styling()
+				_rebuild_grid()
+		"col_valigns":
+			if typeof(value) == TYPE_ARRAY:
+				col_valigns = (value as Array).duplicate(true)
+				_ensure_arrays()
+				_rebuild_grid()
+		"row_aligns":
+			if typeof(value) == TYPE_ARRAY:
+				row_aligns = (value as Array).duplicate(true)
+				_ensure_arrays()
+				_rebuild_grid()
+		"row_valigns":
+			if typeof(value) == TYPE_ARRAY:
+				row_valigns = (value as Array).duplicate(true)
+				_ensure_arrays()
+				_rebuild_grid()
 		"col_widths":
 			if typeof(value) == TYPE_ARRAY:
 				col_widths = (value as Array).duplicate(true)
@@ -1171,7 +1921,7 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			_apply_cell_styling()
 		"cell_formats":
 			cell_formats = _normalize_cell_formats(value)
-			_apply_cell_styling()
+			_rebuild_grid()
 			emit_signal("active_cell_changed", _active_cell.x, _active_cell.y)
 		"table_dims":
 			if typeof(value) == TYPE_DICTIONARY:
@@ -1184,11 +1934,24 @@ func apply_typed_property(key: String, value: Variant) -> void:
 				var a_raw: Variant = dd.get("col_aligns", null)
 				if typeof(a_raw) == TYPE_ARRAY:
 					col_aligns = (a_raw as Array).duplicate(true)
+				var av_raw: Variant = dd.get("col_valigns", null)
+				if typeof(av_raw) == TYPE_ARRAY:
+					col_valigns = (av_raw as Array).duplicate(true)
+				var ra_raw: Variant = dd.get("row_aligns", null)
+				if typeof(ra_raw) == TYPE_ARRAY:
+					row_aligns = (ra_raw as Array).duplicate(true)
+				var rav_raw: Variant = dd.get("row_valigns", null)
+				if typeof(rav_raw) == TYPE_ARRAY:
+					row_valigns = (rav_raw as Array).duplicate(true)
 				var w_raw: Variant = dd.get("col_widths", null)
 				if typeof(w_raw) == TYPE_ARRAY:
 					col_widths = (w_raw as Array).duplicate(true)
+				var cf_raw: Variant = dd.get("cell_formats", null)
+				if typeof(cf_raw) == TYPE_DICTIONARY:
+					cell_formats = _normalize_cell_formats(cf_raw)
 				_ensure_arrays()
 				_clamp_active_cell()
+				_clamp_axis_selection()
 				_rebuild_grid()
 				_request_grow_to_fit()
 		"bg_color":
@@ -1230,12 +1993,95 @@ func set_col_align(col: int, value: int) -> void:
 		return
 	var before: Array = col_aligns.duplicate(true)
 	col_aligns[col] = clamped
-	_apply_cell_styling()
+	_rebuild_grid()
 	var editor: Node = _find_editor()
 	if editor != null:
 		History.push_already_done(ModifyPropertyCommand.new(editor, item_id, "col_aligns", before, col_aligns.duplicate(true)))
 		if editor.has_method("request_save"):
 			editor.request_save()
+
+
+func set_col_valign(col: int, value: int) -> void:
+	_ensure_arrays()
+	if col < 0 or col >= cols:
+		return
+	var clamped: int = clamp(value, VALIGN_TOP, VALIGN_BOTTOM)
+	if int(col_valigns[col]) == clamped:
+		return
+	var before: Array = col_valigns.duplicate(true)
+	col_valigns[col] = clamped
+	_rebuild_grid()
+	var editor: Node = _find_editor()
+	if editor != null:
+		History.push_already_done(ModifyPropertyCommand.new(editor, item_id, "col_valigns", before, col_valigns.duplicate(true)))
+		if editor.has_method("request_save"):
+			editor.request_save()
+
+
+func set_row_align(row: int, value: int) -> void:
+	_ensure_arrays()
+	if row < 0 or row >= rows:
+		return
+	var clamped: int = _normalize_h_align_with_inherit(value)
+	if int(row_aligns[row]) == clamped:
+		return
+	var before: Array = row_aligns.duplicate(true)
+	row_aligns[row] = clamped
+	_rebuild_grid()
+	var editor: Node = _find_editor()
+	if editor != null:
+		History.push_already_done(ModifyPropertyCommand.new(editor, item_id, "row_aligns", before, row_aligns.duplicate(true)))
+		if editor.has_method("request_save"):
+			editor.request_save()
+
+
+func set_row_valign(row: int, value: int) -> void:
+	_ensure_arrays()
+	if row < 0 or row >= rows:
+		return
+	var clamped: int = _normalize_v_align_with_inherit(value)
+	if int(row_valigns[row]) == clamped:
+		return
+	var before: Array = row_valigns.duplicate(true)
+	row_valigns[row] = clamped
+	_rebuild_grid()
+	var editor: Node = _find_editor()
+	if editor != null:
+		History.push_already_done(ModifyPropertyCommand.new(editor, item_id, "row_valigns", before, row_valigns.duplicate(true)))
+		if editor.has_method("request_save"):
+			editor.request_save()
+
+
+func row_align_at(row: int) -> int:
+	if row < 0 or row >= row_aligns.size():
+		return ALIGN_INHERIT
+	return int(row_aligns[row])
+
+
+func row_valign_at(row: int) -> int:
+	if row < 0 or row >= row_valigns.size():
+		return ALIGN_INHERIT
+	return int(row_valigns[row])
+
+
+func col_align_at(col: int) -> int:
+	if col < 0 or col >= col_aligns.size():
+		return ALIGN_LEFT
+	return int(col_aligns[col])
+
+
+func col_valign_at(col: int) -> int:
+	if col < 0 or col >= col_valigns.size():
+		return VALIGN_MIDDLE
+	return int(col_valigns[col])
+
+
+func effective_h_align_at(r: int, c: int) -> int:
+	return _effective_h_align(r, c)
+
+
+func effective_v_align_at(r: int, c: int) -> int:
+	return _effective_v_align(r, c)
 
 
 func set_has_header_row(value: bool) -> void:

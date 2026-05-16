@@ -1,0 +1,106 @@
+[gd_scene format=3 uid="uid://b1mobconnsh"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_connection_sheet.gd" id="1_mcs_script"]
+
+[node name="MobileConnectionSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_mcs_script")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_scroll_mode = 0
+
+[node name="Layout" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="LabelGroup" type="VBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+
+[node name="LabelCaption" type="Label" parent="Scroll/Layout/LabelGroup"]
+layout_mode = 2
+text = "Label"
+theme_override_font_sizes/font_size = 12
+
+[node name="LabelEdit" type="LineEdit" parent="Scroll/Layout/LabelGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Connection label"
+
+[node name="StyleGroup" type="VBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+
+[node name="StyleCaption" type="Label" parent="Scroll/Layout/StyleGroup"]
+layout_mode = 2
+text = "Style"
+theme_override_font_sizes/font_size = 12
+
+[node name="StyleOptions" type="OptionButton" parent="Scroll/Layout/StyleGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+
+[node name="ColorGroup" type="VBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+
+[node name="ColorCaption" type="Label" parent="Scroll/Layout/ColorGroup"]
+layout_mode = 2
+text = "Color"
+theme_override_font_sizes/font_size = 12
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="Scroll/Layout/ColorGroup"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="ThicknessGroup" type="VBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+
+[node name="ThicknessHeader" type="HBoxContainer" parent="Scroll/Layout/ThicknessGroup"]
+layout_mode = 2
+
+[node name="ThicknessCaption" type="Label" parent="Scroll/Layout/ThicknessGroup/ThicknessHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Thickness"
+theme_override_font_sizes/font_size = 12
+
+[node name="ThicknessValue" type="Label" parent="Scroll/Layout/ThicknessGroup/ThicknessHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "2.5"
+theme_override_font_sizes/font_size = 12
+
+[node name="ThicknessSlider" type="HSlider" parent="Scroll/Layout/ThicknessGroup"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="ArrowsGroup" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ArrowStartCheck" type="CheckBox" parent="Scroll/Layout/ArrowsGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Start arrow"
+
+[node name="ArrowEndCheck" type="CheckBox" parent="Scroll/Layout/ArrowsGroup"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "End arrow"
+
+[node name="DeleteButton" type="Button" parent="Scroll/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+text = "Delete connection"

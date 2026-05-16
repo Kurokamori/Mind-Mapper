@@ -11,6 +11,9 @@ const RICH_TEXT_VARIANT_SLOTS: Dictionary = {
 }
 const DARK_THEME: Theme = preload("res://assets/ui/resources/dark_theme.tres")
 const LIGHT_THEME: Theme = preload("res://assets/ui/resources/light_theme.tres")
+const ROUNDED_COLOR_PICKER_SHADER: Shader = preload("res://src/util/rounded_color_picker.gdshader")
+const ROUNDED_COLOR_PICKER_RADIUS: float = 6.0
+const ROUNDED_COLOR_PICKER_APPLIED_META: String = "_rounded_color_picker_applied"
 const PANEL_ALPHA: float = 0.75
 const RELATIVE_FONT_SCALE_META: String = "_relative_font_scale"
 
@@ -56,6 +59,8 @@ const LIGHT_ICON: Color = Color(0.332, 0.219, 0.146, 1.0)
 signal theme_applied()
 signal font_manifest_changed()
 signal node_palette_changed(old_palette: Dictionary, new_palette: Dictionary)
+
+var COLOR_PICKER_BUTTON_STATES: PackedStringArray = PackedStringArray(["normal", "hover", "pressed", "disabled", "focus"])
 
 static var NODE_DARK: Dictionary = {
 	"node_bg": Color(0.16, 0.17, 0.20, 1.0),
@@ -191,6 +196,8 @@ func _on_node_added(node: Node) -> void:
 		_apply_font_override_to_control(node as Control, font)
 		if (node is LineEdit or node is TextEdit) and not _is_inside_secondary_window(node):
 			_apply_input_transparency(node as Control)
+		if node is ColorPickerButton:
+			_apply_rounded_color_picker(node as ColorPickerButton)
 	if node is Window:
 		_apply_font_override_to_window(node as Window, font)
 
@@ -243,6 +250,7 @@ func _apply_to_root() -> void:
 		_force_theme_on_button_popups(root, theme)
 		_force_font_overrides(root, active_font())
 		_force_input_transparency(root)
+		_force_rounded_color_pickers(root)
 		root.propagate_notification(Control.NOTIFICATION_THEME_CHANGED)
 	emit_signal("theme_applied")
 
@@ -451,6 +459,10 @@ func build_theme(mode: String, accent: Color) -> Theme:
 		var imported: Theme = _load_imported_theme()
 		if imported != null:
 			var base_imported: Theme = DARK_THEME.duplicate(true) as Theme
+			# Apply our design language to the dark base, then merge the imported
+			# theme on top so any entry the user authored (panel/button styles,
+			# colors, fonts, even variant overrides) wins over our defaults.
+			ThemeVariants.apply_to_theme(base_imported, _palette_for_mode(mode), accent)
 			base_imported.merge_with(imported)
 			return base_imported
 		push_warning("ThemeManager: imported theme unavailable; falling back to dark.")
@@ -467,6 +479,7 @@ func build_theme(mode: String, accent: Color) -> Theme:
 		_apply_custom_palette(theme, accent)
 	elif accent != src_accent:
 		_remap_theme(theme, _accent_remap(src_accent, accent))
+	ThemeVariants.apply_to_theme(theme, _palette_for_mode(mode), accent)
 	return theme
 
 
@@ -685,6 +698,46 @@ func _apply_input_transparency(ctrl: Control) -> void:
 		var transparent: Color = Color(0.0, 0.0, 0.0, 0.0)
 		ctrl.add_theme_color_override("background_color", transparent)
 		ctrl.add_theme_color_override("caret_background_color", transparent)
+
+
+## Walks the tree and applies the empty-stylebox + rounded-corner shader
+## treatment to every ColorPickerButton, so swatch buttons appear as a
+## bare color chip with no button chrome.
+func _force_rounded_color_pickers(node: Node) -> void:
+	if node == null:
+		return
+	if node is ColorPickerButton:
+		_apply_rounded_color_picker(node as ColorPickerButton)
+	for child: Node in node.get_children():
+		_force_rounded_color_pickers(child)
+
+
+## Strips all five Button-state styleboxes (normal/hover/pressed/disabled/
+## focus) on the given ColorPickerButton, then assigns a ShaderMaterial
+## that masks the rectangular color preview into a rounded rect. The
+## shader needs the button's current pixel size to compute corner
+## distance, so the size uniform is refreshed on every resize.
+func _apply_rounded_color_picker(btn: ColorPickerButton) -> void:
+	if btn == null:
+		return
+	if btn.has_meta(ROUNDED_COLOR_PICKER_APPLIED_META):
+		return
+	btn.set_meta(ROUNDED_COLOR_PICKER_APPLIED_META, true)
+	for state: String in COLOR_PICKER_BUTTON_STATES:
+		btn.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	var material: ShaderMaterial = ShaderMaterial.new()
+	material.shader = ROUNDED_COLOR_PICKER_SHADER
+	material.set_shader_parameter("corner_radius", ROUNDED_COLOR_PICKER_RADIUS)
+	var initial_size: Vector2 = btn.size
+	if initial_size.x <= 0.0 or initial_size.y <= 0.0:
+		initial_size = Vector2(32.0, 32.0)
+	material.set_shader_parameter("rect_size", initial_size)
+	btn.material = material
+	btn.resized.connect(func() -> void:
+		var current_size: Vector2 = btn.size
+		if current_size.x > 0.0 and current_size.y > 0.0:
+			material.set_shader_parameter("rect_size", current_size)
+	)
 
 
 func _is_inside_secondary_window(node: Node) -> bool:

@@ -113,6 +113,23 @@ const SETTINGS_ACTION_OPEN_TODOS: String = "settings_open_todos"
 @onready var _annotation_select_button: Button = %AnnotationSelectButton
 @onready var _annotation_color_button: ColorPickerButton = %AnnotationColorButton
 @onready var _annotation_width_spin: SpinBox = %AnnotationWidthSpin
+@onready var _file_group_button: Button = %FileGroupButton
+@onready var _edit_group_button: Button = %EditGroupButton
+@onready var _draw_group_button: Button = %DrawGroupButton
+@onready var _view_group_button: Button = %ViewGroupButton
+@onready var _expansion_panel: PanelContainer = %ExpansionPanel
+@onready var _file_margin: MarginContainer = %FileMargin
+@onready var _edit_margin: MarginContainer = %EditMargin
+@onready var _draw_margin: MarginContainer = %DrawMargin
+@onready var _view_margin: MarginContainer = %ViewMargin
+
+const GROUP_NONE: String = ""
+const GROUP_FILE: String = "file"
+const GROUP_EDIT: String = "edit"
+const GROUP_DRAW: String = "draw"
+const GROUP_VIEW: String = "view"
+
+var _active_groups: Dictionary = {}
 
 var _save_status_state: String = "saved"
 var _last_saved_unix: int = 0
@@ -151,6 +168,11 @@ func _ready() -> void:
 	_populate_templates_menu([])
 	_populate_tag_filter_menu(PackedStringArray())
 	_populate_tilesets_menu()
+	_file_group_button.toggled.connect(func(p: bool) -> void: _on_group_button_toggled(GROUP_FILE, p))
+	_edit_group_button.toggled.connect(func(p: bool) -> void: _on_group_button_toggled(GROUP_EDIT, p))
+	_draw_group_button.toggled.connect(func(p: bool) -> void: _on_group_button_toggled(GROUP_DRAW, p))
+	_view_group_button.toggled.connect(func(p: bool) -> void: _on_group_button_toggled(GROUP_VIEW, p))
+	_apply_active_groups()
 	History.changed.connect(_refresh_history_buttons)
 	SnapService.changed.connect(_refresh_snap)
 	AlignmentGuideService.changed.connect(_refresh_align)
@@ -698,3 +720,44 @@ func _format_delta(seconds: int) -> String:
 	if seconds < 3600:
 		return "%dm" % (seconds / 60)
 	return "%dh" % (seconds / 3600)
+
+
+func _on_group_button_toggled(group: String, pressed: bool) -> void:
+	if pressed:
+		_active_groups[group] = true
+	else:
+		_active_groups.erase(group)
+	_apply_active_groups()
+
+
+func _apply_active_groups() -> void:
+	var groups: Dictionary = {
+		GROUP_FILE: [_file_margin, _file_group_button],
+		GROUP_EDIT: [_edit_margin, _edit_group_button],
+		GROUP_DRAW: [_draw_margin, _draw_group_button],
+		GROUP_VIEW: [_view_margin, _view_group_button],
+	}
+	for key_v: Variant in groups.keys():
+		var key: String = key_v
+		var entry: Array = groups[key_v]
+		var container: MarginContainer = entry[0]
+		var btn: Button = entry[1]
+		var is_active: bool = _active_groups.has(key)
+		if container != null:
+			container.visible = is_active
+		if btn != null and btn.button_pressed != is_active:
+			btn.set_pressed_no_signal(is_active)
+	if _expansion_panel != null:
+		_expansion_panel.visible = not _active_groups.is_empty()
+
+
+func collapse_groups() -> void:
+	_active_groups.clear()
+	_apply_active_groups()
+
+
+func active_groups() -> PackedStringArray:
+	var result: PackedStringArray = PackedStringArray()
+	for key_v: Variant in _active_groups.keys():
+		result.append(String(key_v))
+	return result

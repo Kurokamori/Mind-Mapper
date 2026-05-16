@@ -1,0 +1,29 @@
+[gd_scene format=3 uid="uid://cnj8nqlssmncg"]
+
+[ext_resource type="Script" path="res://src/mobile/picker/mobile_lan_host_row.gd" id="1_mlhr_script"]
+
+[node name="MobileLanHostRow" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 76)
+script = ExtResource("1_mlhr_script")
+
+[node name="Row" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 8
+
+[node name="LabelsColumn" type="VBoxContainer" parent="Row"]
+size_flags_horizontal = 3
+
+[node name="LanHostNameLabel" type="Label" parent="Row/LabelsColumn"]
+unique_name_in_owner = true
+text = "Project"
+theme_override_font_sizes/font_size = 16
+
+[node name="LanHostDetailLabel" type="Label" parent="Row/LabelsColumn"]
+unique_name_in_owner = true
+text = ""
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
+
+[node name="LanHostPullButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 56)
+text = "Pull"

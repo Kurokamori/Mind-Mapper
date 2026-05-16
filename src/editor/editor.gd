@@ -3530,6 +3530,4 @@ func _refresh_top_reserved() -> void:
 	if _top_bar == null:
 		return
 	var min_size: Vector2 = _top_bar.get_combined_minimum_size()
-	var current: float = _top_bar.size.y
-	var measured: float = max(min_size.y, current)
-	LayoutMetrics.top_reserved = measured + TOP_BAR_PADDING_PX
+	LayoutMetrics.top_reserved = min_size.y + TOP_BAR_PADDING_PX

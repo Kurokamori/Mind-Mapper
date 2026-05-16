@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://cnj8nqljbnsfw"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_board_browser_sheet.gd" id="1_mbb_script"]
+
+[node name="MobileBoardBrowserSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_mbb_script")
+
+[node name="Column" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 8
+
+[node name="BoardFilterEdit" type="LineEdit" parent="Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+placeholder_text = "Filter boards…"
+
+[node name="BoardBrowserScroll" type="ScrollContainer" parent="Column"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BoardList" type="VBoxContainer" parent="Column/BoardBrowserScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4

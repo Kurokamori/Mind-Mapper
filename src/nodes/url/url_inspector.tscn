@@ -4,47 +4,68 @@
 
 [node name="UrlInspector" type="VBoxContainer"]
 script = ExtResource("1_urli")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "URL Bookmark"
 
-[node name="TitleSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="TitleLabel" type="Label" parent="TitleSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Title"
+theme_override_constants/separation = 8
 
-[node name="TitleEdit" type="LineEdit" parent="TitleSection"]
+[node name="TitleSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Surface/Body/TitleSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TITLE"
+
+[node name="TitleEdit" type="LineEdit" parent="Surface/Body/TitleSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="UrlSection" type="VBoxContainer" parent="."]
+[node name="UrlSection" type="VBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 4
 
-[node name="UrlLabel" type="Label" parent="UrlSection"]
+[node name="UrlLabel" type="Label" parent="Surface/Body/UrlSection"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
 text = "URL"
 
-[node name="UrlEdit" type="LineEdit" parent="UrlSection"]
+[node name="UrlEdit" type="LineEdit" parent="Surface/Body/UrlSection"]
 unique_name_in_owner = true
 layout_mode = 2
+placeholder_text = "https://…"
 
-[node name="OpenButton" type="Button" parent="UrlSection"]
+[node name="OpenButton" type="Button" parent="Surface/Body/UrlSection"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"AccentButton"
 text = "Open in browser"
 
-[node name="DescriptionSection" type="VBoxContainer" parent="."]
+[node name="DescriptionSection" type="VBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 4
 
-[node name="DescriptionLabel" type="Label" parent="DescriptionSection"]
+[node name="DescriptionLabel" type="Label" parent="Surface/Body/DescriptionSection"]
 layout_mode = 2
-text = "Description"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "DESCRIPTION"
 
-[node name="DescriptionEdit" type="TextEdit" parent="DescriptionSection"]
+[node name="DescriptionEditPanel" type="PanelContainer" parent="Surface/Body/DescriptionSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorTextAreaPanel"
+
+[node name="DescriptionEdit" type="TextEdit" parent="Surface/Body/DescriptionSection/DescriptionEditPanel"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 100)
 layout_mode = 2

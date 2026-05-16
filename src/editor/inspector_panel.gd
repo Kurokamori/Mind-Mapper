@@ -19,16 +19,9 @@ var _edit_mode_enabled: bool = true
 
 func _ready() -> void:
 	super._ready()
-	ThemeManager.apply_relative_font_size(_title_label, 1.30)
 	SelectionBus.selection_changed.connect(_on_selection_changed)
 	_close_button.pressed.connect(_on_close_pressed)
-	ThemeManager.theme_applied.connect(_apply_translucent_panel)
-	_apply_translucent_panel()
 	_render_for([])
-
-
-func _apply_translucent_panel() -> void:
-	ThemeManager.apply_translucent_panel(self)
 
 
 func _on_close_pressed() -> void:
@@ -81,7 +74,7 @@ func _render_for(selected: Array) -> void:
 	if _current_connection != null or not _current_connection_set.is_empty():
 		return
 	if selected.size() == 0:
-		_title_label.text = "Inspector"
+		_title_label.text = "INSPECTOR"
 		_empty_label.text = "No selection"
 		_empty_label.visible = true
 		_scroll.visible = false
@@ -96,7 +89,7 @@ func _render_for(selected: Array) -> void:
 		return
 	var item: BoardItem = selected[0]
 	_current_item = item
-	_title_label.text = "Inspector"
+	_title_label.text = "INSPECTOR"
 	_empty_label.visible = false
 	_scroll.visible = true
 	var inspector: Control = item.build_inspector()

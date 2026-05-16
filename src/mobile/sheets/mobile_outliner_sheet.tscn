@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://b1moboutlsh"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_outliner_sheet.gd" id="1_mos_script"]
+
+[node name="MobileOutlinerSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_mos_script")
+
+[node name="OutlinerTree" type="Tree" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+hide_root = false
+allow_search = false
+columns = 1

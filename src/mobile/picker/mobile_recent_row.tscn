@@ -1,0 +1,34 @@
+[gd_scene format=3 uid="uid://b1mobilerecent"]
+
+[ext_resource type="Script" path="res://src/mobile/picker/mobile_recent_row.gd" id="1_mrr_script"]
+
+[node name="MobileRecentRow" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 76)
+script = ExtResource("1_mrr_script")
+
+[node name="Row" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 8
+
+[node name="LabelsColumn" type="VBoxContainer" parent="Row"]
+size_flags_horizontal = 3
+
+[node name="RecentNameLabel" type="Label" parent="Row/LabelsColumn"]
+unique_name_in_owner = true
+text = "Project"
+theme_override_font_sizes/font_size = 16
+
+[node name="RecentDetailLabel" type="Label" parent="Row/LabelsColumn"]
+unique_name_in_owner = true
+text = ""
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
+
+[node name="RecentOpenButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 56)
+text = "Open"
+
+[node name="RecentRemoveButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+text = "x"

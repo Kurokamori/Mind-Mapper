@@ -87,9 +87,10 @@ script = ExtResource("4_marquee")
 unique_name_in_owner = true
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 107.0
+offset_bottom = 280.0
 grow_horizontal = 2
-theme_override_constants/separation = 0
+mouse_filter = 2
+theme_override_constants/separation = 2
 
 [node name="Toolbar" parent="CanvasLayer/TopBar" unique_id=393189 instance=ExtResource("5_toolbar")]
 unique_name_in_owner = true

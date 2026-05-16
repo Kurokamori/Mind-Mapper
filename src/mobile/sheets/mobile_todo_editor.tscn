@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://b1mobiletodo"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_todo_editor.gd" id="1_mte_script"]
+
+[node name="MobileTodoEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_mte_script")
+
+[node name="Column" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 8
+
+[node name="TitleRow" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+
+[node name="TodoTitleLabel" type="Label" parent="Column/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Todo List"
+theme_override_font_sizes/font_size = 18
+
+[node name="TodoTitleEdit" type="LineEdit" parent="Column/TitleRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TodoRenameButton" type="Button" parent="Column/TitleRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 44)
+layout_mode = 2
+text = "Rename"
+
+[node name="SummaryLabel" type="Label" parent="Column"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 / 0 done"
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
+
+[node name="TodoCardsScroll" type="ScrollContainer" parent="Column"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="TodoCardsRoot" type="VBoxContainer" parent="Column/TodoCardsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="AddRow" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+
+[node name="AddCardInput" type="LineEdit" parent="Column/AddRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "New card text…"
+
+[node name="AddCardButton" type="Button" parent="Column/AddRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 44)
+layout_mode = 2
+text = "+ Add"

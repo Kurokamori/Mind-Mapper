@@ -4,72 +4,105 @@
 
 [node name="BlockStackInspector" type="VBoxContainer"]
 script = ExtResource("1_bsi")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Block Stack"
 
-[node name="TitleSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="TitleLabel" type="Label" parent="TitleSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Title"
+theme_override_constants/separation = 8
 
-[node name="TitleEdit" type="LineEdit" parent="TitleSection"]
+[node name="TitleSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Surface/Body/TitleSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TITLE"
+
+[node name="TitleEdit" type="LineEdit" parent="Surface/Body/TitleSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="BgRow" type="HBoxContainer" parent="."]
+[node name="ColorsHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "APPEARANCE"
 
-[node name="BgLabel" type="Label" parent="BgRow"]
+[node name="BgRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BgLabel" type="Label" parent="Surface/Body/BgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Background"
 
-[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+[node name="BgPicker" type="ColorPickerButton" parent="Surface/Body/BgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="AccentRow" type="HBoxContainer" parent="."]
+[node name="AccentRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="AccentLabel" type="Label" parent="AccentRow"]
+[node name="AccentLabel" type="Label" parent="Surface/Body/AccentRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Header color"
 
-[node name="AccentPicker" type="ColorPickerButton" parent="AccentRow"]
+[node name="AccentPicker" type="ColorPickerButton" parent="Surface/Body/AccentRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="HeaderFgRow" type="HBoxContainer" parent="."]
+[node name="HeaderFgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="HeaderFgLabel" type="Label" parent="HeaderFgRow"]
+[node name="HeaderFgLabel" type="Label" parent="Surface/Body/HeaderFgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Header text"
 
-[node name="HeaderFgPicker" type="ColorPickerButton" parent="HeaderFgRow"]
+[node name="HeaderFgPicker" type="ColorPickerButton" parent="Surface/Body/HeaderFgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="CountLabel" type="Label" parent="."]
+[node name="ActionsHeader" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "ACTIONS"
+
+[node name="CountLabel" type="Label" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorValueLabel"
 
-[node name="PlainTextEditButton" type="Button" parent="."]
+[node name="PlainTextEditButton" type="Button" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Edit as plain text..."
+theme_type_variation = &"GhostButton"
+text = "Edit as plain text…"
 
-[node name="Hint" type="Label" parent="."]
+[node name="Hint" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
 autowrap_mode = 2
 text = "Tab/Shift+Tab in a block to indent/outdent. Ctrl+click the link badge to follow. Drag the colored handle to reorder; drop on another stack to move."

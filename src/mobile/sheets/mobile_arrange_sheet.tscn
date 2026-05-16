@@ -1,0 +1,155 @@
+[gd_scene format=3 uid="uid://b1mobarrsh"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_arrange_sheet.gd" id="1_mars_script"]
+
+[node name="MobileArrangeSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_mars_script")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_scroll_mode = 0
+
+[node name="Layout" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="SelectionLabel" type="Label" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "0 selected"
+theme_override_font_sizes/font_size = 12
+
+[node name="GroupButton" type="Button" parent="Scroll/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+text = "Group selection"
+
+[node name="AlignCaption" type="Label" parent="Scroll/Layout"]
+layout_mode = 2
+text = "Align"
+theme_override_font_sizes/font_size = 12
+
+[node name="AlignRow1" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AlignLeftButton" type="Button" parent="Scroll/Layout/AlignRow1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Left"
+
+[node name="AlignHCenterButton" type="Button" parent="Scroll/Layout/AlignRow1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Center H"
+
+[node name="AlignRightButton" type="Button" parent="Scroll/Layout/AlignRow1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Right"
+
+[node name="AlignRow2" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="AlignTopButton" type="Button" parent="Scroll/Layout/AlignRow2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Top"
+
+[node name="AlignVCenterButton" type="Button" parent="Scroll/Layout/AlignRow2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Center V"
+
+[node name="AlignBottomButton" type="Button" parent="Scroll/Layout/AlignRow2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Bottom"
+
+[node name="DistributeCaption" type="Label" parent="Scroll/Layout"]
+layout_mode = 2
+text = "Distribute (3+ items)"
+theme_override_font_sizes/font_size = 12
+
+[node name="DistributeRow" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="DistributeHButton" type="Button" parent="Scroll/Layout/DistributeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Distribute H"
+
+[node name="DistributeVButton" type="Button" parent="Scroll/Layout/DistributeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Distribute V"
+
+[node name="ReorderCaption" type="Label" parent="Scroll/Layout"]
+layout_mode = 2
+text = "Z-order"
+theme_override_font_sizes/font_size = 12
+
+[node name="ReorderRow1" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BringForwardButton" type="Button" parent="Scroll/Layout/ReorderRow1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Forward"
+
+[node name="BringFrontButton" type="Button" parent="Scroll/Layout/ReorderRow1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "To front"
+
+[node name="ReorderRow2" type="HBoxContainer" parent="Scroll/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="SendBackwardButton" type="Button" parent="Scroll/Layout/ReorderRow2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Backward"
+
+[node name="SendBackButton" type="Button" parent="Scroll/Layout/ReorderRow2"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "To back"

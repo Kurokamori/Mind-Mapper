@@ -1,0 +1,166 @@
+[gd_scene format=3 uid="uid://cnj8nqlw1bf1b"]
+
+[ext_resource type="Script" uid="uid://v61hw6ldoqxc" path="res://src/mobile/picker/mobile_project_picker.gd" id="1_mpp_script"]
+[ext_resource type="Script" uid="uid://dv7xoyecsoff0" path="res://src/mobile/io/folder_picker.gd" id="2_fp_script"]
+[ext_resource type="Script" uid="uid://dnc7qypywf1cw" path="res://src/mobile/sync/lan_sync_client.gd" id="3_lc_script"]
+
+[node name="MobileProjectPicker" type="Control" unique_id=65472926]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_mpp_script")
+
+[node name="Panel" type="Panel" parent="." unique_id=1213067508]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="." unique_id=1401464153]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+offset_top = -1.0
+offset_right = -16.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Layout" unique_id=1950670745]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Loom Mobile"
+
+[node name="Subtitle" type="Label" parent="Layout" unique_id=37686888]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 1)
+theme_override_font_sizes/font_size = 14
+text = "Open a project from this device, import a folder, or pull from a desktop on your LAN."
+autowrap_mode = 3
+
+[node name="ActionsRow" type="HBoxContainer" parent="Layout" unique_id=869981663]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NewProjectButton" type="Button" parent="Layout/ActionsRow" unique_id=1481419939]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "New project"
+
+[node name="OpenFolderButton" type="Button" parent="Layout/ActionsRow" unique_id=23052081]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Open folder"
+
+[node name="ImportFolderButton" type="Button" parent="Layout/ActionsRow" unique_id=762325539]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Import folder"
+
+[node name="RecentHeader" type="Label" parent="Layout" unique_id=161076728]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Recent"
+
+[node name="RecentScroll" type="ScrollContainer" parent="Layout" unique_id=33117736]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="RecentList" type="VBoxContainer" parent="Layout/RecentScroll" unique_id=1881959481]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="RecentEmptyLabel" type="Label" parent="Layout/RecentScroll/RecentList" unique_id=1564286472]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
+text = "No recent projects yet."
+
+[node name="LanRow" type="HBoxContainer" parent="Layout" unique_id=372217303]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LanBrowserButton" type="Button" parent="Layout/LanRow" unique_id=376841281]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Find LAN hosts"
+
+[node name="LanStatusLabel" type="Label" parent="Layout/LanRow" unique_id=1257665708]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "LAN sync idle"
+
+[node name="LanHostsScroll" type="ScrollContainer" parent="Layout" unique_id=1350660595]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="LanHostsRoot" type="VBoxContainer" parent="Layout/LanHostsScroll" unique_id=223446368]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="LanHostsEmptyLabel" type="Label" parent="Layout/LanHostsScroll/LanHostsRoot" unique_id=2010537407]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
+text = "Looking for desktops running Loom on the same Wi-Fi. If nothing shows, check Windows Firewall on the desktop and confirm both devices are on the same subnet."
+autowrap_mode = 3
+
+[node name="ManualRow" type="HBoxContainer" parent="Layout" unique_id=1533722109]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ManualIpEdit" type="LineEdit" parent="Layout/ManualRow" unique_id=1703784066]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Manual desktop IP (e.g. 192.168.1.42)"
+
+[node name="ManualPullButton" type="Button" parent="Layout/ManualRow" unique_id=601946894]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+text = "Pull"
+
+[node name="LanLogLabel" type="RichTextLabel" parent="Layout" unique_id=792787698]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+bbcode_enabled = true
+scroll_following = true
+
+[node name="FolderPicker" type="Node" parent="." unique_id=1182699845]
+unique_name_in_owner = true
+script = ExtResource("2_fp_script")
+
+[node name="LanClient" type="Node" parent="." unique_id=1007456201]
+unique_name_in_owner = true
+script = ExtResource("3_lc_script")

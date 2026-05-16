@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://eoedfqwhb1bu"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_todo_row.gd" id="1_mtr_script"]
+
+[node name="MobileTodoRow" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 52)
+script = ExtResource("1_mtr_script")
+
+[node name="Row" type="HBoxContainer" parent="."]
+theme_override_constants/separation = 6
+
+[node name="IndentSpacer" type="Control" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
+
+[node name="CheckButton" type="CheckBox" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+
+[node name="TextEdit" type="LineEdit" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+size_flags_horizontal = 3
+
+[node name="PriorityIndicator" type="Label" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 40)
+text = ""
+
+[node name="AddChildButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+text = "+"
+
+[node name="DeleteButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+text = "x"

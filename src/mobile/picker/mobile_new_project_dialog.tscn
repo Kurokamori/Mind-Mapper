@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://eoedfkm1c1bh"]
+
+[ext_resource type="Script" path="res://src/mobile/picker/mobile_new_project_dialog.gd" id="1_mnp_script"]
+
+[node name="MobileNewProjectDialog" type="ConfirmationDialog"]
+title = "New Project"
+script = ExtResource("1_mnp_script")
+ok_button_text = "Create"
+size = Vector2i(560, 320)
+
+[node name="Column" type="VBoxContainer" parent="."]
+offset_left = 16
+offset_right = -16
+offset_top = 36
+offset_bottom = -64
+theme_override_constants/separation = 12
+
+[node name="Caption" type="Label" parent="Column"]
+text = "Project name"
+
+[node name="NewProjectNameEdit" type="LineEdit" parent="Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+placeholder_text = "My Project"

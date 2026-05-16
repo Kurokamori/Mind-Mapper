@@ -1,6 +1,7 @@
-[gd_scene format=3 uid="uid://crqkd2k26xlgj"]
+[gd_scene load_steps=3 format=3 uid="uid://crqkd2k26xlgj"]
 
 [ext_resource type="Script" uid="uid://3jl5xkmfcyfp" path="res://src/nodes/table/table_node.gd" id="1_table"]
+[ext_resource type="PackedScene" path="res://src/nodes/table/table_axis_actions.tscn" id="2_axis"]
 
 [node name="TableNode" type="Control" unique_id=446833251]
 custom_minimum_size = Vector2(380, 240)
@@ -84,3 +85,49 @@ offset_top = 44.0
 offset_right = 372.0
 offset_bottom = 232.0
 mouse_filter = 2
+
+[node name="RowSelectStripLeft" type="Control" parent="." unique_id=701110001]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 44.0
+offset_right = 8.0
+offset_bottom = 212.0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+
+[node name="RowSelectStripRight" type="Control" parent="." unique_id=701110002]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 372.0
+offset_top = 44.0
+offset_right = 380.0
+offset_bottom = 212.0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+
+[node name="ColSelectStripTop" type="Control" parent="." unique_id=701110003]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 36.0
+offset_right = 372.0
+offset_bottom = 44.0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+
+[node name="ColSelectStripBottom" type="Control" parent="." unique_id=701110004]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 212.0
+offset_right = 372.0
+offset_bottom = 220.0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+
+[node name="AxisActions" parent="." instance=ExtResource("2_axis") unique_id=701110005]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 1

@@ -1,0 +1,88 @@
+[gd_scene format=3 uid="uid://eoede8uwxjeb"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_comment_card.gd" id="1_mcc_script"]
+
+[node name="MobileCommentCard" type="PanelContainer"]
+script = ExtResource("1_mcc_script")
+
+[node name="Column" type="VBoxContainer" parent="."]
+theme_override_constants/separation = 4
+
+[node name="HeaderRow" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+
+[node name="AuthorLabel" type="Label" parent="Column/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Author"
+theme_override_font_sizes/font_size = 14
+
+[node name="ResolvedBadge" type="Label" parent="Column/HeaderRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+text = "RESOLVED"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.5, 0.92, 0.55, 1)
+
+[node name="TimestampLabel" type="Label" parent="Column/HeaderRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "—"
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.65, 0.72, 0.85, 1)
+
+[node name="BodyView" type="RichTextLabel" parent="Column"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="BodyEdit" type="TextEdit" parent="Column"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+wrap_mode = 1
+
+[node name="ActionRow" type="HBoxContainer" parent="Column"]
+layout_mode = 2
+
+[node name="EditButton" type="Button" parent="Column/ActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "Edit"
+
+[node name="SaveButton" type="Button" parent="Column/ActionRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "Save"
+
+[node name="CancelButton" type="Button" parent="Column/ActionRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "Cancel"
+
+[node name="ResolveButton" type="Button" parent="Column/ActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(76, 40)
+layout_mode = 2
+text = "Resolve"
+
+[node name="Spacer" type="Control" parent="Column/ActionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="DeleteButton" type="Button" parent="Column/ActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 40)
+layout_mode = 2
+text = "Delete"

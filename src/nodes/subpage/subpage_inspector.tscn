@@ -4,65 +4,88 @@
 
 [node name="SubpageInspector" type="VBoxContainer"]
 script = ExtResource("1_subi")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Subpage"
 
-[node name="TitleSection" type="VBoxContainer" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
 
-[node name="TitleLabel" type="Label" parent="TitleSection"]
+[node name="Body" type="VBoxContainer" parent="Surface"]
 layout_mode = 2
-text = "Title"
+theme_override_constants/separation = 8
 
-[node name="TitleEdit" type="LineEdit" parent="TitleSection"]
+[node name="TitleSection" type="VBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TitleLabel" type="Label" parent="Surface/Body/TitleSection"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TITLE"
+
+[node name="TitleEdit" type="LineEdit" parent="Surface/Body/TitleSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="RetargetSection" type="VBoxContainer" parent="."]
+[node name="RetargetSection" type="VBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 4
 
-[node name="RetargetLabel" type="Label" parent="RetargetSection"]
+[node name="RetargetLabel" type="Label" parent="Surface/Body/RetargetSection"]
 layout_mode = 2
-text = "Target board"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "TARGET BOARD"
 
-[node name="RetargetOption" type="OptionButton" parent="RetargetSection"]
+[node name="RetargetOption" type="OptionButton" parent="Surface/Body/RetargetSection"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="ZoomRow" type="HBoxContainer" parent="."]
+[node name="ZoomRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="ZoomLabel" type="Label" parent="ZoomRow"]
+[node name="ZoomLabel" type="Label" parent="Surface/Body/ZoomRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Zoom %"
+theme_type_variation = &"InspectorFieldLabel"
+text = "Zoom"
 
-[node name="ZoomSpin" type="SpinBox" parent="ZoomRow"]
+[node name="ZoomSpin" type="SpinBox" parent="Surface/Body/ZoomRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 5.0
 max_value = 400.0
 step = 5.0
 value = 50.0
+suffix = "%"
 
-[node name="AutoFitCheck" type="CheckBox" parent="."]
+[node name="AutoFitCheck" type="CheckBox" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Auto-fit content"
 
-[node name="ButtonsRow" type="HBoxContainer" parent="."]
+[node name="ButtonsRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="OpenButton" type="Button" parent="ButtonsRow"]
+[node name="OpenButton" type="Button" parent="Surface/Body/ButtonsRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"AccentButton"
 text = "Open subpage"
 
-[node name="RefreshButton" type="Button" parent="ButtonsRow"]
+[node name="RefreshButton" type="Button" parent="Surface/Body/ButtonsRow"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
+theme_type_variation = &"GhostButton"
 text = "↻"
+tooltip_text = "Refresh preview"

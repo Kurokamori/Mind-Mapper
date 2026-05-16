@@ -6,16 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://dy00uw1lpectl" path="res://assets/ui/icons/settings.png" id="4_settings_icon"]
 [ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="5_7l6fc"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jjlv6"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yvkbi"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xsps2"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7l6fc"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vqk2q"]
-
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_w1g50"]
 
 [sub_resource type="Resource" id="Resource_sh0qe"]
@@ -51,282 +41,115 @@ luminosity_mul = 1.15
 outline_size = 5.0
 outline_color = Color(1, 0.95, 0.2, 1)
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_jjlv6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yvkbi"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_xsps2"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_7l6fc"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vqk2q"]
+
 [node name="Toolbar" type="PanelContainer" unique_id=1552225806]
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 40.0
+offset_bottom = 36.0
 mouse_filter = 1
+theme_type_variation = &"ToolbarPanel"
 script = ExtResource("1_toolbar")
 
-[node name="FlowContainer" type="HFlowContainer" parent="." unique_id=1942134517]
+[node name="Layout" type="VBoxContainer" parent="." unique_id=110000100]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 4
+theme_override_constants/separation = 0
 
-[node name="ProjectGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000001]
+[node name="PrimaryRow" type="HBoxContainer" parent="Layout" unique_id=110000101]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
-[node name="ProjectLabel" type="Label" parent="FlowContainer/ProjectGroup" unique_id=1814964679]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 0)
-layout_mode = 2
-
-[node name="Separator1" type="VSeparator" parent="FlowContainer/ProjectGroup" unique_id=442428128]
-layout_mode = 2
-
-[node name="BackButton" type="Button" parent="FlowContainer/ProjectGroup" unique_id=1298515334]
+[node name="BackButton" type="Button" parent="Layout/PrimaryRow" unique_id=1298515334]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Back to projects"
 focus_mode = 0
+theme_type_variation = &"FlatButton"
 text = "← Projects"
 
-[node name="SaveButton" type="Button" parent="FlowContainer/ProjectGroup" unique_id=817157259]
+[node name="PrimarySpacer4" type="Control" parent="Layout/PrimaryRow" unique_id=1744906990]
+custom_minimum_size = Vector2(45, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ProjectLabel" type="Label" parent="Layout/PrimaryRow" unique_id=1814964679]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_type_variation = &"ToolbarTitleLabel"
+text_overrun_behavior = 3
+
+[node name="SaveStatusLabel" type="Label" parent="Layout/PrimaryRow" unique_id=111235910]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="PrimarySpacer" type="Control" parent="Layout/PrimaryRow" unique_id=110000102]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="FileGroupButton" type="Button" parent="Layout/PrimaryRow" unique_id=110000110]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "File · Save, Templates, Maps, Import/Export, Settings"
 focus_mode = 0
-text = "Save"
-
-[node name="SaveStatusLabel" type="Label" parent="FlowContainer/ProjectGroup" unique_id=111235910]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(110, 0)
-layout_mode = 2
-
-[node name="AddGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000002]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Separator2" type="VSeparator" parent="FlowContainer/AddGroup" unique_id=2094113754]
-layout_mode = 2
-
-[node name="AddMenuButton" type="MenuButton" parent="FlowContainer/AddGroup" unique_id=707240715]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Add ▾"
-
-[node name="HistoryGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000003]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Separator3" type="VSeparator" parent="FlowContainer/HistoryGroup" unique_id=57386141]
-layout_mode = 2
-
-[node name="UndoButton" type="Button" parent="FlowContainer/HistoryGroup" unique_id=1096988612]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Undo"
-
-[node name="RedoButton" type="Button" parent="FlowContainer/HistoryGroup" unique_id=970749436]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Redo"
-
-[node name="PanelsGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000004]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="OutlinerButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=518926252]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
+theme_type_variation = &"ToolbarGroupButton"
 toggle_mode = true
-button_pressed = true
-text = "Outliner"
+text = "File"
 
-[node name="MinimapButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=639773856]
+[node name="EditGroupButton" type="Button" parent="Layout/PrimaryRow" unique_id=110000111]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Edit · Add, Undo/Redo, Group, Snap, Tags, Arrange"
 focus_mode = 0
+theme_type_variation = &"ToolbarGroupButton"
 toggle_mode = true
-button_pressed = true
-text = "Minimap"
+text = "Edit"
 
-[node name="InspectorButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=1796293648]
+[node name="DrawGroupButton" type="Button" parent="Layout/PrimaryRow" unique_id=110000112]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "Draw · Pen, Eraser, Pick, Color, Width"
 focus_mode = 0
+theme_type_variation = &"ToolbarGroupButton"
 toggle_mode = true
-button_pressed = true
-text = "Inspector"
+text = "Draw"
 
-[node name="TimerTrayButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=1682036709]
+[node name="ViewGroupButton" type="Button" parent="Layout/PrimaryRow" unique_id=110000113]
 unique_name_in_owner = true
 layout_mode = 2
+tooltip_text = "View · Outliner, Inspector, Minimap, Comments, Chat, Timers, Present"
 focus_mode = 0
+theme_type_variation = &"ToolbarGroupButton"
 toggle_mode = true
-text = "Timers"
+text = "View"
 
-[node name="CommentsButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=2017203041]
-unique_name_in_owner = true
+[node name="PrimarySpacer2" type="Control" parent="Layout/PrimaryRow" unique_id=1823664409]
+custom_minimum_size = Vector2(45, 0)
 layout_mode = 2
-focus_mode = 0
-toggle_mode = true
-text = "Comments"
+mouse_filter = 2
 
-[node name="ChatButton" type="Button" parent="FlowContainer/PanelsGroup" unique_id=2017203099]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Open the chat panel (Live session only)"
-focus_mode = 0
-toggle_mode = true
-text = "Chat"
-
-[node name="PresenceGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000005]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="PresenceStrip" parent="FlowContainer/PresenceGroup" unique_id=345247762 instance=ExtResource("2_strip")]
+[node name="PresenceStrip" parent="Layout/PrimaryRow" unique_id=345247762 instance=ExtResource("2_strip")]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="SnapGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000006]
+[node name="PrimarySpacer3" type="Control" parent="Layout/PrimaryRow" unique_id=337430723]
+custom_minimum_size = Vector2(45, 0)
 layout_mode = 2
-theme_override_constants/separation = 6
+mouse_filter = 2
 
-[node name="Separator4" type="VSeparator" parent="FlowContainer/SnapGroup" unique_id=1044692835]
-layout_mode = 2
-
-[node name="SnapButton" type="MenuButton" parent="FlowContainer/SnapGroup" unique_id=700274535]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Snap settings"
-focus_mode = 0
-text = "Snap ▾"
-
-[node name="AlignButton" type="Button" parent="FlowContainer/SnapGroup" unique_id=923977938]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-toggle_mode = true
-button_pressed = true
-text = "Guides"
-
-[node name="ArrangeButton" type="MenuButton" parent="FlowContainer/SnapGroup" unique_id=426436856]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Align / distribute / z-order"
-focus_mode = 0
-text = "Arrange ▾"
-
-[node name="TagFilterButton" type="MenuButton" parent="FlowContainer/SnapGroup" unique_id=1443327240]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Filter by tag"
-focus_mode = 0
-text = "Tags ▾"
-
-[node name="AnnotationGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000007]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Separator5" type="VSeparator" parent="FlowContainer/AnnotationGroup" unique_id=909863622]
-layout_mode = 2
-
-[node name="PenButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182931]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Pen — draw annotations"
-focus_mode = 0
-toggle_mode = true
-text = "✎ Pen"
-
-[node name="EraserButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182932]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Eraser — click strokes to remove"
-focus_mode = 0
-toggle_mode = true
-text = "Eraser"
-
-[node name="AnnotationSelectButton" type="Button" parent="FlowContainer/AnnotationGroup" unique_id=771182933]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Select strokes — click or marquee, then Delete"
-focus_mode = 0
-toggle_mode = true
-text = "Pick"
-
-[node name="MarginContainer" type="MarginContainer" parent="FlowContainer/AnnotationGroup" unique_id=2056631702]
-layout_mode = 2
-theme_override_constants/margin_left = 3
-theme_override_constants/margin_top = 3
-theme_override_constants/margin_right = 3
-theme_override_constants/margin_bottom = 3
-
-[node name="AnnotationColorButton" type="ColorPickerButton" parent="FlowContainer/AnnotationGroup/MarginContainer" unique_id=771182934]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(40, 0)
-layout_mode = 2
-tooltip_text = "Brush color"
-focus_mode = 0
-theme_override_styles/normal = SubResource("StyleBoxEmpty_jjlv6")
-theme_override_styles/pressed = SubResource("StyleBoxEmpty_yvkbi")
-theme_override_styles/hover = SubResource("StyleBoxEmpty_xsps2")
-theme_override_styles/disabled = SubResource("StyleBoxEmpty_7l6fc")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_vqk2q")
-color = Color(0.95, 0.32, 0.32, 1)
-edit_alpha = false
-
-[node name="AnnotationWidthSpin" type="SpinBox" parent="FlowContainer/AnnotationGroup" unique_id=771182935]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(72, 0)
-layout_mode = 2
-tooltip_text = "Brush width"
-min_value = 0.5
-max_value = 64.0
-step = 0.5
-value = 4.0
-suffix = "px"
-
-[node name="MiscGroup" type="HBoxContainer" parent="FlowContainer" unique_id=110000008]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="Separator6" type="VSeparator" parent="FlowContainer/MiscGroup" unique_id=1044692836]
-layout_mode = 2
-
-[node name="GroupButton" type="Button" parent="FlowContainer/MiscGroup" unique_id=881993713]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Group"
-
-[node name="PresentButton" type="Button" parent="FlowContainer/MiscGroup" unique_id=858085165]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Present"
-
-[node name="TemplatesButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1772993640]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Templates ▾"
-
-[node name="TilesetsButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1603129774]
-unique_name_in_owner = true
-layout_mode = 2
-tooltip_text = "Map pages and tilesets"
-focus_mode = 0
-text = "Maps & Tilesets ▾"
-
-[node name="ImportButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=910273850]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Import ▾"
-
-[node name="ExportButton" type="MenuButton" parent="FlowContainer/MiscGroup" unique_id=1650877399]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "Export ▾"
-
-[node name="SettingsButton" parent="FlowContainer/MiscGroup" unique_id=1572617716 instance=ExtResource("3_ambtn")]
+[node name="SettingsButton" parent="Layout/PrimaryRow" unique_id=1572617716 instance=ExtResource("3_ambtn")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
@@ -355,3 +178,263 @@ effect_hover = SubResource("Resource_7irh2")
 effect_pressed = SubResource("Resource_8hlhq")
 effect_disabled = SubResource("Resource_hh5w0")
 effect_focused = SubResource("Resource_8wy75")
+
+[node name="ExpansionPanel" type="PanelContainer" parent="Layout" unique_id=110000200]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"ExpansionRowPanel"
+
+[node name="ExpansionStack" type="HFlowContainer" parent="Layout/ExpansionPanel" unique_id=727770742]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="FileMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=746411521]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_bottom = 8
+
+[node name="FileGroup" type="HBoxContainer" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin" unique_id=1461453808]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="SaveButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=817157259]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"AccentButton"
+text = "Save"
+
+[node name="TemplatesButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=1772993640]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Templates ▾"
+
+[node name="TilesetsButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=1603129774]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Map pages and tilesets"
+focus_mode = 0
+text = "Maps & Tilesets ▾"
+
+[node name="ImportButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=910273850]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Import ▾"
+
+[node name="ExportButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/FileMargin/FileGroup" unique_id=1650877399]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Export ▾"
+
+[node name="EditMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=1541478644]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_bottom = 8
+
+[node name="EditGroup" type="HBoxContainer" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin" unique_id=1291758740]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AddMenuButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=707240715]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "+ Add ▾"
+
+[node name="UndoButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=1096988612]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Undo"
+
+[node name="RedoButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=970749436]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Redo"
+
+[node name="GroupButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=881993713]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "Group"
+
+[node name="SnapButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=700274535]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Snap settings"
+focus_mode = 0
+text = "Snap ▾"
+
+[node name="AlignButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=923977938]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+button_pressed = true
+text = "Guides"
+
+[node name="ArrangeButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=426436856]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Align / distribute / z-order"
+focus_mode = 0
+text = "Arrange ▾"
+
+[node name="TagFilterButton" type="MenuButton" parent="Layout/ExpansionPanel/ExpansionStack/EditMargin/EditGroup" unique_id=1443327240]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Filter by tag"
+focus_mode = 0
+text = "Tags ▾"
+
+[node name="DrawMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=1422097677]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_bottom = 8
+
+[node name="DrawGroup" type="HBoxContainer" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin" unique_id=921726274]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PenButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182931]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Pen — draw annotations"
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "✎ Pen"
+
+[node name="EraserButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182932]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Eraser — click strokes to remove"
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "Eraser"
+
+[node name="AnnotationSelectButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182933]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Select strokes — click or marquee, then Delete"
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "Pick"
+
+[node name="DrawColorMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=2056631702]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="AnnotationColorButton" type="ColorPickerButton" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup/DrawColorMargin" unique_id=771182934]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+tooltip_text = "Brush color"
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jjlv6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_yvkbi")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_xsps2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7l6fc")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_vqk2q")
+color = Color(0.95, 0.32, 0.32, 1)
+edit_alpha = false
+
+[node name="AnnotationWidthSpin" type="SpinBox" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182935]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+tooltip_text = "Brush width"
+min_value = 0.5
+max_value = 64.0
+step = 0.5
+value = 4.0
+suffix = "px"
+
+[node name="ViewMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=1360701712]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_bottom = 8
+
+[node name="ViewGroup" type="HBoxContainer" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin" unique_id=249517540]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OutlinerButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=518926252]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+button_pressed = true
+text = "Outliner"
+
+[node name="InspectorButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=1796293648]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+button_pressed = true
+text = "Inspector"
+
+[node name="MinimapButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=639773856]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+button_pressed = true
+text = "Minimap"
+
+[node name="CommentsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=2017203041]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "Comments"
+
+[node name="ChatButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=2017203099]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Open the chat panel (Live session only)"
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "Chat"
+
+[node name="TimerTrayButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=1682036709]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "Timers"
+
+[node name="PresentButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=858085165]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Enter presentation mode"
+focus_mode = 0
+theme_type_variation = &"Pill"
+text = "Present"

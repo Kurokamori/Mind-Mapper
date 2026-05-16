@@ -4,186 +4,230 @@
 
 [node name="DocumentInspector" type="VBoxContainer"]
 script = ExtResource("1_di")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Document"
 
-[node name="HelpLabel" type="Label" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
+
+[node name="Body" type="VBoxContainer" parent="Surface"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HelpLabel" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
 autowrap_mode = 2
 text = "Stored as Markdown. Double-click the node or use the button below to open the full editor."
 
-[node name="TitleRow" type="HBoxContainer" parent="."]
+[node name="TitleRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="TitleLabel" type="Label" parent="TitleRow"]
+[node name="TitleLabel" type="Label" parent="Surface/Body/TitleRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Title"
 
-[node name="TitleEdit" type="LineEdit" parent="TitleRow"]
+[node name="TitleEdit" type="LineEdit" parent="Surface/Body/TitleRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="OpenEditorButton" type="Button" parent="."]
+[node name="OpenEditorButton" type="Button" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"AccentButton"
 text = "Open Document Editor…"
 
-[node name="WordCountLabel" type="Label" parent="."]
+[node name="WordCountLabel" type="Label" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorValueLabel"
 text = "0 words • 0 characters"
 
-[node name="SizesHeader" type="Label" parent="."]
+[node name="SizesHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
-text = "Font sizes"
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "FONT SIZES"
 
-[node name="SizesGrid" type="GridContainer" parent="."]
+[node name="SizesGrid" type="GridContainer" parent="Surface/Body"]
 layout_mode = 2
 columns = 2
-theme_override_constants/h_separation = 8
+theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 4
 
-[node name="BodyLabel" type="Label" parent="SizesGrid"]
+[node name="BodyLabel" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Body"
 
-[node name="FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="FontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 48.0
 value = 14.0
 
-[node name="TitleSizeLabel" type="Label" parent="SizesGrid"]
+[node name="TitleSizeLabel" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Title"
 
-[node name="TitleFontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="TitleFontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 64.0
 value = 18.0
 
-[node name="H1Label" type="Label" parent="SizesGrid"]
+[node name="H1Label" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "H1"
 
-[node name="H1FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="H1FontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 96.0
 value = 28.0
 
-[node name="H2Label" type="Label" parent="SizesGrid"]
+[node name="H2Label" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "H2"
 
-[node name="H2FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="H2FontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 96.0
 value = 24.0
 
-[node name="H3Label" type="Label" parent="SizesGrid"]
+[node name="H3Label" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "H3"
 
-[node name="H3FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="H3FontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 96.0
 value = 20.0
 
-[node name="H4Label" type="Label" parent="SizesGrid"]
+[node name="H4Label" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "H4"
 
-[node name="H4FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="H4FontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 96.0
 value = 18.0
 
-[node name="H5Label" type="Label" parent="SizesGrid"]
+[node name="H5Label" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "H5"
 
-[node name="H5FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="H5FontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 96.0
 value = 16.0
 
-[node name="H6Label" type="Label" parent="SizesGrid"]
+[node name="H6Label" type="Label" parent="Surface/Body/SizesGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "H6"
 
-[node name="H6FontSizeSpin" type="SpinBox" parent="SizesGrid"]
+[node name="H6FontSizeSpin" type="SpinBox" parent="Surface/Body/SizesGrid"]
 unique_name_in_owner = true
 layout_mode = 2
 min_value = 8.0
 max_value = 96.0
 value = 15.0
 
-[node name="ImageRow" type="HBoxContainer" parent="."]
+[node name="ImageHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "IMAGES"
 
-[node name="ImageLabel" type="Label" parent="ImageRow"]
+[node name="ImageRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ImageLabel" type="Label" parent="Surface/Body/ImageRow"]
+custom_minimum_size = Vector2(140, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Max image width"
 tooltip_text = "Caps natural image width in pixels. 0 = display at native size. Per-image overrides: ![alt|400](path)"
 
-[node name="MaxImageWidthSpin" type="SpinBox" parent="ImageRow"]
+[node name="MaxImageWidthSpin" type="SpinBox" parent="Surface/Body/ImageRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 min_value = 0.0
 max_value = 4096.0
 step = 16.0
 value = 0.0
 suffix = "px"
 
-[node name="BgRow" type="HBoxContainer" parent="."]
+[node name="ColorsHeader" type="Label" parent="Surface/Body"]
 layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "COLORS"
 
-[node name="BgLabel" type="Label" parent="BgRow"]
+[node name="BgRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BgLabel" type="Label" parent="Surface/Body/BgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Background"
 
-[node name="BgPicker" type="ColorPickerButton" parent="BgRow"]
+[node name="BgPicker" type="ColorPickerButton" parent="Surface/Body/BgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
 
-[node name="FgRow" type="HBoxContainer" parent="."]
+[node name="FgRow" type="HBoxContainer" parent="Surface/Body"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="FgLabel" type="Label" parent="FgRow"]
+[node name="FgLabel" type="Label" parent="Surface/Body/FgRow"]
+custom_minimum_size = Vector2(96, 0)
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
 text = "Default text"
 
-[node name="FgPicker" type="ColorPickerButton" parent="FgRow"]
+[node name="FgPicker" type="ColorPickerButton" parent="Surface/Body/FgRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(96, 22)
 layout_mode = 2

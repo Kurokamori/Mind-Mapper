@@ -3,51 +3,74 @@
 [ext_resource type="Script" uid="uid://0v0v166p63ht" path="res://src/project_manager/project_card.gd" id="1_card"]
 
 [node name="ProjectCard" type="PanelContainer" unique_id=1145300018]
-custom_minimum_size = Vector2(320, 110)
+custom_minimum_size = Vector2(320, 96)
+theme_type_variation = &"CardPanel"
 script = ExtResource("1_card")
 
-[node name="VBox" type="VBoxContainer" parent="." unique_id=675607403]
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBox" type="VBoxContainer" parent="Margin" unique_id=675607403]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="NameLabel" type="Label" parent="VBox" unique_id=1966902598]
-unique_name_in_owner = true
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
-[node name="PathLabel" type="Label" parent="VBox" unique_id=1953938879]
+[node name="NameLabel" type="Label" parent="Margin/VBox/HeaderRow" unique_id=1966902598]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"ToolbarTitleLabel"
+text_overrun_behavior = 3
+
+[node name="ModifiedLabel" type="Label" parent="Margin/VBox/HeaderRow" unique_id=2110388029]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+
+[node name="PathLabel" type="Label" parent="Margin/VBox" unique_id=1953938879]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
 autowrap_mode = 2
 
-[node name="ModifiedLabel" type="Label" parent="VBox" unique_id=2110388029]
+[node name="LiveStatusLabel" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"FieldLabel"
 
-[node name="LiveStatusLabel" type="Label" parent="VBox"]
-unique_name_in_owner = true
+[node name="Buttons" type="HBoxContainer" parent="Margin/VBox" unique_id=1862069045]
 layout_mode = 2
-
-[node name="Buttons" type="HBoxContainer" parent="VBox" unique_id=1862069045]
-layout_mode = 2
+theme_override_constants/separation = 6
 alignment = 2
 
-[node name="JoinLiveButton" type="Button" parent="VBox/Buttons"]
+[node name="JoinLiveButton" type="Button" parent="Margin/VBox/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 visible = false
-text = "Join live session"
+theme_type_variation = &"AccentButton"
+text = "Join Live"
 
-[node name="HostButton" type="Button" parent="VBox/Buttons"]
+[node name="HostButton" type="Button" parent="Margin/VBox/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"GhostButton"
 text = "Host…"
 
-[node name="OpenButton" type="Button" parent="VBox/Buttons" unique_id=1095980922]
+[node name="OpenButton" type="Button" parent="Margin/VBox/Buttons" unique_id=1095980922]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"AccentButton"
 text = "Open"
 
-[node name="ForgetButton" type="Button" parent="VBox/Buttons" unique_id=487604647]
+[node name="ForgetButton" type="Button" parent="Margin/VBox/Buttons" unique_id=487604647]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"FlatButton"
 text = "Forget"

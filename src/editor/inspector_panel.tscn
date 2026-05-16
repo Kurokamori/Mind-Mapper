@@ -4,7 +4,8 @@
 [ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
 
 [node name="InspectorPanel" type="PanelContainer" unique_id=293825941]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(260, 0)
+theme_type_variation = &"SidebarPanel"
 script = ExtResource("1_inspect")
 dock_id = "inspector"
 drag_handle_path = NodePath("Margin/VBox/Header/TitleLabel")
@@ -13,19 +14,19 @@ grip_bottom_path = NodePath("GripBottom")
 grip_left_path = NodePath("GripLeft")
 grip_right_path = NodePath("GripRight")
 default_floating_position = Vector2(900, 160)
-default_floating_size = Vector2(320, 420)
-default_dock_size = 300.0
+default_floating_size = Vector2(300, 420)
+default_dock_size = 280.0
 
 [node name="Margin" type="MarginContainer" parent="." unique_id=1203733885]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 10
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="Margin" unique_id=1579832676]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="Header" type="HBoxContainer" parent="Margin/VBox" unique_id=292548087]
 layout_mode = 2
@@ -35,19 +36,22 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-text = "Inspector"
+theme_type_variation = &"SectionHeader"
+text = "INSPECTOR"
 
 [node name="CloseButton" type="Button" parent="Margin/VBox/Header" unique_id=1451182330]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 tooltip_text = "Close inspector"
 focus_mode = 0
-text = "X"
-flat = true
+theme_type_variation = &"CloseIconButton"
+text = "✕"
 
 [node name="EmptyLabel" type="Label" parent="Margin/VBox" unique_id=292572808]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"MutedLabel"
 text = "No selection"
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/VBox" unique_id=1245497619]
@@ -60,7 +64,7 @@ horizontal_scroll_mode = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="GripTop" parent="." unique_id=1385131046 instance=ExtResource("2_grip")]
 top_level = true

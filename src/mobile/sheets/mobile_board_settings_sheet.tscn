@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://b1mobbrdsetsh"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_board_settings_sheet.gd" id="1_mbss_script"]
+
+[node name="MobileBoardSettingsSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_mbss_script")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+horizontal_scroll_mode = 0
+
+[node name="Layout" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="NameCaption" type="Label" parent="Scroll/Layout"]
+layout_mode = 2
+text = "Board name"
+theme_override_font_sizes/font_size = 12
+
+[node name="NameEdit" type="LineEdit" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "Board name"
+
+[node name="BackgroundOverrideCheck" type="CheckBox" parent="Scroll/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Override background color"
+
+[node name="BackgroundCaption" type="Label" parent="Scroll/Layout"]
+layout_mode = 2
+text = "Background"
+theme_override_font_sizes/font_size = 12
+
+[node name="BackgroundColorPicker" type="ColorPickerButton" parent="Scroll/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+
+[node name="ApplyButton" type="Button" parent="Scroll/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Apply name"

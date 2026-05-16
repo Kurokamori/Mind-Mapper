@@ -10,6 +10,10 @@ const MIN_BOUNDS_SIZE: Vector2 = Vector2(800.0, 600.0)
 @onready var _canvas: Control = %Canvas
 @onready var _close_button: Button = %CloseButton
 @onready var _header: Control = %Header
+@onready var _zoom_out_button: Button = %ZoomOutButton
+@onready var _zoom_in_button: Button = %ZoomInButton
+@onready var _zoom_fit_button: Button = %ZoomFitButton
+@onready var _zoom_label: Label = %ZoomLabel
 
 var _editor: Node = null
 var _camera: Camera2D = null
@@ -24,13 +28,14 @@ var _panel_drag_offset: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	ThemeManager.theme_applied.connect(_on_theme_applied)
-	ThemeManager.apply_relative_font_sizes(self, {"Margin/VBox/Header/Title": 0.80})
-	_apply_translucent_panel()
 	_canvas.draw.connect(_on_canvas_draw)
 	_canvas.gui_input.connect(_on_canvas_input)
 	_canvas.resized.connect(_on_canvas_resized)
 	_close_button.pressed.connect(_on_close_pressed)
 	_header.gui_input.connect(_on_header_gui_input)
+	_zoom_in_button.pressed.connect(_on_zoom_in_pressed)
+	_zoom_out_button.pressed.connect(_on_zoom_out_pressed)
+	_zoom_fit_button.pressed.connect(_on_zoom_fit_pressed)
 	SelectionBus.selection_changed.connect(_on_selection_changed)
 	AppState.current_board_changed.connect(_on_current_board_changed)
 	get_viewport().size_changed.connect(_clamp_panel_to_viewport)
@@ -88,6 +93,52 @@ func _on_close_pressed() -> void:
 	emit_signal("close_requested")
 
 
+func _on_zoom_in_pressed() -> void:
+	if _camera == null:
+		return
+	if _camera.has_method("zoom_in"):
+		_camera.call("zoom_in")
+	_update_zoom_label()
+
+
+func _on_zoom_out_pressed() -> void:
+	if _camera == null:
+		return
+	if _camera.has_method("zoom_out"):
+		_camera.call("zoom_out")
+	_update_zoom_label()
+
+
+func _on_zoom_fit_pressed() -> void:
+	if _camera == null or _editor == null:
+		return
+	var bounds: Rect2 = _content_bounds()
+	if bounds.size.x <= 0.0 or bounds.size.y <= 0.0:
+		_camera.zoom = Vector2.ONE
+		_camera.position = Vector2.ZERO
+		_update_zoom_label()
+		return
+	var padded: Rect2 = bounds.grow(64.0)
+	var viewport: Viewport = get_viewport()
+	if viewport == null:
+		return
+	var vp: Vector2 = viewport.get_visible_rect().size
+	var usable: Vector2 = vp - Vector2(160.0, 160.0)
+	if usable.x <= 0.0 or usable.y <= 0.0:
+		return
+	var z: float = min(usable.x / padded.size.x, usable.y / padded.size.y)
+	z = clamp(z, 0.05, 8.0)
+	_camera.zoom = Vector2(z, z)
+	_camera.position = padded.position + padded.size * 0.5
+	_update_zoom_label()
+
+
+func _update_zoom_label() -> void:
+	if _zoom_label == null or _camera == null:
+		return
+	_zoom_label.text = "%d%%" % int(round(_camera.zoom.x * 100.0))
+
+
 func bind_editor(editor: Node, camera: Camera2D) -> void:
 	_editor = editor
 	_camera = camera
@@ -129,6 +180,7 @@ func _process(_delta: float) -> void:
 	_last_camera_zoom = _camera.zoom
 	_last_viewport_size = vp_size
 	_canvas.queue_redraw()
+	_update_zoom_label()
 
 
 func _content_bounds() -> Rect2:
@@ -311,11 +363,6 @@ func _zoom_camera(factor: float) -> void:
 	_canvas.queue_redraw()
 
 
-func _apply_translucent_panel() -> void:
-	ThemeManager.apply_translucent_panel(self)
-
-
 func _on_theme_applied() -> void:
-	_apply_translucent_panel()
 	if _canvas != null:
 		_canvas.queue_redraw()

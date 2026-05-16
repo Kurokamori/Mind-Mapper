@@ -1,0 +1,50 @@
+[gd_scene format=3 uid="uid://syhtd48oed01"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_item_comments.gd" id="1_mic_script"]
+
+[node name="MobileItemComments" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_mic_script")
+
+[node name="Column" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 8
+
+[node name="CommentsScroll" type="ScrollContainer" parent="Column"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="CommentsList" type="VBoxContainer" parent="Column/CommentsScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="EmptyLabel" type="Label" parent="Column/CommentsScroll/CommentsList"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No comments yet — add one below."
+theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
+
+[node name="ComposeRow" type="VBoxContainer" parent="Column"]
+layout_mode = 2
+
+[node name="NewCommentInput" type="TextEdit" parent="Column/ComposeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+placeholder_text = "Write a comment…"
+wrap_mode = 1
+
+[node name="SubmitCommentButton" type="Button" parent="Column/ComposeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+text = "Post comment"

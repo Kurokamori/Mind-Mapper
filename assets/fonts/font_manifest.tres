@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cgktco21ave2e" path="res://src/resources/font_manifest.gd" id="1_manifest"]
 [ext_resource type="Script" uid="uid://cb6i42qiqocak" path="res://src/resources/font_preset.gd" id="2_preset"]
+[ext_resource type="Resource" uid="uid://dwsu5wm4xnhev" path="res://assets/fonts/atkinson_hyperlegible/atkinson_hyperlegible.tres" id="2_wmps4"]
 
 [sub_resource type="Resource" id="Resource_default"]
 script = ExtResource("2_preset")
@@ -10,4 +11,4 @@ display_name = "System Default"
 
 [resource]
 script = ExtResource("1_manifest")
-presets = Array[Resource]([SubResource("Resource_default")])
+presets = Array[Resource]([SubResource("Resource_default"), ExtResource("2_wmps4")])

@@ -4,21 +4,160 @@
 
 [node name="ImageInspector" type="VBoxContainer"]
 script = ExtResource("1_imi")
-theme_override_constants/separation = 6
+theme_override_constants/separation = 8
 
 [node name="Header" type="Label" parent="."]
 layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
 text = "Image"
 
-[node name="PathLabel" type="Label" parent="."]
+[node name="Surface" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
+
+[node name="Body" type="VBoxContainer" parent="Surface"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SourceHeader" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "SOURCE"
+
+[node name="PathLabel" type="Label" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"InspectorValueLabel"
 autowrap_mode = 2
 
-[node name="ReplaceButton" type="Button" parent="."]
+[node name="ReplaceButton" type="Button" parent="Surface/Body"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"GhostButton"
 text = "Replace image…"
+
+[node name="FilterRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FilterLabel" type="Label" parent="Surface/Body/FilterRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Filter"
+
+[node name="FilterOpt" type="OptionButton" parent="Surface/Body/FilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AdjustHeader" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "ADJUSTMENTS"
+
+[node name="BrightRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BrightLabel" type="Label" parent="Surface/Body/BrightRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Brightness"
+
+[node name="BrightnessSpin" type="SpinBox" parent="Surface/Body/BrightRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ContrastRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ContrastLabel" type="Label" parent="Surface/Body/ContrastRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Contrast"
+
+[node name="ContrastSpin" type="SpinBox" parent="Surface/Body/ContrastRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ResetFiltersBtn" type="Button" parent="Surface/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"FlatButton"
+text = "Reset filters"
+
+[node name="CropLabel" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "CROP (normalized 0–1)"
+
+[node name="CropGrid" type="GridContainer" parent="Surface/Body"]
+layout_mode = 2
+columns = 4
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 4
+
+[node name="CropXLabel" type="Label" parent="Surface/Body/CropGrid"]
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
+text = "x"
+
+[node name="CropXSpin" type="SpinBox" parent="Surface/Body/CropGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CropYLabel" type="Label" parent="Surface/Body/CropGrid"]
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
+text = "y"
+
+[node name="CropYSpin" type="SpinBox" parent="Surface/Body/CropGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CropWLabel" type="Label" parent="Surface/Body/CropGrid"]
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
+text = "w"
+
+[node name="CropWSpin" type="SpinBox" parent="Surface/Body/CropGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CropHLabel" type="Label" parent="Surface/Body/CropGrid"]
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
+text = "h"
+
+[node name="CropHSpin" type="SpinBox" parent="Surface/Body/CropGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="CropActionsRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CropButton" type="Button" parent="Surface/Body/CropActionsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"AccentButton"
+text = "Crop visually…"
+
+[node name="CropResetBtn" type="Button" parent="Surface/Body/CropActionsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"FlatButton"
+text = "Reset"
 
 [node name="FileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
@@ -35,92 +174,3 @@ title = "Replace Image"
 size = Vector2i(420, 120)
 ok_button_text = "Embed"
 dialog_text = "Embed the image into this project (copies the file) or link to its current location?"
-
-[node name="FilterLabel" type="Label" parent="."]
-layout_mode = 2
-text = "Filter"
-
-[node name="FilterOpt" type="OptionButton" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="BrightRow" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="BrightLabel" type="Label" parent="BrightRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Brightness"
-
-[node name="BrightnessSpin" type="SpinBox" parent="BrightRow"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="ContrastRow" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="ContrastLabel" type="Label" parent="ContrastRow"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Contrast"
-
-[node name="ContrastSpin" type="SpinBox" parent="ContrastRow"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="ResetFiltersBtn" type="Button" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Reset filters"
-
-[node name="CropLabel" type="Label" parent="."]
-layout_mode = 2
-text = "Crop (normalized 0–1)"
-
-[node name="CropRow1" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="CropXLabel" type="Label" parent="CropRow1"]
-layout_mode = 2
-text = "x"
-
-[node name="CropXSpin" type="SpinBox" parent="CropRow1"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="CropYLabel" type="Label" parent="CropRow1"]
-layout_mode = 2
-text = "y"
-
-[node name="CropYSpin" type="SpinBox" parent="CropRow1"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="CropRow2" type="HBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="CropWLabel" type="Label" parent="CropRow2"]
-layout_mode = 2
-text = "w"
-
-[node name="CropWSpin" type="SpinBox" parent="CropRow2"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="CropHLabel" type="Label" parent="CropRow2"]
-layout_mode = 2
-text = "h"
-
-[node name="CropHSpin" type="SpinBox" parent="CropRow2"]
-unique_name_in_owner = true
-layout_mode = 2
-
-[node name="CropResetBtn" type="Button" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Reset crop"
-
-[node name="CropButton" type="Button" parent="."]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Crop visually…"

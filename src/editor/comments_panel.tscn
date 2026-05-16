@@ -4,8 +4,9 @@
 [ext_resource type="PackedScene" uid="uid://bxdockgripaaa" path="res://src/editor/docking/resize_grip.tscn" id="2_grip"]
 
 [node name="CommentsPanel" type="PanelContainer" unique_id=2107411111]
-custom_minimum_size = Vector2(280, 0)
+custom_minimum_size = Vector2(260, 0)
 visible = false
+theme_type_variation = &"SidebarPanel"
 script = ExtResource("1_panel")
 dock_id = "comments"
 drag_handle_path = NodePath("Margin/VBox/Header/Title")
@@ -15,14 +16,14 @@ grip_left_path = NodePath("GripLeft")
 grip_right_path = NodePath("GripRight")
 default_mode = "dock_right"
 default_floating_position = Vector2(140, 180)
-default_floating_size = Vector2(340, 480)
-default_dock_size = 320.0
+default_floating_size = Vector2(320, 480)
+default_dock_size = 300.0
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 8
+theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
+theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 8
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
@@ -36,7 +37,8 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-text = "Comments"
+theme_type_variation = &"SectionHeader"
+text = "COMMENTS"
 
 [node name="ShowResolvedButton" type="CheckButton" parent="Margin/VBox/Header"]
 unique_name_in_owner = true
@@ -47,11 +49,12 @@ text = "Resolved"
 
 [node name="CloseButton" type="Button" parent="Margin/VBox/Header"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(22, 22)
 layout_mode = 2
 tooltip_text = "Close comments panel"
 focus_mode = 0
-text = "X"
-flat = true
+theme_type_variation = &"CloseIconButton"
+text = "✕"
 
 [node name="FilterHBox" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
@@ -66,7 +69,7 @@ tooltip_text = "Scope filter"
 [node name="EmptyLabel" type="Label" parent="Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 0.55)
+theme_type_variation = &"MutedLabel"
 text = "No comments on this board."
 horizontal_alignment = 1
 autowrap_mode = 2
