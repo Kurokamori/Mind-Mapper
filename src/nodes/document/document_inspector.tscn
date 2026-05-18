@@ -231,3 +231,30 @@ text = "Default text"
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 22)
 layout_mode = 2
+
+[node name="FileHeader" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "FILE"
+
+[node name="ExportMarkdownButton" type="Button" parent="Surface/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Export as Markdown…"
+
+[node name="ExportPdfButton" type="Button" parent="Surface/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Export as PDF…"
+
+[node name="ReplaceFromFileButton" type="Button" parent="Surface/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Replace from file…"
+
+[node name="FileStatusLabel" type="Label" parent="Surface/Body"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"InspectorHintLabel"
+autowrap_mode = 2
+text = ""

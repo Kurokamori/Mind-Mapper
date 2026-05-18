@@ -15,7 +15,9 @@ custom_minimum_size = Vector2(0, 0)
 
 [node name="CheckButton" type="CheckBox" parent="Row"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(40, 40)
+custom_minimum_size = Vector2(56, 56)
+theme_override_constants/icon_max_width = 44
+theme_override_constants/h_separation = 10
 
 [node name="TextEdit" type="LineEdit" parent="Row"]
 unique_name_in_owner = true

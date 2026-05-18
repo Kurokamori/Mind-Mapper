@@ -23,6 +23,7 @@ const SELF_SCENE: String = "res://src/nodes/todo_list/todo_card_row.tscn"
 @onready var _expand_button: Button = %ExpandButton
 @onready var _check: CheckBox = %Check
 @onready var _text_edit: LineEdit = %TextEdit
+@onready var _text_area: TextEdit = %TextArea
 @onready var _details_button: AutomaticButton = %DetailsButton
 @onready var _add_child_button: AutomaticButton = %AddChildButton
 @onready var _priority_btn: MenuButton = %PriorityButton
@@ -41,6 +42,7 @@ var palette_bg: Color = NORMAL_BG
 var palette_fg: Color = NORMAL_FG
 var palette_completed_bg: Color = COMPLETED_BG
 var palette_completed_fg: Color = COMPLETED_FG
+var multiline_text: bool = false
 var _suppress: bool = false
 
 
@@ -73,6 +75,9 @@ func _ready() -> void:
 	_text_edit.text_submitted.connect(_on_text_submitted)
 	_text_edit.focus_entered.connect(_on_text_focus_entered)
 	_text_edit.focus_exited.connect(_on_text_focus_exited)
+	_text_area.text_changed.connect(_on_text_area_changed)
+	_text_area.focus_entered.connect(_on_text_focus_entered)
+	_text_area.focus_exited.connect(_on_text_area_focus_exited)
 	_delete_button.pressed.connect(_on_delete_pressed)
 	_expand_button.pressed.connect(_on_expand_pressed)
 	_add_child_button.pressed.connect(func() -> void: emit_signal("add_child_requested", card_id))
@@ -125,7 +130,11 @@ func _apply_card_data() -> void:
 		return
 	_suppress = true
 	_check.button_pressed = bool(card_data.get("completed", false))
-	_text_edit.text = String(card_data.get("text", ""))
+	var current_text: String = String(card_data.get("text", ""))
+	_text_edit.text = current_text
+	if _text_area != null:
+		_text_area.text = current_text
+	_apply_multiline_visibility()
 	_apply_visual_style()
 	_refresh_priority_label()
 	_refresh_due_label()
@@ -133,6 +142,13 @@ func _apply_card_data() -> void:
 	_refresh_details_indicator()
 	_rebuild_children()
 	_suppress = false
+
+
+func _apply_multiline_visibility() -> void:
+	if _text_edit == null or _text_area == null:
+		return
+	_text_edit.visible = not multiline_text
+	_text_area.visible = multiline_text
 
 
 func _refresh_expand_state() -> void:
@@ -170,6 +186,7 @@ func _rebuild_children() -> void:
 	for sc in sub:
 		var row: TodoCardRow = (load(SELF_SCENE) as PackedScene).instantiate()
 		row.bind(owner_list_id, sc)
+		row.multiline_text = multiline_text
 		_child_container.add_child(row)
 		row.set_palette(palette_bg, palette_fg, palette_completed_bg, palette_completed_fg)
 		_forward_signals(row)
@@ -276,6 +293,13 @@ func _apply_visual_style() -> void:
 	_text_edit.add_theme_color_override("selection_color", Color(fg.r, fg.g, fg.b, 0.22))
 	if completed:
 		_text_edit.add_theme_constant_override("caret_blink", 0)
+	if _text_area != null:
+		_text_area.add_theme_color_override("font_color", fg)
+		var area_empty: StyleBoxEmpty = StyleBoxEmpty.new()
+		_text_area.add_theme_stylebox_override("normal", area_empty)
+		_text_area.add_theme_stylebox_override("focus", area_empty)
+		_text_area.add_theme_stylebox_override("read_only", area_empty)
+		_text_area.add_theme_color_override("selection_color", Color(fg.r, fg.g, fg.b, 0.22))
 
 
 func _on_check_toggled(pressed: bool) -> void:
@@ -307,6 +331,19 @@ func _on_text_focus_exited() -> void:
 	if _suppress:
 		return
 	emit_signal("text_changed", card_id, _text_edit.text)
+
+
+func _on_text_area_changed() -> void:
+	if _suppress:
+		return
+	emit_signal("text_changed", card_id, _text_area.text)
+
+
+func _on_text_area_focus_exited() -> void:
+	emit_signal("edit_focus_changed", card_id, false)
+	if _suppress:
+		return
+	emit_signal("text_changed", card_id, _text_area.text)
 
 
 func _on_delete_pressed() -> void:

@@ -21,6 +21,7 @@ const LEGACY_HEADER_FG: Color = DARK_HEADER_FG
 @export var accent_color_custom: bool = false
 @export var header_fg_color: Color = DARK_HEADER_FG
 @export var header_fg_color_custom: bool = false
+@export var multiline_text: bool = false
 @export var blocks: Array = []
 
 @onready var _title_label: Label = %TitleLabel
@@ -146,17 +147,22 @@ func _rebuild_blocks() -> void:
 	for child in _blocks_container.get_children():
 		if child == _drop_indicator:
 			continue
+		_blocks_container.remove_child(child)
 		child.queue_free()
+	if _drop_indicator != null:
+		_blocks_container.move_child(_drop_indicator, _blocks_container.get_child_count() - 1)
 	var found_selected: bool = false
+	var row_scene: PackedScene = preload("res://src/nodes/block_stack/block_row.tscn")
 	for b in blocks:
-		var row_scene: PackedScene = preload("res://src/nodes/block_stack/block_row.tscn")
 		var row: BlockRow = row_scene.instantiate()
 		row.bind(item_id, b)
+		row.multiline_text = multiline_text
 		row.palette_bg = resolved_block_bg_color()
 		row.palette_fg = resolved_block_fg_color()
 		row.text_changed.connect(_on_block_text_changed)
 		row.indent_requested.connect(_on_block_indent_requested)
 		row.delete_requested.connect(_on_block_delete_requested)
+		row.add_child_requested.connect(_on_block_add_child_requested)
 		row.image_requested.connect(_on_block_image_requested)
 		row.link_requested.connect(_on_block_link_requested)
 		row.follow_link_requested.connect(_on_block_follow_link_requested)
@@ -165,7 +171,9 @@ func _rebuild_blocks() -> void:
 		if bid == _selected_block_id:
 			row.highlighted = true
 			found_selected = true
-		_blocks_container.add_child.call_deferred(row)
+		_blocks_container.add_child(row)
+	if _drop_indicator != null:
+		_blocks_container.move_child(_drop_indicator, _blocks_container.get_child_count() - 1)
 	if not found_selected:
 		_selected_block_id = ""
 	_position_drop_indicator(-1)
@@ -240,6 +248,30 @@ func _on_block_indent_requested(block_id: String, delta: int) -> void:
 func _on_block_delete_requested(block_id: String) -> void:
 	var before: Array = blocks.duplicate(true)
 	blocks = blocks.filter(func(b: Dictionary) -> bool: return String(b.get("id", "")) != block_id)
+	_rebuild_blocks()
+	_push_blocks_history(before)
+
+
+func _on_block_add_child_requested(block_id: String) -> void:
+	var before: Array = blocks.duplicate(true)
+	var parent_idx: int = _find_block_index(block_id)
+	if parent_idx < 0:
+		return
+	var parent_indent: int = int(blocks[parent_idx].get("indent_level", 0))
+	var child_indent: int = clamp(parent_indent + 1, 0, 6)
+	var insert_index: int = parent_idx + 1
+	while insert_index < blocks.size() and int(blocks[insert_index].get("indent_level", 0)) >= child_indent:
+		insert_index += 1
+	var nb: Dictionary = {
+		"id": Uuid.v4(),
+		"text": "",
+		"indent_level": child_indent,
+		"asset_name": "",
+		"source_path": "",
+		"link_target": {},
+	}
+	blocks.insert(insert_index, nb)
+	_selected_block_id = String(nb["id"])
 	_rebuild_blocks()
 	_push_blocks_history(before)
 
@@ -348,12 +380,7 @@ func _push_blocks_history(before: Array) -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(self)
 
 
 func _on_edit_begin() -> void:
@@ -531,6 +558,7 @@ func serialize_payload() -> Dictionary:
 		"bg_color_custom": bg_color_custom,
 		"accent_color_custom": accent_color_custom,
 		"header_fg_color_custom": header_fg_color_custom,
+		"multiline_text": multiline_text,
 		"blocks": blocks.duplicate(true),
 	}
 	if bg_color_custom:
@@ -547,6 +575,8 @@ func deserialize_payload(d: Dictionary) -> void:
 	_load_color_field(d, "bg_color", "bg_color_custom", LEGACY_BG, _set_bg)
 	_load_color_field(d, "accent_color", "accent_color_custom", LEGACY_HEADER_BG, _set_accent)
 	_load_color_field(d, "header_fg_color", "header_fg_color_custom", LEGACY_HEADER_FG, _set_header_fg)
+	if d.has("multiline_text"):
+		multiline_text = bool(d["multiline_text"])
 	var raw: Variant = d.get("blocks", [])
 	if typeof(raw) == TYPE_ARRAY:
 		blocks = (raw as Array).duplicate(true)
@@ -609,6 +639,9 @@ func apply_typed_property(key: String, value: Variant) -> void:
 				header_fg_color = ColorUtil.from_array(value, header_fg_color)
 				header_fg_color_custom = true
 			_refresh_visuals()
+		"multiline_text":
+			multiline_text = bool(value)
+			_rebuild_blocks()
 		"blocks":
 			if typeof(value) == TYPE_ARRAY:
 				blocks = (value as Array).duplicate(true)
@@ -627,4 +660,5 @@ func bulk_shareable_properties() -> Array:
 		{"key": "bg_color", "label": "Background", "kind": "color_with_reset"},
 		{"key": "accent_color", "label": "Header color", "kind": "color_with_reset"},
 		{"key": "header_fg_color", "label": "Header text", "kind": "color_with_reset"},
+		{"key": "multiline_text", "label": "Wrap text (multi-line)", "kind": "bool"},
 	]

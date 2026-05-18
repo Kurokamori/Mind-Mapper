@@ -13,6 +13,7 @@ var _expected_json_size: int = 0
 var _expected_body_size: int = 0
 var _pending_json: PackedByteArray = PackedByteArray()
 var _pending_body: PackedByteArray = PackedByteArray()
+var _pending_ready: bool = false
 var _error_message: String = ""
 
 
@@ -31,11 +32,13 @@ func error_message() -> String:
 
 
 func has_envelope() -> bool:
+	if _pending_ready:
+		return true
 	return _try_advance()
 
 
 func consume_envelope() -> Dictionary:
-	if not _try_advance():
+	if not _pending_ready and not _try_advance():
 		return {}
 	var json_text: String = _pending_json.get_string_from_utf8()
 	var parsed: Variant = JSON.parse_string(json_text)
@@ -86,6 +89,7 @@ func _try_advance() -> bool:
 				_pending_body = _buffer.slice(0, _expected_body_size)
 				_buffer = _buffer.slice(_expected_body_size)
 				_state = STATE_READ_JSON_SIZE
+				_pending_ready = true
 				return true
 	return false
 
@@ -104,3 +108,4 @@ func _reset_pending() -> void:
 	_expected_body_size = 0
 	_pending_json = PackedByteArray()
 	_pending_body = PackedByteArray()
+	_pending_ready = false

@@ -1,0 +1,193 @@
+[gd_scene format=3 uid="uid://b3kdkyxgmobml"]
+
+[ext_resource type="Script" path="res://src/mobile/sync/mobile_merge_resolution_sheet.gd" id="1_mmrs_script"]
+
+[node name="MobileMergeResolutionSheet" type="Window"]
+title = "Sync request"
+initial_position = 2
+size = Vector2i(680, 720)
+unresizable = false
+script = ExtResource("1_mmrs_script")
+
+[node name="Background" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="CenterMargin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="ContentPanel" type="PanelContainer" parent="CenterMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"CardPanel"
+
+[node name="Margins" type="MarginContainer" parent="CenterMargin/ContentPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="CenterMargin/ContentPanel/Margins"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HeaderLabels" type="VBoxContainer" parent="CenterMargin/ContentPanel/Margins/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="SectionLabel" type="Label" parent="CenterMargin/ContentPanel/Margins/VBox/HeaderLabels"]
+layout_mode = 2
+theme_type_variation = &"SectionHeader"
+text = "INCOMING SYNC"
+
+[node name="SummaryLabel" type="Label" parent="CenterMargin/ContentPanel/Margins/VBox/HeaderLabels"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HeroSubtitle"
+text = "Desktop wants to push changes."
+autowrap_mode = 3
+
+[node name="FilesSummaryLabel" type="Label" parent="CenterMargin/ContentPanel/Margins/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "0 conflict(s) · 0 new file(s)"
+
+[node name="HeaderDivider" type="HSeparator" parent="CenterMargin/ContentPanel/Margins/VBox"]
+layout_mode = 2
+
+[node name="ActionsHeader" type="Label" parent="CenterMargin/ContentPanel/Margins/VBox"]
+layout_mode = 2
+theme_type_variation = &"SectionHeader"
+text = "RESPOND"
+
+[node name="ActionsRoot" type="VBoxContainer" parent="CenterMargin/ContentPanel/Margins/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AcceptAllButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ActionsRoot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Accept all (newest wins)"
+
+[node name="AcceptReviewButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ActionsRoot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_type_variation = &"GhostButton"
+text = "Accept with review (resolve here)"
+
+[node name="DeferToDesktopButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ActionsRoot"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_type_variation = &"GhostButton"
+text = "Accept with review on desktop"
+
+[node name="RejectRow" type="HBoxContainer" parent="CenterMargin/ContentPanel/Margins/VBox/ActionsRoot"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="RejectButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ActionsRoot/RejectRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"GhostButton"
+text = "Reject"
+
+[node name="RejectBlockButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ActionsRoot/RejectRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"DangerButton"
+text = "Reject && block"
+
+[node name="ReviewPanel" type="VBoxContainer" parent="CenterMargin/ContentPanel/Margins/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+visible = false
+
+[node name="ReviewDivider" type="HSeparator" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel"]
+layout_mode = 2
+
+[node name="ReviewSectionLabel" type="Label" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel"]
+layout_mode = 2
+theme_type_variation = &"SectionHeader"
+text = "RESOLVE CONFLICTS"
+
+[node name="ReviewSummaryLabel" type="Label" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = "Choose which side to keep for each conflicting file."
+autowrap_mode = 3
+
+[node name="ReviewQuickRow" type="HBoxContainer" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ReviewKeepAllMineButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel/ReviewQuickRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"GhostButton"
+text = "Keep all mine"
+
+[node name="ReviewKeepAllTheirsButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel/ReviewQuickRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"GhostButton"
+text = "Keep all theirs"
+
+[node name="ReviewScroll" type="ScrollContainer" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"InsetScrollPanel"
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="ReviewList" type="VBoxContainer" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel/ReviewScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="ReviewFooter" type="HBoxContainer" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="ReviewCancelButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel/ReviewFooter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+theme_type_variation = &"GhostButton"
+text = "Back"
+
+[node name="ReviewApplyButton" type="Button" parent="CenterMargin/ContentPanel/Margins/VBox/ReviewPanel/ReviewFooter"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 48)
+layout_mode = 2
+theme_type_variation = &"AccentButton"
+text = "Apply merge"

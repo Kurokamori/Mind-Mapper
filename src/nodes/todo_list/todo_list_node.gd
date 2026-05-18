@@ -32,6 +32,7 @@ const LEGACY_HEADER_FG: Color = DARK_HEADER_FG
 @export var completed_bg_color_custom: bool = false
 @export var completed_fg_color: Color = TodoCardRow.COMPLETED_FG
 @export var completed_fg_color_custom: bool = false
+@export var multiline_text: bool = false
 @export var cards: Array = []
 
 @onready var _title_label: Label = %TitleLabel
@@ -186,6 +187,7 @@ func _rebuild_cards() -> void:
 		var row_scene: PackedScene = preload("res://src/nodes/todo_list/todo_card_row.tscn")
 		var row: TodoCardRow = row_scene.instantiate()
 		row.bind(item_id, card)
+		row.multiline_text = multiline_text
 		row.palette_bg = resolved_card_bg_color()
 		row.palette_fg = resolved_card_fg_color()
 		row.palette_completed_bg = resolved_completed_bg_color()
@@ -437,12 +439,7 @@ func _push_cards_history(before: Array) -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(self)
 
 
 func _on_edit_begin() -> void:
@@ -613,6 +610,7 @@ func serialize_payload() -> Dictionary:
 		"card_fg_color_custom": card_fg_color_custom,
 		"completed_bg_color_custom": completed_bg_color_custom,
 		"completed_fg_color_custom": completed_fg_color_custom,
+		"multiline_text": multiline_text,
 		"cards": cards.duplicate(true),
 	}
 	if bg_color_custom:
@@ -641,6 +639,8 @@ func deserialize_payload(d: Dictionary) -> void:
 	_load_color_field(d, "card_fg_color", "card_fg_color_custom", TodoCardRow.NORMAL_FG, _set_card_fg)
 	_load_color_field(d, "completed_bg_color", "completed_bg_color_custom", TodoCardRow.COMPLETED_BG, _set_completed_bg)
 	_load_color_field(d, "completed_fg_color", "completed_fg_color_custom", TodoCardRow.COMPLETED_FG, _set_completed_fg)
+	if d.has("multiline_text"):
+		multiline_text = bool(d["multiline_text"])
 	var cards_raw: Variant = d.get("cards", [])
 	if typeof(cards_raw) == TYPE_ARRAY:
 		cards = TodoCardData.normalize_array(cards_raw as Array)
@@ -747,6 +747,9 @@ func apply_typed_property(key: String, value: Variant) -> void:
 				completed_fg_color = ColorUtil.from_array(value, completed_fg_color)
 				completed_fg_color_custom = true
 			_refresh_visuals()
+		"multiline_text":
+			multiline_text = bool(value)
+			_rebuild_cards()
 		"cards":
 			if typeof(value) == TYPE_ARRAY:
 				cards = TodoCardData.normalize_array(value as Array)
@@ -769,4 +772,5 @@ func bulk_shareable_properties() -> Array:
 		{"key": "card_fg_color", "label": "Card text", "kind": "color_with_reset"},
 		{"key": "completed_bg_color", "label": "Completed background", "kind": "color_with_reset"},
 		{"key": "completed_fg_color", "label": "Completed text", "kind": "color_with_reset"},
+		{"key": "multiline_text", "label": "Wrap text (multi-line)", "kind": "bool"},
 	]

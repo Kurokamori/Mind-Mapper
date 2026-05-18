@@ -16,6 +16,8 @@ const LEGACY_DEFAULT_FG: Color = Color(0.97, 0.98, 0.99, 1.0)
 @export var italic: bool = false
 @export var auto_width: bool = true
 @export var auto_height: bool = true
+@export var h_align: int = 1
+@export var v_align: int = 1
 
 @onready var _label: Label = %Label
 @onready var _edit: LineEdit = %LineEdit
@@ -69,10 +71,13 @@ func _refresh_visuals() -> void:
 		_label.text = text
 		_label.add_theme_font_size_override("font_size", font_size)
 		_label.add_theme_color_override("font_color", fg)
+		_label.horizontal_alignment = clampi(h_align, 0, 2) as HorizontalAlignment
+		_label.vertical_alignment = clampi(v_align, 0, 2) as VerticalAlignment
 		_apply_font_style(_label)
 	if _edit != null:
 		_edit.add_theme_font_size_override("font_size", font_size)
 		_edit.add_theme_color_override("font_color", fg)
+		_edit.alignment = clampi(h_align, 0, 2) as HorizontalAlignment
 	queue_redraw()
 	_request_auto_fit()
 
@@ -185,12 +190,7 @@ func _on_selection_changed(selected: Array) -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(self)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -209,6 +209,8 @@ func serialize_payload() -> Dictionary:
 		"italic": italic,
 		"auto_width": auto_width,
 		"auto_height": auto_height,
+		"h_align": h_align,
+		"v_align": v_align,
 	}
 	if bg_color_custom:
 		out["bg_color"] = [bg_color.r, bg_color.g, bg_color.b, bg_color.a]
@@ -242,6 +244,8 @@ func deserialize_payload(d: Dictionary) -> void:
 	italic = bool(d.get("italic", italic))
 	auto_width = bool(d.get("auto_width", false))
 	auto_height = bool(d.get("auto_height", false))
+	h_align = clampi(int(d.get("h_align", h_align)), 0, 2)
+	v_align = clampi(int(d.get("v_align", v_align)), 0, 2)
 	if _label != null:
 		_refresh_visuals()
 
@@ -272,6 +276,10 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			auto_width = bool(value)
 		"auto_height":
 			auto_height = bool(value)
+		"h_align":
+			h_align = clampi(int(value), 0, 2)
+		"v_align":
+			v_align = clampi(int(value), 0, 2)
 	_refresh_visuals()
 
 
@@ -291,4 +299,6 @@ func bulk_shareable_properties() -> Array:
 		{"key": "italic", "label": "Italic", "kind": "bool"},
 		{"key": "auto_width", "label": "Auto width", "kind": "bool"},
 		{"key": "auto_height", "label": "Auto height", "kind": "bool"},
+		{"key": "h_align", "label": "Horizontal align (0=L 1=C 2=R)", "kind": "int_range", "min": 0, "max": 2},
+		{"key": "v_align", "label": "Vertical align (0=T 1=C 2=B)", "kind": "int_range", "min": 0, "max": 2},
 	]

@@ -28,6 +28,13 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 56)
 text = "Open"
 
+[node name="RecentBroadcastButton" type="Button" parent="Row"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 56)
+toggle_mode = true
+text = "Broadcast"
+tooltip_text = "Broadcast this project on the LAN so other devices can sync with it."
+
 [node name="RecentRemoveButton" type="Button" parent="Row"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(56, 56)

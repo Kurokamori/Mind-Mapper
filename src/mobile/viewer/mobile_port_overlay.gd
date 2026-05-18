@@ -2,7 +2,7 @@ class_name MobilePortOverlay
 extends Node2D
 
 const PORT_RADIUS_PX: float = 9.0
-const PORT_HIT_RADIUS_PX: float = 22.0
+const PORT_HIT_RADIUS_PX: float = 38.0
 const PORT_FILL: Color = Color(0.13, 0.15, 0.21, 0.95)
 const PORT_OUTLINE: Color = Color(0.55, 0.78, 1.0, 1.0)
 const PORT_HOT_FILL: Color = Color(0.45, 0.78, 1.0, 1.0)

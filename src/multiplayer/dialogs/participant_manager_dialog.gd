@@ -13,6 +13,9 @@ extends AcceptDialog
 @onready var _guest_policy_option: OptionButton = %GuestPolicyOption
 @onready var _discovery_check: CheckBox = %DiscoveryCheckBox
 @onready var _discovery_hint: Label = %DiscoveryHint
+@onready var _room_code_row: HBoxContainer = %RoomCodeRow
+@onready var _room_code_label: Label = %RoomCodeLabel
+@onready var _room_code_copy_button: Button = %RoomCodeCopyButton
 
 
 func _ready() -> void:
@@ -30,7 +33,9 @@ func _ready() -> void:
 	_guest_policy_option.add_item("Edit", 2)
 	_guest_policy_option.item_selected.connect(_on_guest_policy_changed)
 	_discovery_check.toggled.connect(_on_discovery_toggled)
+	_room_code_copy_button.pressed.connect(_on_room_code_copy_pressed)
 	MultiplayerService.participants_changed.connect(_refresh)
+	MultiplayerService.session_state_changed.connect(_on_session_state_changed)
 	AppState.project_opened.connect(_on_project_opened_for_discovery)
 	_refresh()
 
@@ -68,6 +73,29 @@ func _refresh() -> void:
 	_transfer_button.disabled = not is_owner
 	_guest_policy_option.disabled = not is_owner
 	_refresh_discovery_state(is_owner)
+	_refresh_room_code()
+
+
+func _refresh_room_code() -> void:
+	var code: String = MultiplayerService.current_webrtc_room_code()
+	if code == "":
+		_room_code_row.visible = false
+		_room_code_label.text = ""
+		return
+	_room_code_row.visible = true
+	_room_code_label.text = code
+	_room_code_label.add_theme_color_override("font_color", PeerIdentity.color_for_stable_id(code).lightened(0.25))
+
+
+func _on_room_code_copy_pressed() -> void:
+	var code: String = MultiplayerService.current_webrtc_room_code()
+	if code == "":
+		return
+	DisplayServer.clipboard_set(code)
+
+
+func _on_session_state_changed(_state: int) -> void:
+	_refresh_room_code()
 
 
 func _on_add_pressed() -> void:

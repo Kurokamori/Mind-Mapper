@@ -1,6 +1,29 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://src/nodes/table/table_inspector.gd" id="1_tbli"]
+[ext_resource type="PackedScene" uid="uid://c5vvau0077f41" path="res://src/util/automatic_buttons/automatic_button.tscn" id="2_ab"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="3_effect"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/left.png" id="4_left"]
+[ext_resource type="Texture2D" path="res://assets/ui/icons/right.png" id="5_right"]
+
+[sub_resource type="Resource" id="Resource_align_normal"]
+script = ExtResource("3_effect")
+
+[sub_resource type="Resource" id="Resource_align_hover"]
+script = ExtResource("3_effect")
+scale = Vector2(1.08, 1.08)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+
+[sub_resource type="Resource" id="Resource_align_pressed"]
+script = ExtResource("3_effect")
+translate = Vector2(0, 1)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+
+[sub_resource type="Resource" id="Resource_align_disabled"]
+script = ExtResource("3_effect")
+saturation_mul = 0.2
 
 [node name="TableInspector" type="VBoxContainer"]
 script = ExtResource("1_tbli")
@@ -143,34 +166,104 @@ layout_mode = 2
 theme_type_variation = &"InspectorSubsectionLabel"
 text = "COLUMN ALIGNMENT"
 
-[node name="ColumnAlignmentScroll" type="ScrollContainer" parent="StructureSurface/StructureBody"]
+[node name="ColumnAlignmentRow" type="HBoxContainer" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="ColumnAlignmentPrevBtn" parent="StructureSurface/StructureBody/ColumnAlignmentRow" instance=ExtResource("2_ab")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+focus_mode = 0
+tooltip_text = "Scroll to previous column"
+texture = ExtResource("4_left")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_align_normal")
+effect_hover = SubResource("Resource_align_hover")
+effect_pressed = SubResource("Resource_align_pressed")
+effect_disabled = SubResource("Resource_align_disabled")
+
+[node name="ColumnAlignmentScroll" type="ScrollContainer" parent="StructureSurface/StructureBody/ColumnAlignmentRow"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
 
-[node name="AlignmentsContainer" type="HBoxContainer" parent="StructureSurface/StructureBody/ColumnAlignmentScroll"]
+[node name="AlignmentsContainer" type="HBoxContainer" parent="StructureSurface/StructureBody/ColumnAlignmentRow/ColumnAlignmentScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
+
+[node name="ColumnAlignmentNextBtn" parent="StructureSurface/StructureBody/ColumnAlignmentRow" instance=ExtResource("2_ab")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+focus_mode = 0
+tooltip_text = "Scroll to next column"
+texture = ExtResource("5_right")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_align_normal")
+effect_hover = SubResource("Resource_align_hover")
+effect_pressed = SubResource("Resource_align_pressed")
+effect_disabled = SubResource("Resource_align_disabled")
 
 [node name="RowAlignmentsHeader" type="Label" parent="StructureSurface/StructureBody"]
 layout_mode = 2
 theme_type_variation = &"InspectorSubsectionLabel"
 text = "ROW ALIGNMENT"
 
-[node name="RowAlignmentScroll" type="ScrollContainer" parent="StructureSurface/StructureBody"]
+[node name="RowAlignmentRow" type="HBoxContainer" parent="StructureSurface/StructureBody"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="RowAlignmentPrevBtn" parent="StructureSurface/StructureBody/RowAlignmentRow" instance=ExtResource("2_ab")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+focus_mode = 0
+tooltip_text = "Scroll to previous row"
+texture = ExtResource("4_left")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_align_normal")
+effect_hover = SubResource("Resource_align_hover")
+effect_pressed = SubResource("Resource_align_pressed")
+effect_disabled = SubResource("Resource_align_disabled")
+
+[node name="RowAlignmentScroll" type="ScrollContainer" parent="StructureSurface/StructureBody/RowAlignmentRow"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
 
-[node name="RowAlignmentsContainer" type="HBoxContainer" parent="StructureSurface/StructureBody/RowAlignmentScroll"]
+[node name="RowAlignmentsContainer" type="HBoxContainer" parent="StructureSurface/StructureBody/RowAlignmentRow/RowAlignmentScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
+
+[node name="RowAlignmentNextBtn" parent="StructureSurface/StructureBody/RowAlignmentRow" instance=ExtResource("2_ab")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+focus_mode = 0
+tooltip_text = "Scroll to next row"
+texture = ExtResource("5_right")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_align_normal")
+effect_hover = SubResource("Resource_align_hover")
+effect_pressed = SubResource("Resource_align_pressed")
+effect_disabled = SubResource("Resource_align_disabled")
 
 [node name="CellSurface" type="PanelContainer" parent="."]
 layout_mode = 2

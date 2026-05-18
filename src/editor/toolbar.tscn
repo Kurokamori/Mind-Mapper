@@ -367,6 +367,59 @@ step = 0.5
 value = 4.0
 suffix = "px"
 
+[node name="DrawSeparator" type="VSeparator" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182940]
+layout_mode = 2
+
+[node name="LineToolButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182941]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Line tool — click-drag or two-click to place a line"
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "╱ Line"
+
+[node name="ArrowToolButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182942]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Arrow tool — click-drag or two-click to place an arrow"
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "→ Arrow"
+
+[node name="ConnectorColorMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182943]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="ConnectorColorButton" type="ColorPickerButton" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup/ConnectorColorMargin" unique_id=771182944]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+tooltip_text = "Line/arrow color"
+focus_mode = 0
+theme_override_styles/normal = SubResource("StyleBoxEmpty_jjlv6")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_yvkbi")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_xsps2")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_7l6fc")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_vqk2q")
+color = Color(0.12, 0.14, 0.20, 1)
+edit_alpha = false
+
+[node name="ConnectorWidthSpin" type="SpinBox" parent="Layout/ExpansionPanel/ExpansionStack/DrawMargin/DrawGroup" unique_id=771182945]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+tooltip_text = "Line/arrow width"
+min_value = 0.5
+max_value = 32.0
+step = 0.5
+value = 2.5
+suffix = "px"
+
 [node name="ViewMargin" type="MarginContainer" parent="Layout/ExpansionPanel/ExpansionStack" unique_id=1360701712]
 unique_name_in_owner = true
 visible = false
@@ -422,6 +475,15 @@ focus_mode = 0
 theme_type_variation = &"Pill"
 toggle_mode = true
 text = "Chat"
+
+[node name="LanBroadcastsButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=2017203150]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "Browse LAN broadcasts to pull, push, or sync with other devices."
+focus_mode = 0
+theme_type_variation = &"Pill"
+toggle_mode = true
+text = "LAN"
 
 [node name="TodosButton" type="Button" parent="Layout/ExpansionPanel/ExpansionStack/ViewMargin/ViewGroup" unique_id=2017203100]
 unique_name_in_owner = true

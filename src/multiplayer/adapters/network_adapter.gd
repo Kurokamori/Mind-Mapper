@@ -21,6 +21,7 @@ const BROADCAST_NETWORK_ID: int = 0
 const ADAPTER_KIND_STEAM: String = "steam"
 const ADAPTER_KIND_LAN: String = "lan"
 const ADAPTER_KIND_ENET: String = "enet"
+const ADAPTER_KIND_WEBRTC: String = "webrtc"
 
 var local_peer_identity: PeerIdentity = null
 var connection_state: int = STATE_DISCONNECTED

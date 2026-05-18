@@ -87,9 +87,4 @@ func _refresh_previews() -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(_item)

@@ -2,6 +2,9 @@ class_name WysiwygCodec
 extends RefCounted
 
 
+const IMAGE_PLACEHOLDER: String = "￼"
+
+
 static func empty_attrs() -> Dictionary:
 	return {
 		"bold": false,
@@ -12,6 +15,9 @@ static func empty_attrs() -> Dictionary:
 		"color": null,
 		"size": 0,
 		"link": "",
+		"image": "",
+		"img_w": 0,
+		"img_h": 0,
 	}
 
 
@@ -25,7 +31,28 @@ static func attrs_equal(a: Dictionary, b: Dictionary) -> bool:
 		and a["color"] == b["color"]
 		and a["size"] == b["size"]
 		and a["link"] == b["link"]
+		and a.get("image", "") == b.get("image", "")
+		and a.get("img_w", 0) == b.get("img_w", 0)
+		and a.get("img_h", 0) == b.get("img_h", 0)
 	)
+
+
+static func make_image_run(path: String, width: int, height: int) -> Dictionary:
+	var attrs: Dictionary = empty_attrs()
+	attrs["image"] = path
+	attrs["img_w"] = max(0, width)
+	attrs["img_h"] = max(0, height)
+	return make_run(IMAGE_PLACEHOLDER, attrs)
+
+
+static func _format_image_size_spec(width: int, height: int) -> String:
+	if width <= 0 and height <= 0:
+		return ""
+	if height <= 0:
+		return str(width)
+	if width <= 0:
+		return "0x%d" % height
+	return "%dx%d" % [width, height]
 
 
 static func make_run(text: String, attrs: Dictionary) -> Dictionary:
@@ -55,6 +82,18 @@ static func serialize(runs: Array) -> String:
 	for r: Dictionary in runs:
 		var text: String = String(r["text"])
 		if text == "":
+			continue
+		var image_path: String = String(r.get("image", ""))
+		if image_path != "":
+			var img_w: int = int(r.get("img_w", 0))
+			var img_h: int = int(r.get("img_h", 0))
+			var spec: String = _format_image_size_spec(img_w, img_h)
+			var image_glyph_count: int = text.length()
+			for _i in range(image_glyph_count):
+				if spec != "":
+					out += "[img=%s]%s[/img]" % [spec, image_path]
+				else:
+					out += "[img]%s[/img]" % image_path
 			continue
 		var opening: String = ""
 		var closing: String = ""
@@ -165,6 +204,28 @@ static func _tokenize_bbcode(text: String) -> Array:
 			var close_idx: int = text.find("]", i + 1)
 			if close_idx > i:
 				var tag: String = text.substr(i + 1, close_idx - i - 1)
+				var tag_name: String = tag
+				var eq_idx: int = tag_name.find("=")
+				if eq_idx >= 0:
+					tag_name = tag_name.substr(0, eq_idx)
+				if tag_name == "img":
+					var content_end: int = text.find("[/img]", close_idx + 1)
+					if content_end > close_idx:
+						if buf != "":
+							runs.append(make_run(buf, stack[stack.size() - 1]))
+							buf = ""
+						var path: String = text.substr(close_idx + 1, content_end - close_idx - 1).strip_edges()
+						var spec: String = ""
+						if eq_idx >= 0:
+							spec = tag.substr(eq_idx + 1)
+						var dims: Vector2i = _parse_image_size_spec(spec)
+						var img_attrs: Dictionary = (stack[stack.size() - 1] as Dictionary).duplicate()
+						img_attrs["image"] = path
+						img_attrs["img_w"] = dims.x
+						img_attrs["img_h"] = dims.y
+						runs.append(make_run(IMAGE_PLACEHOLDER, img_attrs))
+						i = content_end + 6
+						continue
 				if _is_supported_tag(tag):
 					if buf != "":
 						runs.append(make_run(buf, stack[stack.size() - 1]))
@@ -177,6 +238,22 @@ static func _tokenize_bbcode(text: String) -> Array:
 	if buf != "":
 		runs.append(make_run(buf, stack[stack.size() - 1]))
 	return merge_runs(runs)
+
+
+static func _parse_image_size_spec(spec: String) -> Vector2i:
+	var trimmed: String = spec.strip_edges()
+	if trimmed == "":
+		return Vector2i.ZERO
+	var x_index: int = trimmed.find("x")
+	if x_index < 0:
+		if trimmed.is_valid_int():
+			return Vector2i(int(trimmed), 0)
+		return Vector2i.ZERO
+	var width_part: String = trimmed.substr(0, x_index)
+	var height_part: String = trimmed.substr(x_index + 1)
+	var width_value: int = int(width_part) if width_part.is_valid_int() else 0
+	var height_value: int = int(height_part) if height_part.is_valid_int() else 0
+	return Vector2i(width_value, height_value)
 
 
 static func _is_supported_tag(tag_content: String) -> bool:

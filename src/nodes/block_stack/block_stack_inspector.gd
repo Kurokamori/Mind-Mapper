@@ -6,6 +6,7 @@ extends VBoxContainer
 @onready var _accent_picker: ColorPickerButton = %AccentPicker
 @onready var _header_fg_picker: ColorPickerButton = %HeaderFgPicker
 @onready var _count_label: Label = %CountLabel
+@onready var _multiline_check: CheckBox = %MultilineCheck
 @onready var _plain_text_edit_button: Button = %PlainTextEditButton
 
 var _item: BlockStackNode
@@ -29,8 +30,15 @@ func _ready() -> void:
 	_accent_picker.color = _item.resolved_accent_color()
 	_header_fg_picker.color = _item.resolved_header_fg_color()
 	_count_label.text = "%d block%s" % [_item.blocks.size(), "" if _item.blocks.size() == 1 else "s"]
+	_multiline_check.button_pressed = _item.multiline_text
 	_suppress_signals = false
 	_binders["title"] = PropertyBinder.new(_editor, _item, "title", _item.title)
+	_binders["multiline_text"] = PropertyBinder.new(_editor, _item, "multiline_text", _item.multiline_text)
+	_multiline_check.toggled.connect(func(p: bool) -> void:
+		if _suppress_signals: return
+		_binders["multiline_text"].live(p)
+		_binders["multiline_text"].commit(p)
+	)
 	_binders["bg_color"] = PropertyBinder.new(_editor, _item, "bg_color", ColorUtil.to_array(_item.resolved_bg_color()))
 	_binders["accent_color"] = PropertyBinder.new(_editor, _item, "accent_color", ColorUtil.to_array(_item.resolved_accent_color()))
 	_binders["header_fg_color"] = PropertyBinder.new(_editor, _item, "header_fg_color", ColorUtil.to_array(_item.resolved_header_fg_color()))
@@ -82,12 +90,7 @@ func _on_theme_applied() -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(_item)
 
 
 func _on_plain_text_edit_pressed() -> void:

@@ -3,6 +3,44 @@
 [ext_resource type="Script" uid="uid://v61hw6ldoqxc" path="res://src/mobile/picker/mobile_project_picker.gd" id="1_mpp_script"]
 [ext_resource type="Script" uid="uid://dv7xoyecsoff0" path="res://src/mobile/io/folder_picker.gd" id="2_fp_script"]
 [ext_resource type="Script" uid="uid://dnc7qypywf1cw" path="res://src/mobile/sync/lan_sync_client.gd" id="3_lc_script"]
+[ext_resource type="PackedScene" path="res://src/util/automatic_buttons/automatic_menu_button.tscn" id="4_mpp_ambtn"]
+[ext_resource type="Texture2D" uid="uid://dy00uw1lpectl" path="res://assets/ui/icons/settings.png" id="5_mpp_settings_icon"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="6_mpp_effect"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_mq43g"]
+
+[sub_resource type="Resource" id="Resource_mpp_normal"]
+script = ExtResource("6_mpp_effect")
+
+[sub_resource type="Resource" id="Resource_mpp_hover"]
+script = ExtResource("6_mpp_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_mpp_pressed"]
+script = ExtResource("6_mpp_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_mpp_disabled"]
+script = ExtResource("6_mpp_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_mpp_focused"]
+script = ExtResource("6_mpp_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
 
 [node name="MobileProjectPicker" type="Control" unique_id=65472926]
 layout_mode = 3
@@ -21,135 +59,159 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Layout" type="VBoxContainer" parent="." unique_id=1401464153]
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=869963701]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 16.0
-offset_top = -1.0
-offset_right = -16.0
-offset_bottom = -1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 45
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="Layout" type="VBoxContainer" parent="MarginContainer" unique_id=1401464153]
+layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Title" type="Label" parent="Layout" unique_id=1950670745]
+[node name="Title" type="Label" parent="MarginContainer/Layout" unique_id=1950670745]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Loom Mobile"
 
-[node name="Subtitle" type="Label" parent="Layout" unique_id=37686888]
+[node name="Subtitle" type="Label" parent="MarginContainer/Layout" unique_id=37686888]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.84, 0.95, 1)
 theme_override_font_sizes/font_size = 14
 text = "Open a project from this device, import a folder, or pull from a desktop on your LAN."
 autowrap_mode = 3
 
-[node name="ActionsRow" type="HBoxContainer" parent="Layout" unique_id=869981663]
+[node name="ActionsRow" type="HBoxContainer" parent="MarginContainer/Layout" unique_id=869981663]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="NewProjectButton" type="Button" parent="Layout/ActionsRow" unique_id=1481419939]
+[node name="NewProjectButton" type="Button" parent="MarginContainer/Layout/ActionsRow" unique_id=1481419939]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "New project"
 
-[node name="OpenFolderButton" type="Button" parent="Layout/ActionsRow" unique_id=23052081]
+[node name="OpenFolderButton" type="Button" parent="MarginContainer/Layout/ActionsRow" unique_id=23052081]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Open folder"
 
-[node name="ImportFolderButton" type="Button" parent="Layout/ActionsRow" unique_id=762325539]
+[node name="ImportFolderButton" type="Button" parent="MarginContainer/Layout/ActionsRow" unique_id=762325539]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Import folder"
 
-[node name="RecentHeader" type="Label" parent="Layout" unique_id=161076728]
+[node name="SettingsButton" parent="MarginContainer/Layout/ActionsRow" unique_id=762325540 instance=ExtResource("4_mpp_ambtn")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_horizontal = 4
+tooltip_text = "Settings"
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_disabled_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_normal_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_disabled_color = Color(0, 0, 0, 0)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_mq43g")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_mq43g")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_mq43g")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_mq43g")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_mq43g")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_mq43g")
+texture = ExtResource("5_mpp_settings_icon")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_mpp_normal")
+effect_hover = SubResource("Resource_mpp_hover")
+effect_pressed = SubResource("Resource_mpp_pressed")
+effect_disabled = SubResource("Resource_mpp_disabled")
+effect_focused = SubResource("Resource_mpp_focused")
+
+[node name="RecentHeader" type="Label" parent="MarginContainer/Layout" unique_id=161076728]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Recent"
 
-[node name="RecentScroll" type="ScrollContainer" parent="Layout" unique_id=33117736]
+[node name="RecentScroll" type="ScrollContainer" parent="MarginContainer/Layout" unique_id=33117736]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 220)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="RecentList" type="VBoxContainer" parent="Layout/RecentScroll" unique_id=1881959481]
+[node name="RecentList" type="VBoxContainer" parent="MarginContainer/Layout/RecentScroll" unique_id=1881959481]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="RecentEmptyLabel" type="Label" parent="Layout/RecentScroll/RecentList" unique_id=1564286472]
+[node name="RecentEmptyLabel" type="Label" parent="MarginContainer/Layout/RecentScroll/RecentList" unique_id=1564286472]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
 text = "No recent projects yet."
 
-[node name="LanRow" type="HBoxContainer" parent="Layout" unique_id=372217303]
+[node name="LanRow" type="HFlowContainer" parent="MarginContainer/Layout" unique_id=372217303]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
 
-[node name="LanBrowserButton" type="Button" parent="Layout/LanRow" unique_id=376841281]
+[node name="JoinMultiplayerButton" type="Button" parent="MarginContainer/Layout/LanRow" unique_id=519283746]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 56)
+custom_minimum_size = Vector2(200, 56)
 layout_mode = 2
-size_flags_horizontal = 3
+text = "Join multiplayer"
+
+[node name="LanBrowserButton" type="Button" parent="MarginContainer/Layout/LanRow" unique_id=376841281]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 56)
+layout_mode = 2
 toggle_mode = true
 text = "Find LAN hosts"
 
-[node name="LanStatusLabel" type="Label" parent="Layout/LanRow" unique_id=1257665708]
+[node name="LanStatusLabel" type="Label" parent="MarginContainer/Layout/LanRow" unique_id=1257665708]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
-size_flags_horizontal = 3
+vertical_alignment = 1
 text = "LAN sync idle"
 
-[node name="LanHostsScroll" type="ScrollContainer" parent="Layout" unique_id=1350660595]
+[node name="LanHostsScroll" type="ScrollContainer" parent="MarginContainer/Layout" unique_id=1350660595]
 custom_minimum_size = Vector2(0, 180)
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="LanHostsRoot" type="VBoxContainer" parent="Layout/LanHostsScroll" unique_id=223446368]
+[node name="LanHostsRoot" type="VBoxContainer" parent="MarginContainer/Layout/LanHostsScroll" unique_id=223446368]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="LanHostsEmptyLabel" type="Label" parent="Layout/LanHostsScroll/LanHostsRoot" unique_id=2010537407]
+[node name="LanHostsEmptyLabel" type="Label" parent="MarginContainer/Layout/LanHostsScroll/LanHostsRoot" unique_id=2010537407]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
 text = "Looking for desktops running Loom on the same Wi-Fi. If nothing shows, check Windows Firewall on the desktop and confirm both devices are on the same subnet."
 autowrap_mode = 3
 
-[node name="ManualRow" type="HBoxContainer" parent="Layout" unique_id=1533722109]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="ManualIpEdit" type="LineEdit" parent="Layout/ManualRow" unique_id=1703784066]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-size_flags_horizontal = 3
-placeholder_text = "Manual desktop IP (e.g. 192.168.1.42)"
-
-[node name="ManualPullButton" type="Button" parent="Layout/ManualRow" unique_id=601946894]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 48)
-layout_mode = 2
-text = "Pull"
-
-[node name="LanLogLabel" type="RichTextLabel" parent="Layout" unique_id=792787698]
+[node name="LanLogLabel" type="RichTextLabel" parent="MarginContainer/Layout" unique_id=792787698]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(0, 100)

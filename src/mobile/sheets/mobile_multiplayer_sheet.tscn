@@ -1,0 +1,481 @@
+[gd_scene format=3 uid="uid://b1mobmpsheet"]
+
+[ext_resource type="Script" path="res://src/mobile/sheets/mobile_multiplayer_sheet.gd" id="1_mps_script"]
+
+[node name="MobileMultiplayerSheet" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_mps_script")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="RootStack" type="VBoxContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="StatusBanner" type="PanelContainer" parent="Scroll/RootStack"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_type_variation = &"MobileChromePanel"
+
+[node name="StatusBannerBox" type="HBoxContainer" parent="Scroll/RootStack/StatusBanner"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StatusDot" type="Label" parent="Scroll/RootStack/StatusBanner/StatusBannerBox"]
+layout_mode = 2
+text = "●"
+
+[node name="StatusLabel" type="Label" parent="Scroll/RootStack/StatusBanner/StatusBannerBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Not connected"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="PickerSection" type="VBoxContainer" parent="Scroll/RootStack"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="ModeCaption" type="Label" parent="Scroll/RootStack/PickerSection"]
+layout_mode = 2
+text = "Mode"
+theme_type_variation = &"MutedLabel"
+
+[node name="ModeRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ModeHostButton" type="Button" parent="Scroll/RootStack/PickerSection/ModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
+text = "Host"
+
+[node name="ModeJoinButton" type="Button" parent="Scroll/RootStack/PickerSection/ModeRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
+text = "Join"
+
+[node name="AdapterCaption" type="Label" parent="Scroll/RootStack/PickerSection"]
+layout_mode = 2
+text = "Transport"
+theme_type_variation = &"MutedLabel"
+
+[node name="AdapterRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AdapterLanButton" type="Button" parent="Scroll/RootStack/PickerSection/AdapterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
+text = "LAN"
+
+[node name="AdapterEnetButton" type="Button" parent="Scroll/RootStack/PickerSection/AdapterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
+text = "ENet"
+
+[node name="AdapterWebRTCButton" type="Button" parent="Scroll/RootStack/PickerSection/AdapterRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobileGroupButton"
+toggle_mode = true
+text = "WebRTC"
+
+[node name="AdapterStatusLabel" type="Label" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+text = ""
+
+[node name="LanHostPanel" type="VBoxContainer" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LanHostHeading" type="Label" parent="Scroll/RootStack/PickerSection/LanHostPanel"]
+layout_mode = 2
+text = "LAN host"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="LanHostPortRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/LanHostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LanHostPortLabel" type="Label" parent="Scroll/RootStack/PickerSection/LanHostPanel/LanHostPortRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Port"
+
+[node name="LanHostPort" type="SpinBox" parent="Scroll/RootStack/PickerSection/LanHostPanel/LanHostPortRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LanHostMaxMembersRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/LanHostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LanHostMaxMembersLabel" type="Label" parent="Scroll/RootStack/PickerSection/LanHostPanel/LanHostMaxMembersRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Max members"
+
+[node name="LanHostMaxMembers" type="SpinBox" parent="Scroll/RootStack/PickerSection/LanHostPanel/LanHostMaxMembersRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LanHostHint" type="Label" parent="Scroll/RootStack/PickerSection/LanHostPanel"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Other devices on this Wi-Fi will see this host in their LAN list."
+theme_type_variation = &"MutedLabel"
+
+[node name="LanJoinPanel" type="VBoxContainer" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LanJoinHeading" type="Label" parent="Scroll/RootStack/PickerSection/LanJoinPanel"]
+layout_mode = 2
+text = "LAN lobbies"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="LanLobbyList" type="ItemList" parent="Scroll/RootStack/PickerSection/LanJoinPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LanRefreshButton" type="Button" parent="Scroll/RootStack/PickerSection/LanJoinPanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobileButton"
+text = "Refresh lobbies"
+
+[node name="EnetHostPanel" type="VBoxContainer" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EnetHostHeading" type="Label" parent="Scroll/RootStack/PickerSection/EnetHostPanel"]
+layout_mode = 2
+text = "ENet host"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="EnetHostPortRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/EnetHostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnetHostPortLabel" type="Label" parent="Scroll/RootStack/PickerSection/EnetHostPanel/EnetHostPortRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Port"
+
+[node name="EnetHostPort" type="SpinBox" parent="Scroll/RootStack/PickerSection/EnetHostPanel/EnetHostPortRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EnetHostBindRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/EnetHostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnetHostBindLabel" type="Label" parent="Scroll/RootStack/PickerSection/EnetHostPanel/EnetHostBindRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Bind address"
+
+[node name="EnetHostBind" type="LineEdit" parent="Scroll/RootStack/PickerSection/EnetHostPanel/EnetHostBindRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "* (all interfaces)"
+
+[node name="EnetHostMaxMembersRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/EnetHostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnetHostMaxMembersLabel" type="Label" parent="Scroll/RootStack/PickerSection/EnetHostPanel/EnetHostMaxMembersRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Max members"
+
+[node name="EnetHostMaxMembers" type="SpinBox" parent="Scroll/RootStack/PickerSection/EnetHostPanel/EnetHostMaxMembersRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EnetJoinPanel" type="VBoxContainer" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="EnetJoinHeading" type="Label" parent="Scroll/RootStack/PickerSection/EnetJoinPanel"]
+layout_mode = 2
+text = "ENet direct connect"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="EnetJoinAddressRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/EnetJoinPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnetJoinAddressLabel" type="Label" parent="Scroll/RootStack/PickerSection/EnetJoinPanel/EnetJoinAddressRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Host address"
+
+[node name="EnetJoinAddress" type="LineEdit" parent="Scroll/RootStack/PickerSection/EnetJoinPanel/EnetJoinAddressRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "192.168.x.x"
+
+[node name="EnetJoinPortRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/EnetJoinPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnetJoinPortLabel" type="Label" parent="Scroll/RootStack/PickerSection/EnetJoinPanel/EnetJoinPortRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Port"
+
+[node name="EnetJoinPort" type="SpinBox" parent="Scroll/RootStack/PickerSection/EnetJoinPanel/EnetJoinPortRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="WebRTCHostPanel" type="VBoxContainer" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WebRTCHostHeading" type="Label" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel"]
+layout_mode = 2
+text = "WebRTC host"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="WebRTCHostSignalingRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WebRTCHostSignalingLabel" type="Label" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel/WebRTCHostSignalingRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Signaling URL"
+
+[node name="WebRTCHostSignaling" type="LineEdit" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel/WebRTCHostSignalingRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "wss://signaling.example.com"
+
+[node name="WebRTCHostRoomRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WebRTCHostRoomLabel" type="Label" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel/WebRTCHostRoomRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Room code"
+
+[node name="WebRTCHostRoom" type="LineEdit" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel/WebRTCHostRoomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "ABC123"
+
+[node name="WebRTCHostGenerate" type="Button" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel/WebRTCHostRoomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+theme_type_variation = &"MobileButton"
+text = "Generate"
+
+[node name="WebRTCHostHint" type="Label" parent="Scroll/RootStack/PickerSection/WebRTCHostPanel"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Share the room code with collaborators — they join through the same signaling server."
+theme_type_variation = &"MutedLabel"
+
+[node name="WebRTCJoinPanel" type="VBoxContainer" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="WebRTCJoinHeading" type="Label" parent="Scroll/RootStack/PickerSection/WebRTCJoinPanel"]
+layout_mode = 2
+text = "WebRTC join"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="WebRTCJoinSignalingRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/WebRTCJoinPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WebRTCJoinSignalingLabel" type="Label" parent="Scroll/RootStack/PickerSection/WebRTCJoinPanel/WebRTCJoinSignalingRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Signaling URL"
+
+[node name="WebRTCJoinSignaling" type="LineEdit" parent="Scroll/RootStack/PickerSection/WebRTCJoinPanel/WebRTCJoinSignalingRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "wss://signaling.example.com"
+
+[node name="WebRTCJoinRoomRow" type="HBoxContainer" parent="Scroll/RootStack/PickerSection/WebRTCJoinPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WebRTCJoinRoomLabel" type="Label" parent="Scroll/RootStack/PickerSection/WebRTCJoinPanel/WebRTCJoinRoomRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Room code"
+
+[node name="WebRTCJoinRoom" type="LineEdit" parent="Scroll/RootStack/PickerSection/WebRTCJoinPanel/WebRTCJoinRoomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "ABC123"
+
+[node name="IdentityDivider" type="HSeparator" parent="Scroll/RootStack/PickerSection"]
+layout_mode = 2
+
+[node name="DisplayNameCaption" type="Label" parent="Scroll/RootStack/PickerSection"]
+layout_mode = 2
+text = "Display name"
+theme_type_variation = &"MutedLabel"
+
+[node name="DisplayNameField" type="LineEdit" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Shown to other participants"
+
+[node name="IdentityLabel" type="Label" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Identity: …"
+theme_type_variation = &"MutedLabel"
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="ErrorLabel" type="Label" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+autowrap_mode = 3
+theme_override_colors/font_color = Color(0.95, 0.45, 0.4, 1)
+text = ""
+
+[node name="PrimaryActionButton" type="Button" parent="Scroll/RootStack/PickerSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobilePrimaryButton"
+text = "Start hosting"
+
+[node name="SessionSection" type="VBoxContainer" parent="Scroll/RootStack"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="SessionTitleLabel" type="Label" parent="Scroll/RootStack/SessionSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Session"
+theme_type_variation = &"ToolbarTitleLabel"
+
+[node name="SessionDetailLabel" type="Label" parent="Scroll/RootStack/SessionSection"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+theme_type_variation = &"MutedLabel"
+
+[node name="RoleLabel" type="Label" parent="Scroll/RootStack/SessionSection"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Role: —"
+
+[node name="ParticipantsCaption" type="Label" parent="Scroll/RootStack/SessionSection"]
+layout_mode = 2
+text = "Participants"
+theme_type_variation = &"MutedLabel"
+
+[node name="ParticipantsList" type="ItemList" parent="Scroll/RootStack/SessionSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LeaveButton" type="Button" parent="Scroll/RootStack/SessionSection"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"MobilePrimaryButton"
+text = "Leave session"

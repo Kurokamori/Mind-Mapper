@@ -178,6 +178,13 @@ theme_type_variation = &"MobileGroupButton"
 toggle_mode = true
 text = "File"
 
+[node name="MultiplayerButton" type="Button" parent="Layout/MarginContainer/ActionsRow" unique_id=1568934570]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(112, 56)
+layout_mode = 2
+theme_type_variation = &"MobileButton"
+text = "Multiplayer"
+
 [node name="EditButton" type="Button" parent="Layout/MarginContainer/ActionsRow" unique_id=599545486]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 56)

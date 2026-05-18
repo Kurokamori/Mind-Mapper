@@ -111,6 +111,10 @@ func minimum_item_size() -> Vector2:
 	return Vector2(MIN_ITEM_WIDTH, MIN_ITEM_HEIGHT)
 
 
+func constrain_user_size(intended: Vector2, _start: Vector2) -> Vector2:
+	return intended
+
+
 func is_selected() -> bool:
 	return _selected
 
@@ -237,6 +241,7 @@ func _on_resize_grip_motion(local_at_item: Vector2) -> void:
 		return
 	var min_s: Vector2 = minimum_item_size()
 	var intended_size: Vector2 = Vector2(max(min_s.x, local_at_item.x), max(min_s.y, local_at_item.y))
+	intended_size = constrain_user_size(intended_size, _resize_start_size)
 	var aligned_size: Vector2 = AlignmentGuideService.maybe_align_resize(self, intended_size)
 	size = aligned_size
 	emit_signal("resizing", self, size)
@@ -388,6 +393,7 @@ func _gui_input(event: InputEvent) -> void:
 			var local: Vector2 = get_local_mouse_position()
 			var min_s: Vector2 = minimum_item_size()
 			var intended_size: Vector2 = Vector2(max(min_s.x, local.x), max(min_s.y, local.y))
+			intended_size = constrain_user_size(intended_size, _resize_start_size)
 			var aligned_size: Vector2 = AlignmentGuideService.maybe_align_resize(self, intended_size)
 			size = aligned_size
 			emit_signal("resizing", self, size)

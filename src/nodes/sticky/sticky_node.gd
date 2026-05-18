@@ -15,6 +15,8 @@ const COLOR_PALETTE: Array[Color] = [
 @export var text: String = "Sticky note"
 @export var font_size: int = DEFAULT_FONT_SIZE
 @export var color_index: int = 0
+@export var h_align: int = 0
+@export var v_align: int = 0
 
 @onready var _label: Label = %Label
 @onready var _edit: TextEdit = %TextEdit
@@ -61,6 +63,8 @@ func _refresh_visuals() -> void:
 		_label.text = text
 		_label.add_theme_font_size_override("font_size", font_size)
 		_label.add_theme_color_override("font_color", Color(0.10, 0.09, 0.05))
+		_label.horizontal_alignment = clampi(h_align, 0, 2) as HorizontalAlignment
+		_label.vertical_alignment = clampi(v_align, 0, 2) as VerticalAlignment
 	if _edit != null:
 		_edit.add_theme_font_size_override("font_size", font_size)
 		_edit.add_theme_color_override("font_color", Color(0.10, 0.09, 0.05))
@@ -112,12 +116,7 @@ func _commit_text() -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(self)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -131,6 +130,8 @@ func serialize_payload() -> Dictionary:
 		"text": text,
 		"font_size": font_size,
 		"color_index": color_index,
+		"h_align": h_align,
+		"v_align": v_align,
 	}
 
 
@@ -138,6 +139,8 @@ func deserialize_payload(d: Dictionary) -> void:
 	text = String(d.get("text", text))
 	font_size = int(d.get("font_size", font_size))
 	color_index = int(d.get("color_index", color_index))
+	h_align = clampi(int(d.get("h_align", h_align)), 0, 2)
+	v_align = clampi(int(d.get("v_align", v_align)), 0, 2)
 	if _label != null:
 		_refresh_visuals()
 
@@ -153,6 +156,12 @@ func apply_typed_property(key: String, value: Variant) -> void:
 		"color_index":
 			color_index = int(value)
 			_refresh_visuals()
+		"h_align":
+			h_align = clampi(int(value), 0, 2)
+			_refresh_visuals()
+		"v_align":
+			v_align = clampi(int(value), 0, 2)
+			_refresh_visuals()
 
 
 func build_inspector() -> Control:
@@ -165,4 +174,6 @@ func build_inspector() -> Control:
 func bulk_shareable_properties() -> Array:
 	return [
 		{"key": "font_size", "label": "Font size", "kind": "int_range", "min": 6, "max": 96},
+		{"key": "h_align", "label": "Horizontal align (0=L 1=C 2=R)", "kind": "int_range", "min": 0, "max": 2},
+		{"key": "v_align", "label": "Vertical align (0=T 1=C 2=B)", "kind": "int_range", "min": 0, "max": 2},
 	]

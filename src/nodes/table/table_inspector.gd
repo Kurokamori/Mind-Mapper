@@ -11,6 +11,12 @@ const ALIGNMENT_PICKER_SCENE: PackedScene = preload("res://src/nodes/table/cell_
 @onready var _header_row_check: CheckBox = %HeaderRowCheck
 @onready var _alignments_container: HBoxContainer = %AlignmentsContainer
 @onready var _row_alignments_container: HBoxContainer = %RowAlignmentsContainer
+@onready var _column_alignment_scroll: ScrollContainer = %ColumnAlignmentScroll
+@onready var _column_alignment_prev_btn: BaseButton = %ColumnAlignmentPrevBtn
+@onready var _column_alignment_next_btn: BaseButton = %ColumnAlignmentNextBtn
+@onready var _row_alignment_scroll: ScrollContainer = %RowAlignmentScroll
+@onready var _row_alignment_prev_btn: BaseButton = %RowAlignmentPrevBtn
+@onready var _row_alignment_next_btn: BaseButton = %RowAlignmentNextBtn
 @onready var _axis_action_label: Label = %AxisActionLabel
 @onready var _axis_insert_before_btn: Button = %AxisInsertBeforeBtn
 @onready var _axis_insert_after_btn: Button = %AxisInsertAfterBtn
@@ -94,6 +100,13 @@ func _ready() -> void:
 	_cell_clear.pressed.connect(_on_cell_clear_pressed)
 	_item.active_cell_changed.connect(_on_active_cell_changed)
 	_item.axis_selection_changed.connect(_on_axis_selection_changed)
+	_column_alignment_prev_btn.pressed.connect(_on_column_alignment_prev_pressed)
+	_column_alignment_next_btn.pressed.connect(_on_column_alignment_next_pressed)
+	_row_alignment_prev_btn.pressed.connect(_on_row_alignment_prev_pressed)
+	_row_alignment_next_btn.pressed.connect(_on_row_alignment_next_pressed)
+	_column_alignment_scroll.get_h_scroll_bar().changed.connect(_refresh_alignment_nav_state)
+	_row_alignment_scroll.get_h_scroll_bar().changed.connect(_refresh_alignment_nav_state)
+	_refresh_alignment_nav_state.call_deferred()
 
 
 func _install_cell_alignment_picker() -> void:
@@ -173,6 +186,75 @@ func _on_header_row_toggled(value: bool) -> void:
 	_item.set_has_header_row(value)
 
 
+const ALIGNMENT_SCROLL_FALLBACK_PX: float = 168.0
+
+
+func _on_column_alignment_prev_pressed() -> void:
+	_scroll_alignment_container(_column_alignment_scroll, _alignments_container, -1)
+
+
+func _on_column_alignment_next_pressed() -> void:
+	_scroll_alignment_container(_column_alignment_scroll, _alignments_container, 1)
+
+
+func _on_row_alignment_prev_pressed() -> void:
+	_scroll_alignment_container(_row_alignment_scroll, _row_alignments_container, -1)
+
+
+func _on_row_alignment_next_pressed() -> void:
+	_scroll_alignment_container(_row_alignment_scroll, _row_alignments_container, 1)
+
+
+func _scroll_alignment_container(scroll: ScrollContainer, container: HBoxContainer, direction: int) -> void:
+	if scroll == null:
+		return
+	var bar: HScrollBar = scroll.get_h_scroll_bar()
+	if bar == null:
+		return
+	var step: float = _alignment_card_step(container) * float(direction)
+	if absf(step) < 1.0:
+		step = ALIGNMENT_SCROLL_FALLBACK_PX * float(direction)
+	var max_offset: float = max(bar.min_value, bar.max_value - bar.page)
+	var target: float = clamp(bar.value + step, bar.min_value, max_offset)
+	scroll.scroll_horizontal = int(round(target))
+	_refresh_alignment_nav_state()
+
+
+func _alignment_card_step(container: HBoxContainer) -> float:
+	if container == null or container.get_child_count() == 0:
+		return 0.0
+	var first: Control = container.get_child(0) as Control
+	if first == null:
+		return 0.0
+	var separation: float = float(container.get_theme_constant(&"separation"))
+	var width: float = first.size.x
+	if width <= 0.0:
+		width = first.get_combined_minimum_size().x
+	return width + separation
+
+
+func _refresh_alignment_nav_state() -> void:
+	_apply_nav_state(_column_alignment_scroll, _column_alignment_prev_btn, _column_alignment_next_btn)
+	_apply_nav_state(_row_alignment_scroll, _row_alignment_prev_btn, _row_alignment_next_btn)
+
+
+func _apply_nav_state(scroll: ScrollContainer, prev_btn: BaseButton, next_btn: BaseButton) -> void:
+	if scroll == null or prev_btn == null or next_btn == null:
+		return
+	var bar: HScrollBar = scroll.get_h_scroll_bar()
+	if bar == null:
+		return
+	var overflows: bool = bar.max_value > bar.page + 0.5
+	prev_btn.visible = overflows
+	next_btn.visible = overflows
+	if not overflows:
+		return
+	var at_start: bool = bar.value <= bar.min_value + 0.5
+	var at_end: bool = bar.value >= bar.max_value - bar.page - 0.5
+	prev_btn.disabled = at_start
+	next_btn.disabled = at_end
+
+
 func _rebuild_alignments() -> void:
 	if _alignments_container == null or _item == null:
 		return
@@ -223,6 +305,7 @@ func _rebuild_alignments() -> void:
 			_item.select_column(col_index))
 		card_vbox.add_child(select_btn)
 		_alignments_container.add_child(card)
+	_refresh_alignment_nav_state.call_deferred()
 
 
 func _rebuild_row_alignments() -> void:
@@ -264,6 +347,7 @@ func _rebuild_row_alignments() -> void:
 			_item.select_row(row_index))
 		card_vbox.add_child(select_btn)
 		_row_alignments_container.add_child(card)
+	_refresh_alignment_nav_state.call_deferred()
 
 
 func _make_axis_card(label_text: String) -> PanelContainer:

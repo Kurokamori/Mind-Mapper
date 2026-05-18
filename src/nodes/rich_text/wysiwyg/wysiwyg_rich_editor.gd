@@ -58,6 +58,9 @@ var _font_mono: Font
 var _italic_is_synthetic: bool = false
 var _bold_italic_is_synthetic: bool = false
 
+var max_image_width: int = 0
+var _texture_cache: Dictionary = {}
+
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -243,6 +246,27 @@ func insert_link(url: String, label: String) -> void:
 
 func insert_text(text: String) -> void:
 	_insert_text_at_caret(text)
+
+
+func insert_image(path: String, width: int = 0, height: int = 0) -> void:
+	if path == "":
+		return
+	_push_undo()
+	if has_selection():
+		_delete_selection_internal()
+	var attrs: Dictionary = WysiwygCodec.empty_attrs()
+	attrs["image"] = path
+	attrs["img_w"] = max(0, width)
+	attrs["img_h"] = max(0, height)
+	_insert_at(_caret, WysiwygCodec.IMAGE_PLACEHOLDER, attrs)
+	_caret += WysiwygCodec.IMAGE_PLACEHOLDER.length()
+	_anchor = -1
+	_clear_pending_attrs()
+	_caret_visible_phase = true
+	_blink_accum = 0.0
+	_invalidate_layout()
+	emit_signal("text_changed")
+	queue_redraw()
 
 
 func select_all() -> void:
@@ -770,6 +794,12 @@ func _compute_layout() -> void:
 		var fsize: int = _size_for(r)
 		var ascent: float = font.get_ascent(fsize)
 		var descent: float = font.get_descent(fsize)
+		var image_path: String = String(r.get("image", ""))
+		var image_size: Vector2 = Vector2.ZERO
+		if image_path != "":
+			image_size = _image_render_size(image_path, int(r.get("img_w", 0)), int(r.get("img_h", 0)), width)
+			ascent = image_size.y
+			descent = 0.0
 		for ci in range(t.length()):
 			var ch: String = t[ci]
 			var code: int = ch.unicode_at(0)
@@ -791,7 +821,7 @@ func _compute_layout() -> void:
 				line_first_glyph = _glyphs.size()
 				plain_pos += 1
 				continue
-			var adv: float = font.get_char_size(code, fsize).x
+			var adv: float = image_size.x if image_path != "" else font.get_char_size(code, fsize).x
 			if cur_x + adv > width and _glyphs.size() > line_first_glyph:
 				if last_space_glyph >= line_first_glyph:
 					_wrap_at_space(last_space_glyph, cur_line)
@@ -973,6 +1003,21 @@ func _draw() -> void:
 		var baseline_y: float = float(line["y"]) + float(line["ascent"]) - _scroll_y
 		var px: float = float(g["x"])
 		var pw: float = float(g["w"])
+		var image_path: String = String(run.get("image", ""))
+		if image_path != "":
+			var image_h: float = float(g["ascent"])
+			var image_top: float = baseline_y - image_h
+			var draw_rect_image: Rect2 = Rect2(Vector2(px, image_top), Vector2(pw, image_h))
+			var texture: Texture2D = _resolve_texture(image_path)
+			if texture != null:
+				draw_texture_rect(texture, draw_rect_image, false)
+			else:
+				draw_rect(draw_rect_image, Color(0.4, 0.2, 0.2, 0.4), true)
+				draw_rect(draw_rect_image, Color(0.8, 0.4, 0.4, 0.9), false, 1.0)
+				if _font_regular != null:
+					var label_text: String = "(image)"
+					_font_regular.draw_string(get_canvas_item(), Vector2(px + 4.0, baseline_y), label_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, default_font_size, Color(0.95, 0.7, 0.7))
+			continue
 		if bool(run.get("code", false)):
 			var bg_rect: Rect2 = Rect2(Vector2(px, float(line["y"]) - _scroll_y), Vector2(pw, float(line["height"])))
 			draw_rect(bg_rect, CODE_BG_COLOR, true)
@@ -1036,3 +1081,46 @@ func _line_extent(line_idx: int) -> float:
 
 func _get_minimum_size() -> Vector2:
 	return Vector2(80.0, _ascent_default() + _descent_default() + 8.0)
+
+
+func _resolve_texture(path: String) -> Texture2D:
+	if path == "":
+		return null
+	if _texture_cache.has(path):
+		return _texture_cache[path] as Texture2D
+	var texture: Texture2D = MarkdownImageRenderer.resolve_texture(path, "")
+	_texture_cache[path] = texture
+	return texture
+
+
+func _image_render_size(path: String, requested_w: int, requested_h: int, available_width: float) -> Vector2:
+	var texture: Texture2D = _resolve_texture(path)
+	var native_w: float = 0.0
+	var native_h: float = 0.0
+	if texture != null:
+		var ns: Vector2i = texture.get_size()
+		native_w = float(ns.x)
+		native_h = float(ns.y)
+	var w: float = float(requested_w)
+	var h: float = float(requested_h)
+	if w <= 0.0 and h <= 0.0:
+		w = native_w
+		h = native_h
+	elif w > 0.0 and h <= 0.0:
+		if native_w > 0.0:
+			h = w * (native_h / native_w)
+	elif h > 0.0 and w <= 0.0:
+		if native_h > 0.0:
+			w = h * (native_w / native_h)
+	if w <= 0.0 or h <= 0.0:
+		var fallback: float = max(64.0, float(default_font_size) * 3.0)
+		w = fallback
+		h = fallback
+	var aspect_h_over_w: float = h / w if w > 0.0 else 1.0
+	var max_w: float = available_width
+	if max_image_width > 0:
+		max_w = min(max_w, float(max_image_width))
+	if w > max_w:
+		w = max_w
+		h = w * aspect_h_over_w
+	return Vector2(w, h)

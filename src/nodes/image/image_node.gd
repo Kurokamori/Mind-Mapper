@@ -6,6 +6,7 @@ enum FilterMode { NONE, GRAYSCALE, SEPIA, INVERT }
 
 const PLACEHOLDER_BG: Color = Color(0.18, 0.18, 0.22, 1.0)
 const PLACEHOLDER_FG: Color = Color(0.55, 0.55, 0.6, 1.0)
+const INITIAL_MAX_DIMENSION: float = 480.0
 
 @export var source_mode: int = SourceMode.LINKED
 @export var source_path: String = ""
@@ -19,6 +20,8 @@ const PLACEHOLDER_FG: Color = Color(0.55, 0.55, 0.6, 1.0)
 @onready var _placeholder_label: Label = %PlaceholderLabel
 
 var _source_image: Image = null
+var _cropped_pixel_size: Vector2i = Vector2i.ZERO
+var _has_fitted_initial_size: bool = false
 
 
 func _ready() -> void:
@@ -53,6 +56,7 @@ func set_source_linked(absolute_path: String) -> void:
 	source_mode = SourceMode.LINKED
 	source_path = absolute_path
 	asset_name = ""
+	_has_fitted_initial_size = false
 	_reload_texture()
 
 
@@ -67,6 +71,7 @@ func set_source_embedded_from(absolute_path: String) -> void:
 	source_mode = SourceMode.EMBEDDED
 	asset_name = copied_name
 	source_path = ""
+	_has_fitted_initial_size = false
 	_reload_texture()
 
 
@@ -82,6 +87,7 @@ func set_source_embedded_from_image(img: Image) -> void:
 	source_mode = SourceMode.EMBEDDED
 	asset_name = asset_id + ".png"
 	source_path = ""
+	_has_fitted_initial_size = false
 	_reload_texture()
 
 
@@ -156,7 +162,56 @@ func _apply_filters_and_crop() -> void:
 	var tex: ImageTexture = ImageTexture.create_from_image(cropped)
 	_texture_rect.texture = tex
 	_placeholder_label.visible = false
+	_cropped_pixel_size = Vector2i(cropped.get_width(), cropped.get_height())
+	_fit_size_to_cropped_aspect()
 	queue_redraw()
+
+
+func _fit_size_to_cropped_aspect() -> void:
+	if _cropped_pixel_size.x <= 0 or _cropped_pixel_size.y <= 0:
+		return
+	var aspect: float = float(_cropped_pixel_size.x) / float(_cropped_pixel_size.y)
+	var min_s: Vector2 = minimum_item_size()
+	var new_size: Vector2
+	if not _has_fitted_initial_size:
+		var native: Vector2 = Vector2(float(_cropped_pixel_size.x), float(_cropped_pixel_size.y))
+		var scale: float = 1.0
+		if native.x > INITIAL_MAX_DIMENSION or native.y > INITIAL_MAX_DIMENSION:
+			scale = min(INITIAL_MAX_DIMENSION / native.x, INITIAL_MAX_DIMENSION / native.y)
+		new_size = native * scale
+		_has_fitted_initial_size = true
+	else:
+		var width: float = max(min_s.x, size.x)
+		new_size = Vector2(width, width / aspect)
+	new_size.x = max(min_s.x, new_size.x)
+	new_size.y = new_size.x / aspect
+	if new_size.y < min_s.y:
+		new_size.y = min_s.y
+		new_size.x = new_size.y * aspect
+	if new_size.is_equal_approx(size):
+		return
+	size = new_size
+
+
+func constrain_user_size(intended: Vector2, start: Vector2) -> Vector2:
+	if _cropped_pixel_size.x <= 0 or _cropped_pixel_size.y <= 0:
+		return intended
+	var aspect: float = float(_cropped_pixel_size.x) / float(_cropped_pixel_size.y)
+	var min_s: Vector2 = minimum_item_size()
+	var dx: float = absf(intended.x - start.x)
+	var dy: float = absf(intended.y - start.y)
+	var result: Vector2
+	if dx >= dy:
+		var w: float = max(min_s.x, intended.x)
+		result = Vector2(w, w / aspect)
+	else:
+		var h: float = max(min_s.y, intended.y)
+		result = Vector2(h * aspect, h)
+	if result.x < min_s.x:
+		result = Vector2(min_s.x, min_s.x / aspect)
+	if result.y < min_s.y:
+		result = Vector2(min_s.y * aspect, min_s.y)
+	return result
 
 
 func _load_image_from_disk(path: String) -> Image:
@@ -234,6 +289,7 @@ func deserialize_payload(d: Dictionary) -> void:
 	filter_mode = int(d.get("filter_mode", filter_mode))
 	brightness = float(d.get("brightness", brightness))
 	contrast = float(d.get("contrast", contrast))
+	_has_fitted_initial_size = true
 	if _texture_rect != null:
 		_reload_texture()
 

@@ -1,0 +1,141 @@
+[gd_scene format=3 uid="uid://b7mobileexpdlg0"]
+
+[ext_resource type="Script" path="res://src/mobile/dialogs/mobile_export_dialog.gd" id="1_mob_exp_dlg"]
+
+[node name="MobileExportDialog" type="Window"]
+title = "Export"
+position = Vector2i(0, 36)
+size = Vector2i(720, 720)
+popup_window = true
+script = ExtResource("1_mob_exp_dlg")
+
+[node name="Root" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Margin" type="MarginContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Column" type="VBoxContainer" parent="Root/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderLabel" type="Label" parent="Root/Margin/Column"]
+layout_mode = 2
+text = "Choose an export format"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ButtonColumn" type="VBoxContainer" parent="Root/Margin/Column/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="PngCurrentRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="PngCurrentButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/PngCurrentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "PNG — current board"
+alignment = 0
+
+[node name="PngCurrentHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/PngCurrentRow"]
+layout_mode = 2
+text = "Raster render of the visible board"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="PngUnfoldedRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="PngUnfoldedButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/PngUnfoldedRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "PNG — unfolded (all subpages)"
+alignment = 0
+
+[node name="PngUnfoldedHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/PngUnfoldedRow"]
+layout_mode = 2
+text = "Tile this board and every nested board onto a single PNG"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="SvgRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="SvgButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/SvgRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "SVG — current board"
+alignment = 0
+
+[node name="SvgHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/SvgRow"]
+layout_mode = 2
+text = "Vector export with items and connections"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="PdfRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="PdfButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/PdfRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "PDF — unfolded"
+alignment = 0
+
+[node name="PdfHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/PdfRow"]
+layout_mode = 2
+text = "Multi-page PDF covering every board reachable from here"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="MarkdownRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="MarkdownButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/MarkdownRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Markdown outline"
+alignment = 0
+
+[node name="MarkdownHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/MarkdownRow"]
+layout_mode = 2
+text = "Outline derived from the connection graph"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="HtmlRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="HtmlButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/HtmlRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "HTML — interactive viewer"
+alignment = 0
+
+[node name="HtmlHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/HtmlRow"]
+layout_mode = 2
+text = "Standalone HTML viewer for the entire project"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="Footer" type="HBoxContainer" parent="Root/Margin/Column"]
+layout_mode = 2
+alignment = 2
+
+[node name="CloseButton" type="Button" parent="Root/Margin/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"

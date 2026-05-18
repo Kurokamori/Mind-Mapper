@@ -108,6 +108,106 @@ func _ready() -> void:
 	_port_overlay.set_enabled(false)
 	_alignment_guide_layer.bind_board_view(self)
 	AlignmentGuideService.guides_changed.connect(_on_alignment_guides_changed)
+	OpBus.bind_editor(self)
+	tree_exiting.connect(_on_tree_exiting_unbind)
+
+
+func _on_tree_exiting_unbind() -> void:
+	OpBus.unbind_editor()
+
+
+func apply_op_locally_through_editor(_op: Op) -> bool:
+	return false
+
+
+func apply_remote_op(op: Op) -> void:
+	if op == null or _board == null or op.board_id != _board.id:
+		return
+	var connections_touched: bool = false
+	var comments_touched: bool = false
+	var annotations_touched: bool = false
+	match op.kind:
+		OpKinds.CREATE_ITEM:
+			var item_dict_raw: Variant = op.payload.get("item_dict", null)
+			if typeof(item_dict_raw) == TYPE_DICTIONARY:
+				var d: Dictionary = item_dict_raw
+				if not _items_by_id.has(String(d.get("id", ""))):
+					instantiate_item_from_dict(d.duplicate(true))
+		OpKinds.DELETE_ITEM:
+			remove_item_by_id(String(op.payload.get("item_id", "")))
+		OpKinds.MOVE_ITEMS:
+			var entries_raw: Variant = op.payload.get("entries", [])
+			if typeof(entries_raw) == TYPE_ARRAY:
+				for e_v: Variant in (entries_raw as Array):
+					if typeof(e_v) != TYPE_DICTIONARY:
+						continue
+					var entry: Dictionary = e_v
+					var item: BoardItem = find_item_node(String(entry.get("id", "")))
+					if item == null:
+						continue
+					var to_arr: Variant = entry.get("to", [])
+					if typeof(to_arr) == TYPE_ARRAY and (to_arr as Array).size() >= 2:
+						item.position = Vector2(float((to_arr as Array)[0]), float((to_arr as Array)[1]))
+		OpKinds.SET_ITEM_PROPERTY:
+			var prop_item: BoardItem = find_item_node(String(op.payload.get("item_id", "")))
+			if prop_item != null:
+				var key: String = String(op.payload.get("key", ""))
+				var raw_value: Variant = op.payload.get("value", null)
+				prop_item.apply_property(key, _deserialize_remote_property_value(key, raw_value))
+		OpKinds.REORDER_ITEMS:
+			_apply_remote_via_applier(op)
+		OpKinds.CREATE_CONNECTION:
+			var conn_raw: Variant = op.payload.get("connection_dict", null)
+			if typeof(conn_raw) == TYPE_DICTIONARY:
+				var c: Connection = Connection.from_dict(conn_raw)
+				if c != null and c.id != "" and not _connections_by_id.has(c.id):
+					_connections_by_id[c.id] = c
+					connections_touched = true
+		OpKinds.DELETE_CONNECTION:
+			var del_id: String = String(op.payload.get("connection_id", ""))
+			if del_id != "" and _connections_by_id.has(del_id):
+				_connections_by_id.erase(del_id)
+				connections_touched = true
+		OpKinds.SET_CONNECTION_PROPERTY:
+			var c_id: String = String(op.payload.get("connection_id", ""))
+			var c_ref: Connection = _connections_by_id.get(c_id, null) as Connection
+			if c_ref != null:
+				c_ref.apply_property(String(op.payload.get("key", "")), op.payload.get("value", null))
+				connections_touched = true
+		OpKinds.CREATE_COMMENT, OpKinds.DELETE_COMMENT, OpKinds.SET_COMMENT_PROPERTY:
+			_apply_remote_via_applier(op)
+			comments_touched = true
+		OpKinds.CREATE_STROKE, OpKinds.DELETE_STROKE:
+			_apply_remote_via_applier(op)
+			annotations_touched = true
+		_:
+			_apply_remote_via_applier(op)
+	if connections_touched:
+		_refresh_connection_painter()
+	if comments_touched and _board != null:
+		_comment_marker_layer.set_comments(_board.comments)
+	if annotations_touched and _board != null:
+		_annotation_painter.set_strokes(_board.annotations)
+	request_save()
+
+
+func _apply_remote_via_applier(op: Op) -> void:
+	if OpBus.applier() != null:
+		OpBus.applier().apply_to_project(op)
+
+
+func _deserialize_remote_property_value(key: String, raw: Variant) -> Variant:
+	if key == "position" or key == "size":
+		if typeof(raw) == TYPE_ARRAY and (raw as Array).size() >= 2:
+			return Vector2(float((raw as Array)[0]), float((raw as Array)[1]))
+	if typeof(raw) == TYPE_ARRAY and (raw as Array).size() == 4 and _key_is_color(key):
+		var arr: Array = raw
+		return Color(float(arr[0]), float(arr[1]), float(arr[2]), float(arr[3]))
+	return raw
+
+
+func _key_is_color(key: String) -> bool:
+	return key.ends_with("color") or key == "background_color" or key == "stroke_color" or key == "fill_color"
 
 
 func bind_board(project: Project, board: Board) -> void:
@@ -375,6 +475,20 @@ func add_connection(c: Connection) -> void:
 		c.id = Uuid.v4()
 	_connections_by_id[c.id] = c
 	_refresh_connection_painter()
+
+
+func get_connections() -> Array[Connection]:
+	var out: Array[Connection] = []
+	for c_v: Variant in _connections_by_id.values():
+		out.append(c_v as Connection)
+	return out
+
+
+func get_connection_dicts() -> Array:
+	var out: Array = []
+	for c_v: Variant in _connections_by_id.values():
+		out.append((c_v as Connection).to_dict())
+	return out
 
 
 func remove_connection_by_id(connection_id: String) -> void:
@@ -1001,8 +1115,7 @@ func _on_camera_double_tap(world_pos: Vector2) -> void:
 	if _mode == MODE_PEN or _mode == MODE_ERASER:
 		return
 	if _mode == MODE_CONNECT:
-		_pending_connect_source = ""
-		_refresh_pending_connect_highlight()
+		return
 	var hit: BoardItem = _hit_test_item(world_pos)
 	if hit == null:
 		return
@@ -1039,20 +1152,16 @@ func _handle_tap_world(world_pos: Vector2) -> void:
 			empty_tapped.emit()
 		MODE_CONNECT:
 			var port_hit: Dictionary = _port_overlay.hit_test(world_pos)
-			var hit_id: String = ""
-			var hit_anchor: String = Connection.ANCHOR_AUTO
-			if not port_hit.is_empty():
-				hit_id = String(port_hit.get("item_id", ""))
-				hit_anchor = String(port_hit.get("anchor", Connection.ANCHOR_AUTO))
-			else:
-				var hit_c: BoardItem = _hit_test_item(world_pos)
-				if hit_c == null:
+			if port_hit.is_empty():
+				port_hit = _closest_port_on_item_under(world_pos)
+			if port_hit.is_empty():
+				if _pending_connect_source != "":
 					_pending_connect_source = ""
 					_pending_connect_source_anchor = Connection.ANCHOR_AUTO
 					_refresh_pending_connect_highlight()
-					return
-				hit_id = hit_c.item_id
-				hit_anchor = Connection.ANCHOR_AUTO
+				return
+			var hit_id: String = String(port_hit.get("item_id", ""))
+			var hit_anchor: String = String(port_hit.get("anchor", Connection.ANCHOR_AUTO))
 			if _pending_connect_source == "":
 				_pending_connect_source = hit_id
 				_pending_connect_source_anchor = hit_anchor
@@ -1454,6 +1563,23 @@ func _hit_test_item(world_pos: Vector2) -> BoardItem:
 			best_z = z
 			best = node
 	return best
+
+
+func _closest_port_on_item_under(world_pos: Vector2) -> Dictionary:
+	var item: BoardItem = _hit_test_item(world_pos)
+	if item == null:
+		return {}
+	var best_anchor: String = ""
+	var best_distance: float = INF
+	for anchor: String in BoardItem.PORT_ANCHORS:
+		var port_world: Vector2 = item.port_world_position(anchor)
+		var dist: float = world_pos.distance_to(port_world)
+		if dist < best_distance:
+			best_distance = dist
+			best_anchor = anchor
+	if best_anchor == "":
+		return {}
+	return {"item_id": item.item_id, "anchor": best_anchor}
 
 
 func _hit_test_connection(world_pos: Vector2) -> String:

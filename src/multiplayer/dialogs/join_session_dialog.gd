@@ -12,6 +12,8 @@ signal join_confirmed(adapter_kind: String, connect_info: Dictionary)
 @onready var _lobby_list: ItemList = %LobbyList
 @onready var _refresh_button: Button = %RefreshButton
 @onready var _display_name_field: LineEdit = %DisplayNameField
+@onready var _webrtc_room_row: HBoxContainer = %WebRTCRoomRow
+@onready var _webrtc_room_field: LineEdit = %WebRTCRoomField
 
 var _adapter_kinds: Array[String] = []
 var _current_lobbies: Array = []
@@ -30,6 +32,8 @@ func _ready() -> void:
 	_direct_port_field.max_value = 65535
 	_direct_port_field.value = EnetAdapter.DEFAULT_PORT
 	_display_name_field.text = KeypairService.display_name()
+	_webrtc_room_field.text = UserPrefs.webrtc_last_room_code
+	_webrtc_room_field.text_changed.connect(_on_webrtc_room_changed)
 	_populate_adapters()
 	MultiplayerService.lobby_list_updated.connect(_on_lobby_list_updated)
 
@@ -61,6 +65,8 @@ func _adapter_label(kind: String) -> String:
 			return "LAN (browse same network)"
 		NetworkAdapter.ADAPTER_KIND_ENET:
 			return "ENet (direct IP)"
+		NetworkAdapter.ADAPTER_KIND_WEBRTC:
+			return "WebRTC (internet, signaling server)"
 		_:
 			return kind
 
@@ -70,13 +76,17 @@ func _on_adapter_changed(idx: int) -> void:
 		return
 	var kind: String = _adapter_kinds[idx]
 	var available: bool = MultiplayerService.is_adapter_available(kind)
+	var is_webrtc: bool = kind == NetworkAdapter.ADAPTER_KIND_WEBRTC
 	_adapter_status.text = MultiplayerService.adapter_unavailability_reason(kind) if not available else ""
 	_adapter_status.add_theme_color_override("font_color", Color(0.95, 0.45, 0.4, 1.0))
 	_direct_row.visible = (kind == NetworkAdapter.ADAPTER_KIND_ENET)
 	_direct_port_row.visible = (kind == NetworkAdapter.ADAPTER_KIND_ENET)
+	_webrtc_room_row.visible = is_webrtc
+	_lobby_list.visible = not (is_webrtc or kind == NetworkAdapter.ADAPTER_KIND_ENET)
+	_refresh_button.visible = not (is_webrtc or kind == NetworkAdapter.ADAPTER_KIND_ENET)
 	_lobby_list.clear()
 	_current_lobbies.clear()
-	if kind != NetworkAdapter.ADAPTER_KIND_ENET and available:
+	if not is_webrtc and kind != NetworkAdapter.ADAPTER_KIND_ENET and available:
 		_request_lobby_refresh(kind)
 
 
@@ -129,6 +139,15 @@ func selected_adapter_kind() -> String:
 	return _adapter_kinds[idx]
 
 
+func _on_webrtc_room_changed(value: String) -> void:
+	var normalized: String = WebRTCSignalingClient.normalize_room_code(value)
+	if normalized != value:
+		var caret: int = _webrtc_room_field.caret_column
+		_webrtc_room_field.text = normalized
+		_webrtc_room_field.caret_column = min(caret, normalized.length())
+	UserPrefs.set_webrtc_last_room_code(normalized)
+
+
 func _on_confirmed() -> void:
 	var kind: String = selected_adapter_kind()
 	if kind == "":
@@ -142,6 +161,8 @@ func _on_confirmed() -> void:
 			addr = "127.0.0.1"
 		connect_info["address"] = addr
 		connect_info["port"] = int(_direct_port_field.value)
+	elif kind == NetworkAdapter.ADAPTER_KIND_WEBRTC:
+		connect_info["room"] = WebRTCSignalingClient.normalize_room_code(_webrtc_room_field.text)
 	else:
 		var idx: int = _lobby_list.get_selected_items()[0] if not _lobby_list.get_selected_items().is_empty() else -1
 		if idx < 0 or _lobby_list.is_item_disabled(idx):

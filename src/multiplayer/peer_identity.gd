@@ -4,6 +4,7 @@ extends RefCounted
 const KIND_STEAM: String = "steam"
 const KIND_LAN: String = "lan"
 const KIND_ENET: String = "enet"
+const KIND_WEBRTC: String = "webrtc"
 const KIND_LOCAL: String = "local"
 
 var kind: String = KIND_LOCAL

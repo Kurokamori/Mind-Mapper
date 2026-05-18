@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://cm3575b8km81w"]
+
+[ext_resource type="Script" path="res://src/mobile/sync/desktop_lan_host_row.gd" id="1_dlhr_script"]
+
+[node name="DesktopLanHostRow" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 84)
+theme_type_variation = &"CardPanel"
+script = ExtResource("1_dlhr_script")
+
+[node name="Margins" type="MarginContainer" parent="."]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Row" type="HBoxContainer" parent="Margins"]
+theme_override_constants/separation = 12
+
+[node name="LabelsColumn" type="VBoxContainer" parent="Margins/Row"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="DesktopLanHostNameLabel" type="Label" parent="Margins/Row/LabelsColumn"]
+unique_name_in_owner = true
+text = "Project"
+theme_override_font_sizes/font_size = 15
+
+[node name="DesktopLanHostDetailLabel" type="Label" parent="Margins/Row/LabelsColumn"]
+unique_name_in_owner = true
+text = ""
+theme_override_font_sizes/font_size = 12
+theme_type_variation = &"MutedLabel"
+
+[node name="DesktopLanHostLocalLabel" type="Label" parent="Margins/Row/LabelsColumn"]
+unique_name_in_owner = true
+text = ""
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.55, 0.85, 0.65, 1)
+visible = false
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Margins/Row"]
+theme_override_constants/separation = 6
+alignment = 2
+
+[node name="DesktopLanHostPullButton" type="Button" parent="Margins/Row/ButtonsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 36)
+text = "Pull"
+theme_type_variation = &"AccentButton"
+
+[node name="DesktopLanHostPushButton" type="Button" parent="Margins/Row/ButtonsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 36)
+text = "Push"
+disabled = true
+
+[node name="DesktopLanHostSyncButton" type="Button" parent="Margins/Row/ButtonsRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 36)
+text = "Sync"
+disabled = true

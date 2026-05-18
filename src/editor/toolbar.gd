@@ -13,6 +13,7 @@ const ACTION_TOGGLE_MINIMAP: String = "toggle_minimap"
 const ACTION_TOGGLE_TIMER_TRAY: String = "toggle_timer_tray"
 const ACTION_TOGGLE_COMMENTS: String = "toggle_comments"
 const ACTION_TOGGLE_CHAT: String = "toggle_chat"
+const ACTION_TOGGLE_LAN_BROADCASTS: String = "toggle_lan_broadcasts"
 const ACTION_OPEN_TODOS: String = "open_todos"
 const ACTION_OPEN_PALETTE: String = "open_palette"
 const ACTION_UNDO: String = "undo"
@@ -33,11 +34,18 @@ const ACTION_SETTINGS: String = "settings"
 const ACTION_ANNOTATION_TOOL: String = "annotation_tool"
 const ACTION_ANNOTATION_COLOR: String = "annotation_color"
 const ACTION_ANNOTATION_WIDTH: String = "annotation_width"
+const ACTION_CONNECTOR_TOOL: String = "connector_tool"
+const ACTION_CONNECTOR_COLOR: String = "connector_color"
+const ACTION_CONNECTOR_WIDTH: String = "connector_width"
 
 const ANNOTATION_TOOL_NONE: String = "none"
 const ANNOTATION_TOOL_PEN: String = "pen"
 const ANNOTATION_TOOL_ERASER: String = "eraser"
 const ANNOTATION_TOOL_SELECT: String = "select"
+
+const CONNECTOR_TOOL_NONE: String = "none"
+const CONNECTOR_TOOL_LINE: String = "line"
+const CONNECTOR_TOOL_ARROW: String = "arrow"
 
 const TILESETS_MENU_ID_NEW_MAP_PAGE: int = 0
 const TILESETS_MENU_ID_IMPORT_TRES: int = 1
@@ -66,6 +74,8 @@ const ARRANGE_ALIGN_HCENTER: String = "align_hcenter"
 const ARRANGE_ALIGN_VCENTER: String = "align_vcenter"
 const ARRANGE_DISTRIBUTE_H: String = "distribute_h"
 const ARRANGE_DISTRIBUTE_V: String = "distribute_v"
+const ARRANGE_AS_GRID: String = "as_grid"
+const ARRANGE_AS_GRID_COMPACT: String = "as_grid_compact"
 const ARRANGE_BRING_FORWARD: String = "bring_forward"
 const ARRANGE_BRING_TO_FRONT: String = "bring_to_front"
 const ARRANGE_SEND_BACKWARD: String = "send_backward"
@@ -99,6 +109,7 @@ const SETTINGS_ACTION_SNAPSHOTS: String = "settings_snapshots"
 @onready var _timer_tray_button: Button = %TimerTrayButton
 @onready var _comments_button: Button = %CommentsButton
 @onready var _chat_button: Button = %ChatButton
+@onready var _lan_broadcasts_button: Button = %LanBroadcastsButton
 @onready var _todos_button: Button = %TodosButton
 @onready var _tag_filter_button: MenuButton = %TagFilterButton
 @onready var _group_button: Button = %GroupButton
@@ -114,6 +125,10 @@ const SETTINGS_ACTION_SNAPSHOTS: String = "settings_snapshots"
 @onready var _annotation_select_button: Button = %AnnotationSelectButton
 @onready var _annotation_color_button: ColorPickerButton = %AnnotationColorButton
 @onready var _annotation_width_spin: SpinBox = %AnnotationWidthSpin
+@onready var _line_tool_button: Button = %LineToolButton
+@onready var _arrow_tool_button: Button = %ArrowToolButton
+@onready var _connector_color_button: ColorPickerButton = %ConnectorColorButton
+@onready var _connector_width_spin: SpinBox = %ConnectorWidthSpin
 @onready var _file_group_button: Button = %FileGroupButton
 @onready var _edit_group_button: Button = %EditGroupButton
 @onready var _draw_group_button: Button = %DrawGroupButton
@@ -139,6 +154,7 @@ var _current_tags: PackedStringArray = PackedStringArray()
 var _selected_tag_filter: String = ""
 var _edit_mode_enabled: bool = true
 var _active_annotation_tool: String = ANNOTATION_TOOL_NONE
+var _active_connector_tool: String = CONNECTOR_TOOL_NONE
 
 
 func _ready() -> void:
@@ -153,6 +169,7 @@ func _ready() -> void:
 	_timer_tray_button.toggled.connect(_on_timer_tray_toggled)
 	_comments_button.toggled.connect(_on_comments_toggled)
 	_chat_button.toggled.connect(_on_chat_toggled)
+	_lan_broadcasts_button.toggled.connect(_on_lan_broadcasts_toggled)
 	_todos_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_OPEN_TODOS, null))
 	_group_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_GROUP, null))
 	_present_button.pressed.connect(func() -> void: emit_signal("action_requested", ACTION_PRESENT, null))
@@ -161,6 +178,10 @@ func _ready() -> void:
 	_annotation_select_button.toggled.connect(func(pressed: bool) -> void: _on_annotation_tool_toggled(ANNOTATION_TOOL_SELECT, pressed))
 	_annotation_color_button.color_changed.connect(_on_annotation_color_changed)
 	_annotation_width_spin.value_changed.connect(_on_annotation_width_changed)
+	_line_tool_button.toggled.connect(func(pressed: bool) -> void: _on_connector_tool_toggled(CONNECTOR_TOOL_LINE, pressed))
+	_arrow_tool_button.toggled.connect(func(pressed: bool) -> void: _on_connector_tool_toggled(CONNECTOR_TOOL_ARROW, pressed))
+	_connector_color_button.color_changed.connect(_on_connector_color_changed)
+	_connector_width_spin.value_changed.connect(_on_connector_width_changed)
 	_populate_export_menu()
 	_populate_import_menu()
 	_populate_add_menu()
@@ -371,6 +392,8 @@ func _populate_arrange_menu() -> void:
 		["__sep__", ""],
 		[ARRANGE_DISTRIBUTE_H, "Distribute Horizontally"],
 		[ARRANGE_DISTRIBUTE_V, "Distribute Vertically"],
+		[ARRANGE_AS_GRID, "Arrange as Grid"],
+		[ARRANGE_AS_GRID_COMPACT, "Arrange as Grid (Compact)"],
 		["__sep__", ""],
 		[ARRANGE_BRING_FORWARD, "Bring Forward"],
 		[ARRANGE_BRING_TO_FRONT, "Bring to Front"],
@@ -518,6 +541,26 @@ func _on_comments_toggled(pressed: bool) -> void:
 
 func _on_chat_toggled(pressed: bool) -> void:
 	emit_signal("action_requested", ACTION_TOGGLE_CHAT, pressed)
+
+
+func _on_lan_broadcasts_toggled(pressed: bool) -> void:
+	emit_signal("action_requested", ACTION_TOGGLE_LAN_BROADCASTS, pressed)
+
+
+func set_lan_broadcasts_pressed(pressed: bool) -> void:
+	if _lan_broadcasts_button == null:
+		return
+	if _lan_broadcasts_button.button_pressed != pressed:
+		_lan_broadcasts_button.set_pressed_no_signal(pressed)
+
+
+func set_lan_broadcasts_count(count: int) -> void:
+	if _lan_broadcasts_button == null:
+		return
+	if count <= 0:
+		_lan_broadcasts_button.text = "LAN"
+	else:
+		_lan_broadcasts_button.text = "LAN (%d)" % count
 
 
 func set_inspector_pressed(pressed: bool) -> void:
@@ -711,6 +754,56 @@ func _on_annotation_color_changed(color: Color) -> void:
 
 func _on_annotation_width_changed(value: float) -> void:
 	emit_signal("action_requested", ACTION_ANNOTATION_WIDTH, AnnotationStroke.clamp_width(value))
+
+
+func _on_connector_tool_toggled(tool_name: String, pressed: bool) -> void:
+	if pressed:
+		_active_connector_tool = tool_name
+		_sync_connector_tool_buttons()
+		emit_signal("action_requested", ACTION_CONNECTOR_TOOL, tool_name)
+	else:
+		if _active_connector_tool != tool_name:
+			return
+		_active_connector_tool = CONNECTOR_TOOL_NONE
+		_sync_connector_tool_buttons()
+		emit_signal("action_requested", ACTION_CONNECTOR_TOOL, CONNECTOR_TOOL_NONE)
+
+
+func _sync_connector_tool_buttons() -> void:
+	if _line_tool_button != null:
+		_line_tool_button.set_pressed_no_signal(_active_connector_tool == CONNECTOR_TOOL_LINE)
+	if _arrow_tool_button != null:
+		_arrow_tool_button.set_pressed_no_signal(_active_connector_tool == CONNECTOR_TOOL_ARROW)
+
+
+func connector_tool() -> String:
+	return _active_connector_tool
+
+
+func set_connector_tool(tool_name: String) -> void:
+	_active_connector_tool = tool_name
+	_sync_connector_tool_buttons()
+
+
+func connector_color() -> Color:
+	if _connector_color_button == null:
+		return ConnectorNode.DEFAULT_COLOR
+	return _connector_color_button.color
+
+
+func connector_width() -> float:
+	if _connector_width_spin == null:
+		return ConnectorNode.DEFAULT_WIDTH
+	return clamp(float(_connector_width_spin.value), ConnectorNode.MIN_WIDTH, ConnectorNode.MAX_WIDTH)
+
+
+func _on_connector_color_changed(color: Color) -> void:
+	emit_signal("action_requested", ACTION_CONNECTOR_COLOR, color)
+
+
+func _on_connector_width_changed(value: float) -> void:
+	var w: float = clamp(value, ConnectorNode.MIN_WIDTH, ConnectorNode.MAX_WIDTH)
+	emit_signal("action_requested", ACTION_CONNECTOR_WIDTH, w)
 
 
 func _format_delta(seconds: int) -> String:

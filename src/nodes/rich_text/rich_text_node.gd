@@ -18,6 +18,8 @@ const DEFAULT_MAX_IMAGE_WIDTH: int = 0
 @export var auto_width: bool = true
 @export var auto_height: bool = true
 @export var max_image_width: int = DEFAULT_MAX_IMAGE_WIDTH
+@export var h_align: int = 0
+@export var v_align: int = 0
 
 @onready var _rich: RichTextLabel = %RichTextLabel
 @onready var _edit: TextEdit = %TextEdit
@@ -95,9 +97,17 @@ func _draw_body() -> void:
 func rendered_bbcode() -> String:
 	if bbcode_text == "":
 		return ""
+	var body: String
 	if MarkdownConverter.contains_bbcode(bbcode_text):
-		return bbcode_text
-	return MarkdownConverter.markdown_to_bbcode(bbcode_text)
+		body = bbcode_text
+	else:
+		body = MarkdownConverter.markdown_to_bbcode(bbcode_text)
+	match clampi(h_align, 0, 2):
+		1:
+			body = "[center]" + body + "[/center]"
+		2:
+			body = "[right]" + body + "[/right]"
+	return body
 
 
 func _refresh_visuals() -> void:
@@ -115,16 +125,40 @@ func _refresh_visuals() -> void:
 		_edit.add_theme_color_override("font_color", fg)
 	queue_redraw()
 	_request_auto_fit()
+	_apply_vertical_alignment()
 
 
 func _layout() -> void:
 	if _rich != null:
 		_rich.position = PADDING
 		_rich.size = size - PADDING * 2
+		_apply_vertical_alignment()
 	if _edit != null:
 		_edit.position = PADDING
 		_edit.size = size - PADDING * 2
 	_position_toolbar()
+
+
+func _apply_vertical_alignment() -> void:
+	if _rich == null:
+		return
+	if is_editing():
+		return
+	var available_h: float = max(0.0, size.y - PADDING.y * 2.0)
+	var content_h: float = float(_rich.get_content_height())
+	if content_h <= 0.0 or content_h >= available_h:
+		_rich.position = PADDING
+		_rich.size = Vector2(max(1.0, size.x - PADDING.x * 2.0), available_h)
+		return
+	var factor: float = 0.0
+	match clampi(v_align, 0, 2):
+		1:
+			factor = 0.5
+		2:
+			factor = 1.0
+	var offset_y: float = (available_h - content_h) * factor
+	_rich.position = Vector2(PADDING.x, PADDING.y + offset_y)
+	_rich.size = Vector2(max(1.0, size.x - PADDING.x * 2.0), content_h)
 
 
 func _position_toolbar() -> void:
@@ -279,12 +313,7 @@ func _on_selection_changed(selected: Array) -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(self)
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -302,6 +331,8 @@ func serialize_payload() -> Dictionary:
 		"auto_width": auto_width,
 		"auto_height": auto_height,
 		"max_image_width": max_image_width,
+		"h_align": h_align,
+		"v_align": v_align,
 	}
 	if bg_color_custom:
 		out["bg_color"] = ColorUtil.to_array(bg_color)
@@ -334,6 +365,8 @@ func deserialize_payload(d: Dictionary) -> void:
 	auto_width = bool(d.get("auto_width", false))
 	auto_height = bool(d.get("auto_height", false))
 	max_image_width = max(0, int(d.get("max_image_width", max_image_width)))
+	h_align = clampi(int(d.get("h_align", h_align)), 0, 2)
+	v_align = clampi(int(d.get("v_align", v_align)), 0, 2)
 	if _rich != null:
 		_refresh_visuals()
 
@@ -362,6 +395,10 @@ func apply_typed_property(key: String, value: Variant) -> void:
 			auto_height = bool(value)
 		"max_image_width":
 			max_image_width = max(0, int(value))
+		"h_align":
+			h_align = clampi(int(value), 0, 2)
+		"v_align":
+			v_align = clampi(int(value), 0, 2)
 	_refresh_visuals()
 
 
@@ -380,4 +417,6 @@ func bulk_shareable_properties() -> Array:
 		{"key": "auto_width", "label": "Auto width", "kind": "bool"},
 		{"key": "auto_height", "label": "Auto height", "kind": "bool"},
 		{"key": "max_image_width", "label": "Max image width (0 = native)", "kind": "int_range", "min": 0, "max": 4096},
+		{"key": "h_align", "label": "Horizontal align (0=L 1=C 2=R)", "kind": "int_range", "min": 0, "max": 2},
+		{"key": "v_align", "label": "Vertical align (0=T 1=C 2=B)", "kind": "int_range", "min": 0, "max": 2},
 	]

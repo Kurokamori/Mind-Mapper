@@ -120,14 +120,26 @@ func _notification(what: int) -> void:
 
 
 func _on_edit_begin() -> void:
-	_open_editor_dialog()
+	open_editor()
 	end_edit()
 
 
-func _open_editor_dialog() -> void:
+func open_editor() -> void:
+	if Bootstrap._is_mobile_runtime():
+		_open_mobile_editor_dialog()
+		return
 	var scene: PackedScene = preload("res://src/nodes/document/document_editor_dialog.tscn")
 	var dlg: DocumentEditorDialog = scene.instantiate()
 	dlg.bind(title, markdown_text, heading_sizes(), font_size, title_font_size, max_image_width)
+	get_tree().root.add_child(dlg)
+	dlg.applied.connect(_on_editor_applied)
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(960, 660)})
+
+
+func _open_mobile_editor_dialog() -> void:
+	var scene: PackedScene = preload("res://src/mobile/editor/mobile_document_editor.tscn")
+	var dlg: MobileDocumentEditor = scene.instantiate()
+	dlg.bind(title, markdown_text, font_size, h1_font_size, h2_font_size, h3_font_size, max_image_width)
 	get_tree().root.add_child(dlg)
 	dlg.applied.connect(_on_editor_applied)
 	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(960, 660)})
@@ -169,12 +181,7 @@ func _on_meta_clicked(meta: Variant) -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(self)
 
 
 func _gui_input(event: InputEvent) -> void:

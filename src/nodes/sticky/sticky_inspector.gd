@@ -3,6 +3,8 @@ extends VBoxContainer
 
 @onready var _text_edit: TextEdit = %TextEdit
 @onready var _font_size_spin: SpinBox = %FontSizeSpin
+@onready var _h_align_option: OptionButton = %HAlignOption
+@onready var _v_align_option: OptionButton = %VAlignOption
 @onready var _color_buttons: Array[Button] = [
 	%Color0 as Button,
 	%Color1 as Button,
@@ -32,10 +34,16 @@ func _ready() -> void:
 	_font_size_spin.value = _item.font_size
 	_apply_color_swatches()
 	_highlight_selected_color()
+	_h_align_option.select(clampi(_item.h_align, 0, 2))
+	_v_align_option.select(clampi(_item.v_align, 0, 2))
 	_suppress_signals = false
 	_binders["text"] = PropertyBinder.new(_editor, _item, "text", _item.text)
 	_binders["font_size"] = PropertyBinder.new(_editor, _item, "font_size", _item.font_size)
 	_binders["color_index"] = PropertyBinder.new(_editor, _item, "color_index", _item.color_index)
+	_binders["h_align"] = PropertyBinder.new(_editor, _item, "h_align", _item.h_align)
+	_binders["v_align"] = PropertyBinder.new(_editor, _item, "v_align", _item.v_align)
+	_h_align_option.item_selected.connect(_on_h_align)
+	_v_align_option.item_selected.connect(_on_v_align)
 	_text_edit.text_changed.connect(_on_text_changed)
 	_text_edit.focus_exited.connect(_on_text_committed)
 	_font_size_spin.value_changed.connect(_on_font_size_changed)
@@ -62,6 +70,20 @@ func _on_font_size_changed(value: float) -> void:
 	var v: int = int(value)
 	_binders["font_size"].live(v)
 	_binders["font_size"].commit(v)
+
+
+func _on_h_align(idx: int) -> void:
+	if _suppress_signals:
+		return
+	_binders["h_align"].live(idx)
+	_binders["h_align"].commit(idx)
+
+
+func _on_v_align(idx: int) -> void:
+	if _suppress_signals:
+		return
+	_binders["v_align"].live(idx)
+	_binders["v_align"].commit(idx)
 
 
 func _on_color_picked(idx: int) -> void:
@@ -105,9 +127,4 @@ func _swatch_style(color: Color, selected: bool) -> StyleBoxFlat:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(_item)

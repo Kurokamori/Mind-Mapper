@@ -15,6 +15,24 @@ extends VBoxContainer
 @onready var _fg_picker: ColorPickerButton = %FgPicker
 @onready var _open_editor_button: Button = %OpenEditorButton
 @onready var _word_count_label: Label = %WordCountLabel
+@onready var _export_markdown_button: Button = %ExportMarkdownButton
+@onready var _export_pdf_button: Button = %ExportPdfButton
+@onready var _replace_from_file_button: Button = %ReplaceFromFileButton
+@onready var _file_status_label: Label = %FileStatusLabel
+
+static var REPLACE_FILTERS: PackedStringArray = PackedStringArray([
+	"*.md,*.markdown ; Markdown",
+	"*.txt ; Plain Text",
+	"*.rtf ; Rich Text Format",
+	"*.docx ; Word Document",
+	"*.pdf ; PDF",
+])
+static var EXPORT_MARKDOWN_FILTERS: PackedStringArray = PackedStringArray([
+	"*.md ; Markdown",
+])
+static var EXPORT_PDF_FILTERS: PackedStringArray = PackedStringArray([
+	"*.pdf ; PDF Document",
+])
 
 const SIZE_KEYS: Array[String] = [
 	"font_size",
@@ -80,18 +98,17 @@ func _ready() -> void:
 	_fg_picker.color_changed.connect(_on_fg_live)
 	_fg_picker.popup_closed.connect(_on_fg_commit)
 	_open_editor_button.pressed.connect(_on_open_editor_pressed)
+	_export_markdown_button.pressed.connect(_on_export_markdown_pressed)
+	_export_pdf_button.pressed.connect(_on_export_pdf_pressed)
+	_replace_from_file_button.pressed.connect(_on_replace_from_file_pressed)
+	_file_status_label.text = ""
 	ThemeManager.theme_applied.connect(_on_theme_applied)
 	ThemeManager.node_palette_changed.connect(func(_a: Dictionary, _b: Dictionary) -> void: _on_theme_applied())
 	_refresh_stats()
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(_item)
 
 
 func _on_title_live(new_text: String) -> void:
@@ -190,3 +207,155 @@ func _refresh_stats() -> void:
 	if current_word_length > 0:
 		word_count += 1
 	_word_count_label.text = "%d words • %d characters" % [word_count, raw.length()]
+
+
+func _set_file_status(text: String) -> void:
+	if _file_status_label != null:
+		_file_status_label.text = text
+
+
+func _on_export_markdown_pressed() -> void:
+	if _item == null:
+		return
+	var default_name: String = DocumentExporter.suggested_basename(_item) + ".md"
+	_request_save_path("Export document as Markdown", default_name, "md", EXPORT_MARKDOWN_FILTERS, _on_export_markdown_path_chosen)
+
+
+func _on_export_pdf_pressed() -> void:
+	if _item == null:
+		return
+	var default_name: String = DocumentExporter.suggested_basename(_item) + ".pdf"
+	_request_save_path("Export document as PDF", default_name, "pdf", EXPORT_PDF_FILTERS, _on_export_pdf_path_chosen)
+
+
+func _on_replace_from_file_pressed() -> void:
+	if _item == null:
+		return
+	_request_open_path("Replace document content", REPLACE_FILTERS, _on_replace_path_chosen)
+
+
+func _on_export_markdown_path_chosen(path: String) -> void:
+	if _item == null or path == "":
+		return
+	var ok: bool = DocumentExporter.export_markdown(_item, path)
+	if ok:
+		_set_file_status("Exported Markdown to %s" % path.get_file())
+	else:
+		_set_file_status("Failed to export Markdown.")
+
+
+func _on_export_pdf_path_chosen(path: String) -> void:
+	if _item == null or path == "":
+		return
+	_set_file_status("Rendering PDF…")
+	var host: Node = self
+	var ok: bool = await DocumentExporter.export_pdf(_item, host, path)
+	if ok:
+		_set_file_status("Exported PDF to %s" % path.get_file())
+	else:
+		_set_file_status("Failed to export PDF.")
+
+
+func _on_replace_path_chosen(path: String) -> void:
+	if _item == null or path == "":
+		return
+	var result: DocumentImporter.ImportResult = DocumentImporter.import_to_markdown(path)
+	if not result.ok:
+		_set_file_status(result.error_message)
+		return
+	var new_markdown: String = result.markdown
+	var new_title: String = path.get_file().get_basename()
+	if _editor != null:
+		if new_markdown != _item.markdown_text:
+			History.push(ModifyPropertyCommand.new(_editor, _item.item_id, "markdown_text", _item.markdown_text, new_markdown))
+		var current_title: String = _item.title
+		var should_update_title: bool = current_title == "" or current_title == DocumentNode.DEFAULT_TITLE
+		if should_update_title and new_title != current_title:
+			History.push(ModifyPropertyCommand.new(_editor, _item.item_id, "title", current_title, new_title))
+			_suppress_signals = true
+			_title_edit.text = new_title
+			_suppress_signals = false
+			_binders["title"] = PropertyBinder.new(_editor, _item, "title", new_title)
+	else:
+		_item.markdown_text = new_markdown
+		if _item.title == "" or _item.title == DocumentNode.DEFAULT_TITLE:
+			_item.title = new_title
+			_suppress_signals = true
+			_title_edit.text = new_title
+			_suppress_signals = false
+		_item._refresh_visuals()
+	_refresh_stats()
+	_set_file_status(result.notice if result.notice != "" else "Replaced content from %s" % path.get_file())
+
+
+func _request_save_path(title_text: String, default_name: String, extension: String, filters: PackedStringArray, callback: Callable) -> void:
+	if Bootstrap._is_mobile_runtime():
+		var saver: MobileFileSaver = MobileFileSaver.new()
+		add_child(saver)
+		saver.save_path_chosen.connect(func(path: String) -> void:
+			callback.call(path)
+			saver.queue_free()
+		)
+		saver.save_cancelled.connect(func() -> void: saver.queue_free())
+		saver.save_error.connect(func(msg: String) -> void:
+			_set_file_status(msg)
+			saver.queue_free()
+		)
+		saver.save_as(title_text, default_name, extension, filters)
+		return
+	var dialog: FileDialog = FileDialog.new()
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	dialog.use_native_dialog = true
+	dialog.title = title_text
+	dialog.filters = filters
+	dialog.current_file = default_name
+	add_child(dialog)
+	dialog.file_selected.connect(func(path: String) -> void:
+		var normalized: String = _ensure_extension(path, extension)
+		callback.call(normalized)
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.popup_centered_ratio(0.7)
+
+
+func _request_open_path(title_text: String, filters: PackedStringArray, callback: Callable) -> void:
+	if Bootstrap._is_mobile_runtime():
+		var picker: MobileFilePicker = MobileFilePicker.new()
+		add_child(picker)
+		picker.files_chosen.connect(func(paths: PackedStringArray) -> void:
+			if not paths.is_empty():
+				callback.call(paths[0])
+			picker.queue_free()
+		)
+		picker.pick_cancelled.connect(func() -> void: picker.queue_free())
+		picker.pick_error.connect(func(msg: String) -> void:
+			_set_file_status(msg)
+			picker.queue_free()
+		)
+		picker.pick_single(title_text, filters)
+		return
+	var dialog: FileDialog = FileDialog.new()
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	dialog.use_native_dialog = true
+	dialog.title = title_text
+	dialog.filters = filters
+	add_child(dialog)
+	dialog.file_selected.connect(func(path: String) -> void:
+		callback.call(path)
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.popup_centered_ratio(0.7)
+
+
+func _ensure_extension(path: String, extension: String) -> String:
+	var normalized: String = path.replace("\\", "/")
+	if extension == "":
+		return normalized
+	var dot_ext: String = "." + extension.to_lower()
+	if normalized.to_lower().ends_with(dot_ext):
+		return normalized
+	return normalized + dot_ext

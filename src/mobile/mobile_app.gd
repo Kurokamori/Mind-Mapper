@@ -12,6 +12,15 @@ const MOBILE_DEFAULT_UI_ZOOM: float = 1.5
 
 const THEME_DIALOG_SCENE: PackedScene = preload("res://src/editor/dialogs/theme_dialog.tscn")
 const KEYBINDINGS_DIALOG_SCENE: PackedScene = preload("res://src/editor/dialogs/keybindings_dialog.tscn")
+const IMPORT_DIALOG_SCENE: PackedScene = preload("res://src/mobile/dialogs/mobile_import_dialog.tscn")
+const EXPORT_DIALOG_SCENE: PackedScene = preload("res://src/mobile/dialogs/mobile_export_dialog.tscn")
+const EMBED_CHOICE_DIALOG_SCENE: PackedScene = preload("res://src/mobile/dialogs/mobile_embed_choice_dialog.tscn")
+
+const IMPORT_BATCH_NODE_SIZE_IMAGE: Vector2 = Vector2(240.0, 180.0)
+const IMPORT_BATCH_NODE_SIZE_SOUND: Vector2 = Vector2(280.0, 110.0)
+const IMPORT_BATCH_NODE_SIZE_DOCUMENT: Vector2 = Vector2(320.0, 260.0)
+const IMPORT_BATCH_GAP: float = 24.0
+const IMPORT_BATCH_MAX_COLS: int = 4
 
 @onready var _content_stack: Control = %ContentStack
 @onready var _project_picker: MobileProjectPicker = %ProjectPicker
@@ -27,6 +36,7 @@ const KEYBINDINGS_DIALOG_SCENE: PackedScene = preload("res://src/editor/dialogs/
 @onready var _nodes_lock_toggle: MobileNodesLockToggle = %NodesLockToggle
 @onready var _edit_action_bar: MobileEditActionBar = %EditActionBar
 @onready var _safe_area: MobileSafeArea = %SafeArea
+@onready var _loading_view: LoadingView = %LoadingView
 @onready var _top_bar: VBoxContainer = $CanvasLayer/TopBar
 @onready var _handle_anchor: Control = $CanvasLayer/HandleAnchor
 @onready var _zoom_overlay_anchor: Control = $CanvasLayer/ZoomOverlayAnchor
@@ -59,11 +69,17 @@ var _safe_inset_top: float = 0.0
 var _safe_inset_right: float = 0.0
 var _safe_inset_bottom: float = 0.0
 var _safe_inset_left: float = 0.0
+var _reconnect_orchestrator: MobileReconnectOrchestrator = null
+
+const STICKY_RECONNECT_TOAST_ID: String = "mobile_reconnect_status"
 
 
 func _ready() -> void:
 	_project_picker.project_opened.connect(_on_picker_project_opened)
 	_project_picker.toast_requested.connect(_show_toast)
+	_project_picker.loading_requested.connect(_on_loading_requested)
+	_project_picker.loading_progress.connect(_on_loading_progress)
+	_project_picker.loading_dismissed.connect(_on_loading_dismissed)
 	_toolbar.action_requested.connect(_on_toolbar_action)
 	_toolbar_handle.pressed.connect(_toggle_toolbar)
 	_board_view.item_tapped.connect(_on_item_tapped)
@@ -118,6 +134,88 @@ func _ready() -> void:
 	get_tree().root.gui_embed_subwindows = true
 	_safe_area.insets_changed.connect(_on_safe_area_insets_changed)
 	_safe_area.force_refresh()
+	_install_reconnect_orchestrator()
+
+
+func _install_reconnect_orchestrator() -> void:
+	_reconnect_orchestrator = MobileReconnectOrchestrator.new()
+	_reconnect_orchestrator.name = "ReconnectOrchestrator"
+	add_child(_reconnect_orchestrator)
+	if _project_picker != null:
+		_reconnect_orchestrator.bind_lan_sync_client(_project_picker.lan_sync_client())
+	_reconnect_orchestrator.attempt_started.connect(_on_reconnect_attempt_started)
+	_reconnect_orchestrator.reconnect_succeeded.connect(_on_reconnect_succeeded)
+	_reconnect_orchestrator.reconnect_failed.connect(_on_reconnect_failed)
+	_reconnect_orchestrator.reconnect_skipped.connect(_on_reconnect_skipped)
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_APPLICATION_PAUSED:
+			_on_app_paused()
+		NOTIFICATION_APPLICATION_RESUMED:
+			_on_app_resumed()
+		NOTIFICATION_WM_GO_BACK_REQUEST:
+			pass
+
+
+func _on_app_paused() -> void:
+	if _reconnect_orchestrator == null:
+		return
+	_reconnect_orchestrator.notify_suspended()
+
+
+func _on_app_resumed() -> void:
+	if _reconnect_orchestrator == null:
+		return
+	if not _reconnect_orchestrator.has_anything_to_reconnect():
+		return
+	_reconnect_orchestrator.start_reconnect()
+
+
+func _on_reconnect_attempt_started(attempt: int, max_attempts: int) -> void:
+	if _toast_layer == null:
+		return
+	_toast_layer.show_sticky(
+		STICKY_RECONNECT_TOAST_ID,
+		"info",
+		"Reconnecting… (%d / %d)" % [attempt, max_attempts],
+	)
+
+
+func _on_reconnect_succeeded(scopes: Array) -> void:
+	if _toast_layer != null:
+		_toast_layer.dismiss_sticky(STICKY_RECONNECT_TOAST_ID)
+	var label: String = _describe_scopes(scopes)
+	_show_toast("success", "Reconnected%s" % ("" if label == "" else " (%s)" % label))
+
+
+func _on_reconnect_failed(_scopes: Array, reason: String) -> void:
+	if _toast_layer != null:
+		_toast_layer.dismiss_sticky(STICKY_RECONNECT_TOAST_ID)
+	var detail: String = "" if reason == "" else " — %s" % reason
+	_show_toast("warning", "Reconnect failed%s" % detail)
+
+
+func _on_reconnect_skipped() -> void:
+	if _toast_layer != null:
+		_toast_layer.dismiss_sticky(STICKY_RECONNECT_TOAST_ID)
+
+
+func _describe_scopes(scopes: Array) -> String:
+	var parts: Array = []
+	for scope_v: Variant in scopes:
+		var scope: String = String(scope_v)
+		match scope:
+			MobileReconnectOrchestrator.SCOPE_MULTIPLAYER:
+				parts.append("session")
+			MobileReconnectOrchestrator.SCOPE_LAN_SYNC:
+				parts.append("LAN sync")
+			_:
+				parts.append(scope)
+	if parts.is_empty():
+		return ""
+	return ", ".join(PackedStringArray(parts))
 
 
 func _apply_orientation_scale() -> void:
@@ -217,12 +315,40 @@ func _apply_picker_insets(top: float, right: float, bottom: float, left: float) 
 
 
 func _on_picker_project_opened(project: Project, source: String, remote_label: String) -> void:
+	var project_name: String = project.name if project != null else "project"
+	_show_loading("Opening %s…" % project_name, "Loading boards and items")
+	await get_tree().process_frame
 	_project = project
 	AppState.open_project(project)
 	_toolbar.set_project_label(project.name, source, remote_label)
 	_toolbar.visible = false
 	_toolbar_handle.visible = true
 	_show_view(VIEW_BOARD)
+	await get_tree().process_frame
+	_hide_loading()
+
+
+func _on_loading_requested(title: String, subtitle: String) -> void:
+	_show_loading(title, subtitle)
+
+
+func _on_loading_progress(subtitle: String) -> void:
+	if _loading_view != null and _loading_view.is_active():
+		_loading_view.set_subtitle(subtitle)
+
+
+func _on_loading_dismissed() -> void:
+	_hide_loading()
+
+
+func _show_loading(title: String, subtitle: String) -> void:
+	if _loading_view != null:
+		_loading_view.show_loading(title, subtitle)
+
+
+func _hide_loading() -> void:
+	if _loading_view != null:
+		_loading_view.hide_loading()
 
 
 func _on_project_opened(_project: Project) -> void:
@@ -312,25 +438,34 @@ func _on_toolbar_action(action: String, payload: Variant = null) -> void:
 		MobileToolbar.ACTION_FILE_TILESETS:
 			_show_toast("info", "Maps & Tilesets — manage from desktop for now")
 		MobileToolbar.ACTION_FILE_IMPORT:
-			_show_toast("info", "Import — use desktop")
+			_open_import_dialog()
 		MobileToolbar.ACTION_FILE_EXPORT:
-			_show_toast("info", "Export — use desktop")
+			_open_export_dialog()
 		MobileToolbar.ACTION_OPEN_THEME:
 			_open_theme_dialog()
 		MobileToolbar.ACTION_OPEN_KEYBINDINGS:
 			_open_keybindings_dialog()
+		MobileToolbar.ACTION_OPEN_MULTIPLAYER:
+			_open_multiplayer_sheet()
 
 
 func _open_theme_dialog() -> void:
 	var dlg: Window = THEME_DIALOG_SCENE.instantiate()
 	add_child(dlg)
-	dlg.popup_centered_ratio(1.0)
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(880, 680)})
+
+
+func _open_multiplayer_sheet() -> void:
+	if AppState.current_project == null:
+		_show_toast("warning", "Open a project first")
+		return
+	_bottom_sheet.show_multiplayer()
 
 
 func _open_keybindings_dialog() -> void:
 	var dlg: Window = KEYBINDINGS_DIALOG_SCENE.instantiate()
 	add_child(dlg)
-	dlg.popup_centered_ratio(1.0)
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(880, 680)})
 
 
 func _on_toolbar_draw_tool(mode: String, enable: bool) -> void:
@@ -685,3 +820,379 @@ func _process(_delta: float) -> void:
 func _show_toast(severity: String, message: String) -> void:
 	if _toast_layer != null:
 		_toast_layer.toast(severity, message)
+
+
+# ---------------------------------------------------------------------------
+# Import / Export
+# ---------------------------------------------------------------------------
+
+func _open_import_dialog() -> void:
+	if AppState.current_project == null or AppState.current_board == null:
+		_show_toast("warning", "Open a board first")
+		return
+	var dlg: MobileImportDialog = IMPORT_DIALOG_SCENE.instantiate()
+	add_child(dlg)
+	dlg.mode_chosen.connect(_on_import_mode_chosen)
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(640, 520)})
+
+
+func _on_import_mode_chosen(mode: String) -> void:
+	var picker: MobileFilePicker = MobileFilePicker.new()
+	add_child(picker)
+	var title: String = "Import"
+	var filters: PackedStringArray = PackedStringArray()
+	var multi: bool = false
+	match mode:
+		MobileImportDialog.MODE_MARKDOWN:
+			title = "Import Markdown Outline"
+			filters = PackedStringArray(["*.md ; Markdown", "*.txt ; Text"])
+		MobileImportDialog.MODE_JSON:
+			title = "Import Project JSON"
+			filters = PackedStringArray(["*.json ; JSON"])
+		MobileImportDialog.MODE_DOCUMENT:
+			title = "Import Document(s)"
+			filters = PackedStringArray([
+				"*.md, *.markdown ; Markdown",
+				"*.txt ; Plain Text",
+				"*.rtf ; Rich Text Format",
+				"*.docx ; Word Document",
+				"*.pdf ; PDF",
+			])
+			multi = true
+		MobileImportDialog.MODE_IMAGE:
+			title = "Import Image(s)"
+			filters = PackedStringArray([
+				"*.png ; PNG Image",
+				"*.jpg, *.jpeg ; JPEG Image",
+				"*.webp ; WebP Image",
+				"*.bmp ; BMP Image",
+				"*.tga ; TGA Image",
+				"*.svg ; SVG Image",
+			])
+			multi = true
+		MobileImportDialog.MODE_SOUND:
+			title = "Import Sound(s)"
+			filters = PackedStringArray([
+				"*.mp3 ; MP3",
+				"*.ogg ; Ogg Vorbis",
+				"*.wav ; WAV",
+			])
+			multi = true
+		_:
+			picker.queue_free()
+			return
+	picker.files_chosen.connect(func(paths: PackedStringArray) -> void:
+		_on_import_files_chosen(mode, paths)
+		picker.queue_free()
+	)
+	picker.pick_cancelled.connect(func() -> void: picker.queue_free())
+	picker.pick_error.connect(func(msg: String) -> void:
+		_show_toast("warning", "File picker error: %s" % msg)
+		picker.queue_free()
+	)
+	if multi:
+		picker.pick_multi(title, filters)
+	else:
+		picker.pick_single(title, filters)
+
+
+func _on_import_files_chosen(mode: String, paths: PackedStringArray) -> void:
+	if paths.is_empty():
+		return
+	if AppState.current_project == null or AppState.current_board == null:
+		return
+	match mode:
+		MobileImportDialog.MODE_MARKDOWN:
+			_run_simple_text_import(paths[0], BoardImporter.new(_board_view), "markdown")
+		MobileImportDialog.MODE_JSON:
+			_run_simple_text_import(paths[0], BoardImporter.new(_board_view), "json")
+		MobileImportDialog.MODE_DOCUMENT:
+			_import_document_batch(paths)
+		MobileImportDialog.MODE_IMAGE:
+			_prompt_embed_choice(
+				"Embed images into the project, or keep them linked to the original files?",
+				func(embed: bool) -> void: _import_image_batch(paths, embed),
+			)
+		MobileImportDialog.MODE_SOUND:
+			_prompt_embed_choice(
+				"Embed audio into the project, or keep it linked to the original files?",
+				func(embed: bool) -> void: _import_sound_batch(paths, embed),
+			)
+
+
+func _run_simple_text_import(path: String, importer: BoardImporter, mode: String) -> void:
+	var ok: bool = importer.import_file(path, mode)
+	if ok:
+		_show_toast("info", "Imported %s" % path.get_file())
+	else:
+		_show_toast("warning", "Import failed: %s" % path.get_file())
+
+
+func _import_document_batch(paths: PackedStringArray) -> void:
+	if paths.is_empty() or AppState.current_board == null:
+		return
+	var anchor: Vector2 = _drop_anchor_world()
+	var size_v: Vector2 = IMPORT_BATCH_NODE_SIZE_DOCUMENT
+	var item_dicts: Array = []
+	for i in range(paths.size()):
+		var path: String = paths[i]
+		var result: DocumentImporter.ImportResult = DocumentImporter.import_to_markdown(path)
+		var title_text: String = path.get_file().get_basename()
+		if title_text == "":
+			title_text = "Untitled Document"
+		var markdown_text: String = ""
+		if result.ok:
+			markdown_text = result.markdown
+			if markdown_text.strip_edges() == "":
+				markdown_text = "# %s\n" % title_text
+		else:
+			markdown_text = "# %s\n\n*(Import failed: %s)*\n" % [title_text, result.error_message]
+		var pos: Vector2 = _grid_position_for_batch(anchor, i, paths.size(), size_v)
+		item_dicts.append({
+			"id": Uuid.v4(),
+			"type": ItemRegistry.TYPE_DOCUMENT,
+			"position": [pos.x, pos.y],
+			"size": [size_v.x, size_v.y],
+			"title": title_text,
+			"markdown_text": markdown_text,
+			"font_size": DocumentNode.DEFAULT_FONT_SIZE,
+		})
+	if item_dicts.is_empty():
+		return
+	History.push(AddItemsCommand.new(_board_view, item_dicts))
+	_show_toast("info", "Imported %d document(s)" % item_dicts.size())
+
+
+func _import_image_batch(paths: PackedStringArray, embed: bool) -> void:
+	if paths.is_empty() or AppState.current_board == null:
+		return
+	var anchor: Vector2 = _drop_anchor_world()
+	var size_v: Vector2 = IMPORT_BATCH_NODE_SIZE_IMAGE
+	var item_dicts: Array = []
+	for i in range(paths.size()):
+		var path: String = paths[i]
+		var pos: Vector2 = _grid_position_for_batch(anchor, i, paths.size(), size_v)
+		var d: Dictionary = {
+			"id": Uuid.v4(),
+			"type": ItemRegistry.TYPE_IMAGE,
+			"position": [pos.x, pos.y],
+			"size": [size_v.x, size_v.y],
+		}
+		_apply_asset_source(d, path, embed, ImageNode.SourceMode.EMBEDDED, ImageNode.SourceMode.LINKED)
+		item_dicts.append(d)
+	if item_dicts.is_empty():
+		return
+	History.push(AddItemsCommand.new(_board_view, item_dicts))
+	_show_toast("info", "Imported %d image(s)" % item_dicts.size())
+
+
+func _import_sound_batch(paths: PackedStringArray, embed: bool) -> void:
+	if paths.is_empty() or AppState.current_board == null:
+		return
+	var anchor: Vector2 = _drop_anchor_world()
+	var size_v: Vector2 = IMPORT_BATCH_NODE_SIZE_SOUND
+	var item_dicts: Array = []
+	for i in range(paths.size()):
+		var path: String = paths[i]
+		var pos: Vector2 = _grid_position_for_batch(anchor, i, paths.size(), size_v)
+		var d: Dictionary = {
+			"id": Uuid.v4(),
+			"type": ItemRegistry.TYPE_SOUND,
+			"position": [pos.x, pos.y],
+			"display_label": path.get_file(),
+		}
+		_apply_asset_source(d, path, embed, SoundNode.SourceMode.EMBEDDED, SoundNode.SourceMode.LINKED)
+		item_dicts.append(d)
+	if item_dicts.is_empty():
+		return
+	History.push(AddItemsCommand.new(_board_view, item_dicts))
+	_show_toast("info", "Imported %d sound(s)" % item_dicts.size())
+
+
+func _apply_asset_source(d: Dictionary, source_path: String, embed: bool, embedded_mode: int, linked_mode: int) -> void:
+	if embed and AppState.current_project != null:
+		var copied: String = AppState.current_project.copy_asset_into_project(source_path)
+		if copied != "":
+			d["source_mode"] = embedded_mode
+			d["asset_name"] = copied
+			d["source_path"] = ""
+			return
+	d["source_mode"] = linked_mode
+	d["source_path"] = source_path
+	d["asset_name"] = ""
+
+
+func _prompt_embed_choice(prompt: String, on_choice: Callable) -> void:
+	var dlg: MobileEmbedChoiceDialog = EMBED_CHOICE_DIALOG_SCENE.instantiate()
+	add_child(dlg)
+	dlg.configure(prompt)
+	dlg.choice_made.connect(func(embed: bool) -> void: on_choice.call(embed))
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(520, 280)})
+
+
+func _drop_anchor_world() -> Vector2:
+	if _board_view != null:
+		var cam: MobileCameraController = _board_view.camera_node()
+		if cam != null:
+			return cam.position
+	return Vector2.ZERO
+
+
+func _grid_position_for_batch(anchor: Vector2, index: int, count: int, item_size: Vector2) -> Vector2:
+	var clamped_count: int = max(1, count)
+	var cols: int = clampi(clamped_count, 1, IMPORT_BATCH_MAX_COLS)
+	@warning_ignore("integer_division")
+	var row: int = index / cols
+	var col: int = index % cols
+	var rows: int = int(ceil(float(clamped_count) / float(cols)))
+	var total_w: float = float(cols) * (item_size.x + IMPORT_BATCH_GAP) - IMPORT_BATCH_GAP
+	var total_h: float = float(rows) * (item_size.y + IMPORT_BATCH_GAP) - IMPORT_BATCH_GAP
+	var origin_x: float = anchor.x - total_w / 2.0
+	var origin_y: float = anchor.y - total_h / 2.0
+	return Vector2(origin_x + float(col) * (item_size.x + IMPORT_BATCH_GAP), origin_y + float(row) * (item_size.y + IMPORT_BATCH_GAP))
+
+
+func _open_export_dialog() -> void:
+	if AppState.current_project == null or AppState.current_board == null:
+		_show_toast("warning", "Open a board first")
+		return
+	var dlg: MobileExportDialog = EXPORT_DIALOG_SCENE.instantiate()
+	add_child(dlg)
+	dlg.mode_chosen.connect(_on_export_mode_chosen)
+	PopupSizer.popup_fit(dlg, {"preferred": Vector2i(640, 520)})
+
+
+func _on_export_mode_chosen(mode: String) -> void:
+	if AppState.current_project == null or AppState.current_board == null:
+		return
+	if OS.get_name() == "Android":
+		OS.request_permissions()
+	var ext: String = ""
+	var title: String = "Export"
+	match mode:
+		MobileExportDialog.MODE_PNG_CURRENT:
+			ext = "png"; title = "Export current board as PNG"
+		MobileExportDialog.MODE_PNG_UNFOLDED:
+			ext = "png"; title = "Export unfolded as PNG"
+		MobileExportDialog.MODE_SVG:
+			ext = "svg"; title = "Export current board as SVG"
+		MobileExportDialog.MODE_PDF:
+			ext = "pdf"; title = "Export unfolded as PDF"
+		MobileExportDialog.MODE_MARKDOWN:
+			ext = "md"; title = "Export board as Markdown"
+		MobileExportDialog.MODE_HTML:
+			ext = "html"; title = "Export interactive HTML"
+		_:
+			return
+	var board_name: String = AppState.current_board.name
+	if board_name == "":
+		board_name = "board"
+	var default_name: String = "%s.%s" % [board_name.replace(" ", "_"), ext]
+	var filters: PackedStringArray = PackedStringArray(["*.%s ; %s" % [ext, ext.to_upper()]])
+	var saver: MobileFileSaver = MobileFileSaver.new()
+	add_child(saver)
+	saver.save_path_chosen.connect(func(path: String) -> void:
+		_run_export(mode, path)
+		saver.queue_free()
+	)
+	saver.save_cancelled.connect(func() -> void: saver.queue_free())
+	saver.save_error.connect(func(msg: String) -> void:
+		_show_toast("warning", "Save dialog error: %s" % msg)
+		saver.queue_free()
+	)
+	saver.save_as(title, default_name, ext, filters)
+
+
+func _run_export(mode: String, path: String) -> void:
+	if AppState.current_project == null or AppState.current_board == null:
+		_show_toast("warning", "Export failed: no current board")
+		return
+	_board_view.request_save()
+	var board: Board = AppState.current_board
+	push_warning("[MobileExport] mode=%s path=%s items=%d" % [mode, path, board.items.size()])
+	if board.items.is_empty() and mode != MobileExportDialog.MODE_HTML:
+		_show_toast("warning", "Board is empty — nothing to export")
+		return
+	var ok: bool = await _try_export(mode, board, path)
+	push_warning("[MobileExport] primary result mode=%s ok=%s file_exists=%s" % [mode, str(ok), str(FileAccess.file_exists(path))])
+	if ok:
+		_show_toast("info", "Exported to %s" % path.get_file())
+		return
+	var fallback_path: String = _build_fallback_export_path(path)
+	push_warning("[MobileExport] retrying via fallback path: %s" % fallback_path)
+	var fallback_ok: bool = await _try_export(mode, board, fallback_path)
+	push_warning("[MobileExport] fallback result ok=%s file_exists=%s" % [str(fallback_ok), str(FileAccess.file_exists(fallback_path))])
+	if not fallback_ok:
+		_show_toast("warning", "Export failed: %s" % path.get_file())
+		return
+	if _copy_bytes_to_user_path(fallback_path, path):
+		push_warning("[MobileExport] copied fallback bytes to %s" % path)
+		DirAccess.remove_absolute(fallback_path)
+		_show_toast("info", "Exported to %s" % path.get_file())
+		return
+	_show_toast("info", "Saved to app folder — opening share sheet")
+	_share_or_reveal(fallback_path)
+
+
+func _share_or_reveal(absolute_path: String) -> void:
+	if absolute_path == "":
+		return
+	var os_name: String = OS.get_name()
+	if os_name == "Android":
+		var err: Error = OS.shell_open(absolute_path)
+		if err != OK:
+			push_warning("[MobileExport] shell_open failed for %s (err=%d)" % [absolute_path, err])
+		return
+	OS.shell_show_in_file_manager(absolute_path)
+
+
+func _copy_bytes_to_user_path(source_path: String, dest_path: String) -> bool:
+	if not FileAccess.file_exists(source_path):
+		return false
+	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(source_path)
+	if bytes.is_empty():
+		return false
+	var f: FileAccess = FileAccess.open(dest_path, FileAccess.WRITE)
+	if f == null:
+		push_warning("[MobileExport] FileAccess.open failed for %s (err=%d)" % [dest_path, FileAccess.get_open_error()])
+		return false
+	f.store_buffer(bytes)
+	f.close()
+	return FileAccess.file_exists(dest_path) or dest_path.begins_with("content://")
+
+
+func _try_export(mode: String, board: Board, path: String) -> bool:
+	var exporter: BoardExporter = BoardExporter.new(self)
+	match mode:
+		MobileExportDialog.MODE_PNG_CURRENT:
+			return await exporter.export_board(board, path)
+		MobileExportDialog.MODE_PNG_UNFOLDED:
+			return await exporter.export_unfolded(board, AppState.current_project, path)
+		MobileExportDialog.MODE_SVG:
+			return exporter.export_svg(
+				board,
+				_board_view.all_items(),
+				_board_view.get_connections(),
+				AppState.current_project,
+				path,
+			)
+		MobileExportDialog.MODE_PDF:
+			return await exporter.export_pdf(board, AppState.current_project, path)
+		MobileExportDialog.MODE_MARKDOWN:
+			return exporter.export_markdown(board, AppState.current_project, path)
+		MobileExportDialog.MODE_HTML:
+			return exporter.export_html(AppState.current_project, path)
+	return false
+
+
+func _build_fallback_export_path(original_path: String) -> String:
+	var exports_root: String = ProjectSettings.globalize_path("user://exports")
+	if exports_root == "":
+		exports_root = OS.get_user_data_dir().path_join("exports")
+	exports_root = exports_root.replace("\\", "/")
+	if not DirAccess.dir_exists_absolute(exports_root):
+		DirAccess.make_dir_recursive_absolute(exports_root)
+	var file_name: String = original_path.get_file()
+	if file_name == "":
+		file_name = "export.bin"
+	return exports_root.path_join(file_name)

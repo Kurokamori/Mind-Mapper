@@ -4,6 +4,7 @@ extends PanelContainer
 signal text_changed(block_id: String, new_text: String)
 signal indent_requested(block_id: String, delta: int)
 signal delete_requested(block_id: String)
+signal add_child_requested(block_id: String)
 signal image_requested(block_id: String)
 signal link_requested(block_id: String)
 signal follow_link_requested(block_id: String)
@@ -23,8 +24,10 @@ const INDENT_BAR_COLORS: Array = [
 @onready var _indent_spacer: Control = %IndentSpacer
 @onready var _indent_bar: ColorRect = %IndentBar
 @onready var _text_edit: LineEdit = %TextEdit
+@onready var _text_area: TextEdit = %TextArea
 @onready var _outdent_btn: AutomaticButton = %OutdentButton
 @onready var _indent_btn: AutomaticButton = %IndentButton
+@onready var _add_child_btn: AutomaticButton = %AddChildButton
 @onready var _image_btn: AutomaticButton = %ImageButton
 @onready var _image_thumb: TextureRect = %ImageThumb
 @onready var _link_btn: AutomaticButton = %LinkButton
@@ -38,6 +41,7 @@ var block_data: Dictionary = {}
 var highlighted: bool = false
 var palette_bg: Color = ROW_BG_BASE
 var palette_fg: Color = Color(0.95, 0.96, 0.98, 1.0)
+var multiline_text: bool = false
 var _suppress: bool = false
 
 
@@ -49,6 +53,8 @@ func set_palette(bg: Color, fg: Color) -> void:
 	_apply_highlight_style()
 	if _text_edit != null:
 		_text_edit.add_theme_color_override("font_color", fg)
+	if _text_area != null:
+		_text_area.add_theme_color_override("font_color", fg)
 
 
 func bind(stack_item_id: String, data: Dictionary) -> void:
@@ -65,8 +71,13 @@ func _ready() -> void:
 	_text_edit.focus_entered.connect(_on_text_focus_entered)
 	_text_edit.focus_exited.connect(_on_text_focus_exited)
 	_text_edit.gui_input.connect(_on_text_gui_input)
+	_text_area.text_changed.connect(_on_text_area_changed)
+	_text_area.focus_entered.connect(_on_text_focus_entered)
+	_text_area.focus_exited.connect(_on_text_area_focus_exited)
+	_text_area.gui_input.connect(_on_text_area_gui_input)
 	_outdent_btn.pressed.connect(func() -> void: emit_signal("indent_requested", block_id, -1))
 	_indent_btn.pressed.connect(func() -> void: emit_signal("indent_requested", block_id, 1))
+	_add_child_btn.pressed.connect(func() -> void: emit_signal("add_child_requested", block_id))
 	_image_btn.pressed.connect(func() -> void: emit_signal("image_requested", block_id))
 	_link_btn.pressed.connect(_on_link_pressed)
 	_delete_btn.pressed.connect(func() -> void: emit_signal("delete_requested", block_id))
@@ -83,16 +94,27 @@ func _apply_block_data() -> void:
 	if _text_edit == null:
 		return
 	_suppress = true
-	_text_edit.text = String(block_data.get("text", ""))
+	var current_text: String = String(block_data.get("text", ""))
+	_text_edit.text = current_text
+	if _text_area != null:
+		_text_area.text = current_text
 	var indent: int = int(block_data.get("indent_level", 0))
 	indent = clamp(indent, 0, 6)
 	_indent_spacer.custom_minimum_size = Vector2(indent * INDENT_PIXELS_PER_LEVEL, 0)
 	_indent_bar.color = INDENT_BAR_COLORS[indent % INDENT_BAR_COLORS.size()]
+	_apply_multiline_visibility()
 	_apply_image_visual()
 	_apply_link_visual()
 	_apply_highlight_style()
 	_apply_selection_state()
 	_suppress = false
+
+
+func _apply_multiline_visibility() -> void:
+	if _text_edit == null or _text_area == null:
+		return
+	_text_edit.visible = not multiline_text
+	_text_area.visible = multiline_text
 
 
 func set_highlighted(value: bool) -> void:
@@ -109,6 +131,7 @@ func _apply_selection_state() -> void:
 	var show_tools: bool = highlighted
 	_outdent_btn.visible = show_tools
 	_indent_btn.visible = show_tools
+	_add_child_btn.visible = show_tools
 	_link_btn.visible = show_tools
 	_delete_btn.visible = show_tools
 	var has_image: bool = _image_thumb != null and _image_thumb.texture != null
@@ -122,6 +145,10 @@ func _apply_selection_state() -> void:
 			_text_edit.release_focus()
 		_text_edit.deselect()
 		_text_edit.caret_column = 0
+	if not show_tools and _text_area != null:
+		if _text_area.has_focus():
+			_text_area.release_focus()
+		_text_area.deselect()
 
 
 func _apply_highlight_style() -> void:
@@ -135,6 +162,8 @@ func _apply_highlight_style() -> void:
 	add_theme_stylebox_override("panel", sb)
 	if _text_edit != null:
 		_text_edit.add_theme_color_override("font_color", palette_fg)
+	if _text_area != null:
+		_text_area.add_theme_color_override("font_color", palette_fg)
 
 
 func _apply_image_visual() -> void:
@@ -211,6 +240,32 @@ func _on_text_focus_exited() -> void:
 	if _suppress:
 		return
 	emit_signal("text_changed", block_id, _text_edit.text)
+
+
+func _on_text_area_changed() -> void:
+	if _suppress:
+		return
+	emit_signal("text_changed", block_id, _text_area.text)
+
+
+func _on_text_area_focus_exited() -> void:
+	if _suppress:
+		return
+	emit_signal("text_changed", block_id, _text_area.text)
+
+
+func _on_text_area_gui_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed:
+		var k: InputEventKey = event as InputEventKey
+		if k.keycode == KEY_TAB:
+			emit_signal("indent_requested", block_id, -1 if k.shift_pressed else 1)
+			get_viewport().set_input_as_handled()
+		elif (k.ctrl_pressed or k.meta_pressed) and k.keycode == KEY_BRACKETRIGHT:
+			emit_signal("indent_requested", block_id, 1)
+			get_viewport().set_input_as_handled()
+		elif (k.ctrl_pressed or k.meta_pressed) and k.keycode == KEY_BRACKETLEFT:
+			emit_signal("indent_requested", block_id, -1)
+			get_viewport().set_input_as_handled()
 
 
 func _on_text_gui_input(event: InputEvent) -> void:

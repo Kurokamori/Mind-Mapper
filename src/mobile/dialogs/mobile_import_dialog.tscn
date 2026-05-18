@@ -1,0 +1,126 @@
+[gd_scene format=3 uid="uid://b7mobileimpdlg0"]
+
+[ext_resource type="Script" path="res://src/mobile/dialogs/mobile_import_dialog.gd" id="1_mob_imp_dlg"]
+
+[node name="MobileImportDialog" type="Window"]
+title = "Import"
+position = Vector2i(0, 36)
+size = Vector2i(720, 640)
+popup_window = true
+script = ExtResource("1_mob_imp_dlg")
+
+[node name="Root" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Margin" type="MarginContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Column" type="VBoxContainer" parent="Root/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="HeaderLabel" type="Label" parent="Root/Margin/Column"]
+layout_mode = 2
+text = "Choose what to import"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Root/Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ButtonColumn" type="VBoxContainer" parent="Root/Margin/Column/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="MarkdownRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="MarkdownButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/MarkdownRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Markdown Outline"
+alignment = 0
+
+[node name="MarkdownHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/MarkdownRow"]
+layout_mode = 2
+text = "Hierarchical text nodes from .md / .txt"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="JsonRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="JsonButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/JsonRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Project JSON"
+alignment = 0
+
+[node name="JsonHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/JsonRow"]
+layout_mode = 2
+text = "Items & connections from a previously exported .json"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="DocumentRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="DocumentButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/DocumentRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Document(s)"
+alignment = 0
+
+[node name="DocumentHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/DocumentRow"]
+layout_mode = 2
+text = "Convert .md / .txt / .rtf / .docx / .pdf into document nodes"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="ImageRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="ImageButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/ImageRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Image(s)"
+alignment = 0
+
+[node name="ImageHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/ImageRow"]
+layout_mode = 2
+text = "Add one or more images to the board"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="SoundRow" type="VBoxContainer" parent="Root/Margin/Column/Scroll/ButtonColumn"]
+layout_mode = 2
+
+[node name="SoundButton" type="Button" parent="Root/Margin/Column/Scroll/ButtonColumn/SoundRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Sound(s)"
+alignment = 0
+
+[node name="SoundHelp" type="Label" parent="Root/Margin/Column/Scroll/ButtonColumn/SoundRow"]
+layout_mode = 2
+text = "Add one or more audio clips to the board"
+autowrap_mode = 3
+modulate = Color(1, 1, 1, 0.7)
+
+[node name="Footer" type="HBoxContainer" parent="Root/Margin/Column"]
+layout_mode = 2
+alignment = 2
+
+[node name="CloseButton" type="Button" parent="Root/Margin/Column/Footer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"

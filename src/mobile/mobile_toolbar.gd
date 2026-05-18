@@ -23,6 +23,7 @@ const ACTION_FILE_IMPORT: String = "file_import"
 const ACTION_FILE_EXPORT: String = "file_export"
 const ACTION_OPEN_THEME: String = "open_theme"
 const ACTION_OPEN_KEYBINDINGS: String = "open_keybindings"
+const ACTION_OPEN_MULTIPLAYER: String = "open_multiplayer"
 
 const GROUP_NONE: String = ""
 const GROUP_VIEW: String = "view"
@@ -41,6 +42,7 @@ const DRAW_TOOL_PICK: String = "pick"
 @onready var _maps_button: Button = %MapsButton
 @onready var _comments_button: Button = %CommentsButton
 @onready var _edit_button: Button = %EditButton
+@onready var _multiplayer_button: Button = %MultiplayerButton
 @onready var _outliner_button: Button = %OutlinerButton
 @onready var _title_label: Label = %TitleLabel
 @onready var _subtitle_label: Label = %SubtitleLabel
@@ -84,6 +86,7 @@ func _ready() -> void:
 	_comments_button.pressed.connect(func() -> void: action_requested.emit(ACTION_TOGGLE_COMMENTS, null))
 	_outliner_button.pressed.connect(func() -> void: action_requested.emit(ACTION_TOGGLE_OUTLINER, null))
 	_edit_button.pressed.connect(func() -> void: action_requested.emit(ACTION_TOGGLE_EDIT, null))
+	_multiplayer_button.pressed.connect(func() -> void: action_requested.emit(ACTION_OPEN_MULTIPLAYER, null))
 
 	_view_group_button.toggled.connect(func(p: bool) -> void: _on_group_toggled(GROUP_VIEW, p))
 	_draw_group_button.toggled.connect(func(p: bool) -> void: _on_group_toggled(GROUP_DRAW, p))

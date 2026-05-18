@@ -57,6 +57,14 @@ visible = false
 theme_type_variation = &"AccentButton"
 text = "Join Live"
 
+[node name="BroadcastButton" type="Button" parent="Margin/VBox/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+theme_type_variation = &"GhostButton"
+tooltip_text = "Broadcast this project to phones on the LAN (no full multiplayer session)."
+text = "Broadcast"
+
 [node name="HostButton" type="Button" parent="Margin/VBox/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2

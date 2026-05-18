@@ -45,7 +45,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Scroll" type="ScrollContainer" parent="Root/OuterMargin/MainVBox/Tabs/Theme"]
 layout_mode = 2
-horizontal_scroll_mode = 0
+horizontal_scroll_mode = 3
 
 [node name="ThemeBox" type="VBoxContainer" parent="Root/OuterMargin/MainVBox/Tabs/Theme/Scroll" unique_id=731710163]
 layout_mode = 2
@@ -187,7 +187,7 @@ text = "Background color"
 
 [node name="BoardBgColorPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Theme/Scroll/ThemeBox/BoardBgColorRow" unique_id=1292173763]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 edit_alpha = false
 
@@ -206,7 +206,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Scroll" type="ScrollContainer" parent="Root/OuterMargin/MainVBox/Tabs/Fonts"]
 layout_mode = 2
-horizontal_scroll_mode = 0
+horizontal_scroll_mode = 3
 
 [node name="FontsBox" type="VBoxContainer" parent="Root/OuterMargin/MainVBox/Tabs/Fonts/Scroll"]
 layout_mode = 2
@@ -436,7 +436,7 @@ theme_override_constants/margin_bottom = 16
 
 [node name="Scroll" type="ScrollContainer" parent="Root/OuterMargin/MainVBox/Tabs/Palette"]
 layout_mode = 2
-horizontal_scroll_mode = 0
+horizontal_scroll_mode = 3
 
 [node name="CustomPaletteSection" type="VBoxContainer" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll" unique_id=7192590]
 unique_name_in_owner = true
@@ -467,7 +467,7 @@ text = "Background"
 
 [node name="BgPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/AppPaletteGroup/AppPaletteGrid" unique_id=293020232]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="FgLabel" type="Label" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/AppPaletteGroup/AppPaletteGrid" unique_id=767935893]
@@ -477,7 +477,7 @@ text = "Foreground / text"
 
 [node name="FgPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/AppPaletteGroup/AppPaletteGrid" unique_id=1673132538]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="PanelLabel" type="Label" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/AppPaletteGroup/AppPaletteGrid" unique_id=671557335]
@@ -487,7 +487,7 @@ text = "Panel surface"
 
 [node name="PanelPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/AppPaletteGroup/AppPaletteGrid" unique_id=1301676307]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="SubtleLabel" type="Label" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/AppPaletteGroup/AppPaletteGrid" unique_id=2130276978]
@@ -497,7 +497,7 @@ text = "Border / subtle"
 
 [node name="SubtlePicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/AppPaletteGroup/AppPaletteGrid" unique_id=227037872]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="NodePaletteGroup" type="VBoxContainer" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection" unique_id=7192594]
@@ -523,7 +523,7 @@ text = "Node background"
 
 [node name="NodeBgPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=616128066]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="NodeFgLabel" type="Label" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=1517989182]
@@ -533,7 +533,7 @@ text = "Node text"
 
 [node name="NodeFgPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=192409327]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="NodeHeadingBgLabel" type="Label" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=70523954]
@@ -543,7 +543,7 @@ text = "Node heading bg"
 
 [node name="NodeHeadingBgPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=1204580575]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="NodeHeadingFgLabel" type="Label" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=781665396]
@@ -553,7 +553,7 @@ text = "Node heading text"
 
 [node name="NodeHeadingFgPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=1752957115]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="IconColorLabel" type="Label" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=8821001]
@@ -563,7 +563,7 @@ text = "Icon color"
 
 [node name="IconColorPicker" type="ColorPickerButton" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup/NodePaletteGrid" unique_id=8821002]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 28)
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 
 [node name="PerTypeHeadingsButton" type="Button" parent="Root/OuterMargin/MainVBox/Tabs/Palette/Scroll/CustomPaletteSection/NodePaletteGroup" unique_id=1830200001]

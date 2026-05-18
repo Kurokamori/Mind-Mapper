@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://ccrb7o5fcusej" path="res://assets/ui/icons/delete.png" id="3_delete"]
 [ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="4_effect"]
 [ext_resource type="Texture2D" uid="uid://micotolkmugb" path="res://assets/ui/icons/indent.png" id="5_7giu7"]
+[ext_resource type="Texture2D" uid="uid://bfp3f5b8uajo7" path="res://assets/ui/icons/add.png" id="5_addch"]
 [ext_resource type="Texture2D" uid="uid://caknpr87gixcw" path="res://assets/ui/icons/image.png" id="6_6j7g0"]
 [ext_resource type="Texture2D" uid="uid://ceu7aophrlvou" path="res://assets/ui/icons/link.png" id="7_7c4fu"]
 
@@ -108,6 +109,17 @@ layout_mode = 2
 size_flags_horizontal = 3
 placeholder_text = "Block text"
 flat = true
+
+[node name="TextArea" type="TextEdit" parent="HBox" unique_id=1331640051]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(80, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+placeholder_text = "Block text"
+wrap_mode = 1
+scroll_fit_content_height = true
 
 [node name="OutdentButton" parent="HBox" unique_id=2108768002 instance=ExtResource("2_ab")]
 unique_name_in_owner = true
@@ -262,6 +274,86 @@ shortcut = null
 shortcut_feedback = true
 shortcut_in_tooltip = true
 texture = ExtResource("5_7giu7")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_blfnr")
+effect_hover = SubResource("Resource_vj24b")
+effect_pressed = SubResource("Resource_ele7i")
+effect_disabled = SubResource("Resource_k2s3a")
+effect_focused = SubResource("Resource_x486s")
+
+[node name="AddChildButton" parent="HBox" unique_id=1729384650 instance=ExtResource("2_ab")]
+unique_name_in_owner = true
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 2
+auto_translate_mode = 0
+editor_description = ""
+visible = true
+modulate = Color(1, 1, 1, 1)
+self_modulate = Color(1, 1, 1, 1)
+show_behind_parent = false
+top_level = false
+clip_children = 0
+light_mask = 1
+visibility_layer = 1
+z_index = 0
+z_as_relative = true
+y_sort_enabled = false
+texture_filter = 0
+texture_repeat = 0
+material = null
+use_parent_material = false
+clip_contents = false
+custom_minimum_size = Vector2(32, 32)
+layout_direction = 0
+layout_mode = 2
+size_flags_horizontal = 1
+size_flags_vertical = 1
+size_flags_stretch_ratio = 1.0
+offset_transform_enabled = false
+offset_transform_position = Vector2(0, 0)
+offset_transform_position_ratio = Vector2(0, 0)
+offset_transform_scale = Vector2(1, 1)
+offset_transform_rotation = 0.0
+offset_transform_pivot = Vector2(0, 0)
+offset_transform_pivot_ratio = Vector2(0.5, 0.5)
+offset_transform_visual_only = true
+localize_numeral_system = true
+tooltip_text = "Add child block"
+tooltip_auto_translate_mode = 0
+focus_neighbor_left = NodePath("")
+focus_neighbor_top = NodePath("")
+focus_neighbor_right = NodePath("")
+focus_neighbor_bottom = NodePath("")
+focus_next = NodePath("")
+focus_previous = NodePath("")
+focus_behavior_recursive = 0
+mouse_filter = 0
+mouse_behavior_recursive = 0
+mouse_force_pass_scroll_events = true
+mouse_default_cursor_shape = 0
+accessibility_name = ""
+accessibility_description = ""
+accessibility_live = 0
+accessibility_controls_nodes = Array[NodePath]([])
+accessibility_described_by_nodes = Array[NodePath]([])
+accessibility_labeled_by_nodes = Array[NodePath]([])
+accessibility_flow_to_nodes = Array[NodePath]([])
+theme = null
+theme_type_variation = &""
+disabled = false
+toggle_mode = false
+button_pressed = false
+action_mode = 1
+button_mask = 1
+keep_pressed_outside = false
+button_group = null
+shortcut = null
+shortcut_feedback = true
+shortcut_in_tooltip = true
+texture = ExtResource("5_addch")
 use_theme_icon_color = true
 effect_normal = SubResource("Resource_blfnr")
 effect_hover = SubResource("Resource_vj24b")

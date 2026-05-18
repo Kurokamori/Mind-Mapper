@@ -3,6 +3,45 @@
 [ext_resource type="Script" uid="uid://bfn1xpj1fcr8m" path="res://src/project_manager/project_manager_screen.gd" id="1_pms"]
 [ext_resource type="PackedScene" uid="uid://b8mphost0001" path="res://src/multiplayer/dialogs/host_session_dialog.tscn" id="2_pms_host"]
 [ext_resource type="PackedScene" uid="uid://b8mpjoin0001" path="res://src/multiplayer/dialogs/join_session_dialog.tscn" id="3_pms_join"]
+[ext_resource type="PackedScene" uid="uid://cdtoplanbrowser" path="res://src/mobile/sync/desktop_lan_browser_panel.tscn" id="7_pms_lan_browser"]
+[ext_resource type="PackedScene" uid="uid://cc5n6ywym6xos" path="res://src/util/automatic_buttons/automatic_menu_button.tscn" id="4_pms_ambtn"]
+[ext_resource type="Texture2D" uid="uid://dy00uw1lpectl" path="res://assets/ui/icons/settings.png" id="5_pms_settings_icon"]
+[ext_resource type="Script" uid="uid://vdmsgcmiotrs" path="res://src/util/automatic_buttons/automatic_button_state_effect.gd" id="6_pms_effect"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_pms_flat"]
+
+[sub_resource type="Resource" id="Resource_pms_normal"]
+script = ExtResource("6_pms_effect")
+
+[sub_resource type="Resource" id="Resource_pms_hover"]
+script = ExtResource("6_pms_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
+
+[sub_resource type="Resource" id="Resource_pms_pressed"]
+script = ExtResource("6_pms_effect")
+translate = Vector2(0, 2)
+saturation_mul = 1.3
+luminosity_mul = 0.85
+outline_size = 5.0
+outline_color = Color(1, 0.55, 0.1, 1)
+
+[sub_resource type="Resource" id="Resource_pms_disabled"]
+script = ExtResource("6_pms_effect")
+saturation_mul = 0.2
+
+[sub_resource type="Resource" id="Resource_pms_focused"]
+script = ExtResource("6_pms_effect")
+translate = Vector2(0, -1)
+scale = Vector2(1.02, 1.02)
+saturation_mul = 1.2
+luminosity_mul = 1.15
+outline_size = 5.0
+outline_color = Color(1, 0.95, 0.2, 1)
 
 [node name="ProjectManagerScreen" type="Control" unique_id=1810215280]
 layout_mode = 3
@@ -101,6 +140,41 @@ layout_mode = 2
 theme_type_variation = &"GhostButton"
 text = "Join Session"
 
+[node name="SettingsSpacer" type="Control" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/Actions" unique_id=1209839787]
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="SettingsButton" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/Actions" unique_id=1209839788 instance=ExtResource("4_pms_ambtn")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(40, 40)
+layout_mode = 2
+tooltip_text = "Settings"
+theme_override_colors/font_color = Color(0, 0, 0, 0)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/font_disabled_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_normal_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_focus_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_pressed_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_hover_color = Color(0, 0, 0, 0)
+theme_override_colors/icon_disabled_color = Color(0, 0, 0, 0)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_pms_flat")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_pms_flat")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_pms_flat")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_pms_flat")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_pms_flat")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_pms_flat")
+texture = ExtResource("5_pms_settings_icon")
+use_theme_icon_color = true
+effect_normal = SubResource("Resource_pms_normal")
+effect_hover = SubResource("Resource_pms_hover")
+effect_pressed = SubResource("Resource_pms_pressed")
+effect_disabled = SubResource("Resource_pms_disabled")
+effect_focused = SubResource("Resource_pms_focused")
+
 [node name="DividerSpacer" type="Control" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=1209839782]
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
@@ -112,6 +186,7 @@ theme_type_variation = &"SectionHeader"
 text = "RECENT PROJECTS"
 
 [node name="Scroll" type="ScrollContainer" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=1259681053]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -130,6 +205,38 @@ layout_mode = 2
 theme_type_variation = &"MutedLabel"
 text = "No recent projects yet. Click \"+ New Project\" to begin."
 horizontal_alignment = 1
+
+[node name="RemoteSectionHeader" type="Label" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=2090480899]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"SectionHeader"
+text = "AVAILABLE BROADCASTS"
+visible = false
+
+[node name="RemoteBrowser" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" instance=ExtResource("7_pms_lan_browser")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+visible = false
+
+[node name="BroadcastsToggleRow" type="HBoxContainer" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox" unique_id=1209840000]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 0
+
+[node name="BroadcastsIndicator" type="Label" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/BroadcastsToggleRow" unique_id=1209840001]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 18
+text = "●"
+
+[node name="BroadcastsToggleButton" type="Button" parent="CenterMargin/ContentLimit/ContentPanel/Margins/VBox/BroadcastsToggleRow" unique_id=1209840002]
+unique_name_in_owner = true
+layout_mode = 2
+flat = true
+text = "0 available projects on your network"
 
 [node name="CreateDialog" type="FileDialog" parent="." unique_id=1058513665]
 unique_name_in_owner = true

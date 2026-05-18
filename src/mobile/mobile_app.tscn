@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://dt7vfcyl3pqki" path="res://src/mobile/viewer/mobile_viewport_background.gd" id="10_mapp_bgfit"]
 [ext_resource type="PackedScene" path="res://src/mobile/mobile_edit_action_bar.tscn" id="11_mapp_eab"]
 [ext_resource type="PackedScene" uid="uid://b1mobilesafearea" path="res://src/mobile/mobile_safe_area.tscn" id="12_mapp_safe"]
+[ext_resource type="PackedScene" uid="uid://dlmloadingview01" path="res://src/util/loading_view.tscn" id="15_mapp_loading"]
 
 [node name="MobileApp" type="Control" unique_id=1351488447]
 layout_mode = 3
@@ -190,4 +191,10 @@ grow_vertical = 2
 layer = 100
 
 [node name="SafeArea" parent="SafeAreaLayer" unique_id=1812044832 instance=ExtResource("12_mapp_safe")]
+unique_name_in_owner = true
+
+[node name="LoadingLayer" type="CanvasLayer" parent="." unique_id=1812044833]
+layer = 200
+
+[node name="LoadingView" parent="LoadingLayer" unique_id=1812044834 instance=ExtResource("15_mapp_loading")]
 unique_name_in_owner = true

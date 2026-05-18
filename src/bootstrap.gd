@@ -6,20 +6,44 @@ const PROJECT_MANAGER_SCENE := preload("res://src/project_manager/project_manage
 const EDITOR_SCENE := preload("res://src/editor/editor.tscn")
 const TILEMAP_EDITOR_SCENE := preload("res://src/tilemap/tilemap_editor.tscn")
 const MOBILE_APP_SCENE := preload("res://src/mobile/mobile_app.tscn")
+const LOADING_VIEW_SCENE: PackedScene = preload("res://src/util/loading_view.tscn")
 const MOBILE_CLI_FLAG: String = "--mobile"
 const MOBILE_ENV_VAR: String = "MM_MOBILE"
 
 var _current: Node = null
+var _loading_view: LoadingView = null
 
 
 func _ready() -> void:
 	get_tree().set_auto_accept_quit(false)
 	AppState.current_page_kind_changed.connect(_on_page_kind_changed)
+	_install_loading_view()
 	if _is_mobile_runtime():
 		_apply_mobile_window_mode()
 		_show_mobile_app()
 		return
 	_show_splash()
+
+
+func _install_loading_view() -> void:
+	_loading_view = LOADING_VIEW_SCENE.instantiate() as LoadingView
+	add_child(_loading_view)
+	_loading_view.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+func show_loading(title: String, subtitle: String = "") -> void:
+	if _loading_view != null:
+		_loading_view.show_loading(title, subtitle)
+
+
+func update_loading_subtitle(subtitle: String) -> void:
+	if _loading_view != null and _loading_view.is_active():
+		_loading_view.set_subtitle(subtitle)
+
+
+func hide_loading() -> void:
+	if _loading_view != null:
+		_loading_view.hide_loading()
 
 
 func _apply_mobile_window_mode() -> void:
@@ -58,6 +82,8 @@ func _notification(what: int) -> void:
 
 
 func _shutdown_and_quit() -> void:
+	if MultiplayerService != null and MultiplayerService.has_method("leave_session"):
+		MultiplayerService.leave_session()
 	if _current != null:
 		var parent: Node = _current.get_parent()
 		if parent != null:
@@ -76,7 +102,13 @@ func _show_splash() -> void:
 func _show_project_manager() -> void:
 	_replace_with(PROJECT_MANAGER_SCENE.instantiate())
 	if _current is ProjectManagerScreen:
-		(_current as ProjectManagerScreen).project_chosen.connect(_on_project_chosen)
+		var pm: ProjectManagerScreen = _current as ProjectManagerScreen
+		pm.project_chosen.connect(_on_project_chosen)
+		pm.loading_requested.connect(_on_pm_loading_requested)
+
+
+func _on_pm_loading_requested(title: String, subtitle: String) -> void:
+	show_loading(title, subtitle)
 
 
 func _show_editor_for_current_kind() -> void:
@@ -116,13 +148,22 @@ func _on_splash_finished() -> void:
 
 
 func _on_project_chosen(project: Project) -> void:
+	var project_name: String = project.name if project != null else "project"
+	show_loading("Opening %s…" % project_name, "Loading boards and items")
+	await get_tree().process_frame
 	AppState.open_project(project)
 	_show_editor_for_current_kind()
+	await get_tree().process_frame
+	hide_loading()
 
 
 func _on_back_to_projects() -> void:
+	show_loading("Returning to projects…", "")
+	await get_tree().process_frame
 	AppState.close_project()
 	_show_project_manager()
+	await get_tree().process_frame
+	hide_loading()
 
 
 func _on_page_kind_changed(_kind: String) -> void:

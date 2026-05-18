@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://src/mobile/picker/mobile_lan_host_row.gd" id="1_mlhr_script"]
 
 [node name="MobileLanHostRow" type="PanelContainer"]
-custom_minimum_size = Vector2(0, 76)
+custom_minimum_size = Vector2(0, 92)
 script = ExtResource("1_mlhr_script")
 
 [node name="Row" type="HBoxContainer" parent="."]
@@ -23,7 +23,34 @@ text = ""
 theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.7, 0.78, 0.9, 1)
 
-[node name="LanHostPullButton" type="Button" parent="Row"]
+[node name="LanHostLocalLabel" type="Label" parent="Row/LabelsColumn"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(80, 56)
+text = ""
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.6, 0.78, 0.65, 1)
+visible = false
+
+[node name="ButtonsColumn" type="VBoxContainer" parent="Row"]
+theme_override_constants/separation = 4
+
+[node name="LanHostPullButton" type="Button" parent="Row/ButtonsColumn"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 32)
 text = "Pull"
+
+[node name="ActionRow" type="HBoxContainer" parent="Row/ButtonsColumn"]
+theme_override_constants/separation = 4
+
+[node name="LanHostPushButton" type="Button" parent="Row/ButtonsColumn/ActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 30)
+size_flags_horizontal = 3
+text = "Push"
+disabled = true
+
+[node name="LanHostSyncButton" type="Button" parent="Row/ButtonsColumn/ActionRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 30)
+size_flags_horizontal = 3
+text = "Sync"
+disabled = true

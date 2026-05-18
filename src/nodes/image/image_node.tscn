@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c8yuw8rrw8vrf" path="res://src/nodes/image/image_node.gd" id="1_image"]
 
 [node name="ImageNode" type="Control" unique_id=257576942]
-custom_minimum_size = Vector2(120, 90)
+custom_minimum_size = Vector2(48, 32)
 layout_mode = 3
 anchors_preset = 0
 mouse_filter = 1

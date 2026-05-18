@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://b1mobnloct"]
+
+[ext_resource type="Script" path="res://src/mobile/viewer/mobile_nodes_lock_toggle.gd" id="1_mnlt_script"]
+
+[node name="MobileNodesLockToggle" type="PanelContainer"]
+custom_minimum_size = Vector2(160, 56)
+theme_type_variation = &"ZoomOverlayPanel"
+script = ExtResource("1_mnlt_script")
+
+[node name="NodesLockButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(152, 56)
+theme_type_variation = &"MobileButton"

@@ -34,6 +34,7 @@ static func entries() -> Array:
 		[ItemRegistry.TYPE_URL, "URL Bookmark", "res://assets/ui/icons/link.png"],
 		[SEPARATOR_TOKEN, "", ""],
 		[ItemRegistry.TYPE_PRIMITIVE, "Primitive Shape", "res://assets/ui/icons/primitive-shape.png"],
+		[ItemRegistry.TYPE_CONNECTOR, "Line / Arrow", "res://assets/ui/icons/primitive-shape.png"],
 		[ItemRegistry.TYPE_GROUP, "Group Frame", "res://assets/ui/icons/group.png"],
 		[ItemRegistry.TYPE_TIMER, "Timer", "res://assets/ui/icons/callander.png"],
 		[SEPARATOR_TOKEN, "", ""],

@@ -7,7 +7,7 @@ const ENVELOPE_PADDING: float = 12.0
 const LEGACY_DEFAULT_BG: Color = Color(0.32, 0.18, 0.42, 0.55)
 const LEGACY_DEFAULT_TITLE_BG: Color = Color(0.32, 0.18, 0.42, 1.0)
 const LEGACY_DEFAULT_TITLE_FG: Color = Color(0.97, 0.97, 0.99, 1.0)
-const BODY_ALPHA: float = 0.55
+const BODY_ALPHA: float = 0.65
 
 @export var title: String = "Group"
 @export var bg_color: Color = Color(0, 0, 0, 0)
@@ -167,12 +167,7 @@ func _on_selection_changed(selected: Array) -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(self)
 
 
 func _gui_input(event: InputEvent) -> void:

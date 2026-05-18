@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://b1mobvmtog"]
+
+[ext_resource type="Script" path="res://src/mobile/viewer/mobile_view_mode_toggle.gd" id="1_mvmt_script"]
+
+[node name="MobileViewModeToggle" type="PanelContainer"]
+custom_minimum_size = Vector2(140, 56)
+theme_type_variation = &"ZoomOverlayPanel"
+script = ExtResource("1_mvmt_script")
+
+[node name="ViewModeToggleButton" type="Button" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(132, 56)
+theme_type_variation = &"MobileButton"
+text = "Enable Edit"

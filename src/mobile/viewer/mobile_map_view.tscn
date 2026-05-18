@@ -1,38 +1,41 @@
 [gd_scene format=3 uid="uid://b1mobilemap"]
 
-[ext_resource type="Script" path="res://src/mobile/viewer/mobile_map_view.gd" id="1_mmv_script"]
-[ext_resource type="Script" path="res://src/mobile/viewer/mobile_camera_controller.gd" id="2_mmv_cam"]
+[ext_resource type="Script" uid="uid://d4borpngvwwfn" path="res://src/mobile/viewer/mobile_map_view.gd" id="1_mmv_script"]
+[ext_resource type="Script" uid="uid://cy6db85x3snpk" path="res://src/mobile/viewer/mobile_camera_controller.gd" id="2_mmv_cam"]
 
-[node name="MobileMapView" type="Control"]
+[node name="MobileMapView" type="Control" unique_id=1144436280]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_mmv_script")
 
-[node name="BackgroundCanvas" type="CanvasLayer" parent="."]
+[node name="BackgroundCanvas" type="CanvasLayer" parent="." unique_id=1338610158]
 layer = -50
 
-[node name="MapBackground" type="ColorRect" parent="BackgroundCanvas"]
+[node name="MapBackground" type="ColorRect" parent="BackgroundCanvas" unique_id=1785566109]
 unique_name_in_owner = true
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
-color = Color(0.08, 0.08, 0.10, 1)
+color = Color(0.08, 0.08, 0.1, 1)
 
-[node name="World" type="Node2D" parent="."]
+[node name="World" type="Node2D" parent="." unique_id=721216319]
 unique_name_in_owner = true
 
-[node name="Camera" type="Camera2D" parent="World"]
+[node name="Camera" type="Camera2D" parent="World" unique_id=927305974]
 unique_name_in_owner = true
 script = ExtResource("2_mmv_cam")
 
-[node name="LayersRoot" type="Node2D" parent="World"]
+[node name="LayersRoot" type="Node2D" parent="World" unique_id=420454867]
 unique_name_in_owner = true
 
-[node name="ObjectsRoot" type="Control" parent="World"]
+[node name="ObjectsRoot" type="Control" parent="World" unique_id=42761303]
 unique_name_in_owner = true
-mouse_filter = 2
+layout_mode = 3
 anchors_preset = 0
+mouse_filter = 2

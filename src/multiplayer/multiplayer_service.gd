@@ -19,6 +19,8 @@ signal merge_report_fully_rolled_back(report_id: String)
 signal chat_message_received(entry: Dictionary)
 signal chat_history_cleared()
 signal live_stroke_received(stable_id: String, payload: Dictionary)
+signal direct_join_bootstrap_ready(project: Project, adapter_kind: String, connect_info: Dictionary)
+signal direct_join_failed(reason: String)
 
 const STATE_IDLE: int = 0
 const STATE_HOSTING: int = 1
@@ -76,6 +78,16 @@ var _merge_session: MergeSession = null
 var _host_merge_ledger: Dictionary = {}
 var _suppress_local_op_broadcast: bool = false
 var _chat_history: Array = []
+var _direct_probe_active: bool = false
+var _direct_probe_kind: String = ""
+var _direct_probe_connect_info: Dictionary = {}
+var _direct_probe_timeout_timer: Timer = null
+var _last_session_role: String = ""
+var _last_session_adapter_kind: String = ""
+var _last_session_settings: Dictionary = {}
+var _last_session_connect_info: Dictionary = {}
+
+const DIRECT_PROBE_TIMEOUT_SECONDS: float = 10.0
 
 
 func _ready() -> void:
@@ -98,6 +110,12 @@ func _ready() -> void:
 	_scrub_timer.autostart = false
 	_scrub_timer.timeout.connect(_on_presence_scrub)
 	add_child(_scrub_timer)
+	_direct_probe_timeout_timer = Timer.new()
+	_direct_probe_timeout_timer.wait_time = DIRECT_PROBE_TIMEOUT_SECONDS
+	_direct_probe_timeout_timer.one_shot = true
+	_direct_probe_timeout_timer.autostart = false
+	_direct_probe_timeout_timer.timeout.connect(_on_direct_probe_timeout)
+	add_child(_direct_probe_timeout_timer)
 	AppState.project_opened.connect(_on_project_opened)
 	AppState.project_closed.connect(_on_project_closed)
 	AppState.current_board_changed.connect(_on_board_changed)
@@ -106,7 +124,7 @@ func _ready() -> void:
 
 
 func _register_adapters() -> void:
-	for name: String in [NetworkAdapter.ADAPTER_KIND_ENET, NetworkAdapter.ADAPTER_KIND_LAN, NetworkAdapter.ADAPTER_KIND_STEAM]:
+	for name: String in [NetworkAdapter.ADAPTER_KIND_ENET, NetworkAdapter.ADAPTER_KIND_LAN, NetworkAdapter.ADAPTER_KIND_STEAM, NetworkAdapter.ADAPTER_KIND_WEBRTC]:
 		var adapter: NetworkAdapter = _build_adapter(name)
 		if adapter != null:
 			adapter.name = "Adapter_%s" % name
@@ -129,6 +147,8 @@ func _build_adapter(kind: String) -> NetworkAdapter:
 			return LanAdapter.new()
 		NetworkAdapter.ADAPTER_KIND_STEAM:
 			return SteamAdapter.new()
+		NetworkAdapter.ADAPTER_KIND_WEBRTC:
+			return WebRTCAdapter.new()
 	return null
 
 
@@ -141,6 +161,16 @@ func adapter_kinds() -> Array[String]:
 
 func adapter_for(kind: String) -> NetworkAdapter:
 	return _adapters.get(kind, null)
+
+
+func current_webrtc_room_code() -> String:
+	if _active_adapter == null:
+		return ""
+	if _active_adapter.adapter_kind() != NetworkAdapter.ADAPTER_KIND_WEBRTC:
+		return ""
+	if not (_active_adapter is WebRTCAdapter):
+		return ""
+	return (_active_adapter as WebRTCAdapter).current_room_code()
 
 
 func is_adapter_available(kind: String) -> bool:
@@ -313,6 +343,10 @@ func host_session(adapter_kind: String, settings: Dictionary) -> Error:
 		return err
 	_register_local_in_session()
 	_start_session_timers()
+	_last_session_role = "host"
+	_last_session_adapter_kind = adapter_kind
+	_last_session_settings = settings.duplicate(true)
+	_last_session_connect_info = {}
 	return OK
 
 
@@ -329,13 +363,19 @@ func join_session(adapter_kind: String, connect_info: Dictionary) -> Error:
 	if err != OK:
 		_set_state(STATE_ERROR)
 		return err
+	_last_session_role = "join"
+	_last_session_adapter_kind = adapter_kind
+	_last_session_settings = {}
+	_last_session_connect_info = connect_info.duplicate(true)
 	return OK
 
 
-func leave_session() -> void:
+func leave_session(clear_resume_state: bool = true) -> void:
 	if _leaving_session:
 		return
 	_leaving_session = true
+	if clear_resume_state:
+		clear_resumable_session()
 	var adapter: NetworkAdapter = _active_adapter
 	_active_adapter = null
 	if adapter != null:
@@ -362,6 +402,52 @@ func leave_session() -> void:
 	notify_permissions_maybe_changed()
 	clear_chat_history()
 	_leaving_session = false
+
+
+func has_resumable_session() -> bool:
+	if _last_session_role == "":
+		return false
+	if _last_session_adapter_kind == "":
+		return false
+	if _last_session_role == "host":
+		return not _last_session_settings.is_empty()
+	if _last_session_role == "join":
+		return not _last_session_connect_info.is_empty()
+	return false
+
+
+func last_session_adapter_kind() -> String:
+	return _last_session_adapter_kind
+
+
+func resumable_role() -> String:
+	return _last_session_role
+
+
+func connected_remote_peer_count() -> int:
+	return _peers_by_network_id.size()
+
+
+func clear_resumable_session() -> void:
+	_last_session_role = ""
+	_last_session_adapter_kind = ""
+	_last_session_settings.clear()
+	_last_session_connect_info.clear()
+
+
+func reconnect_session() -> Error:
+	if not has_resumable_session():
+		return ERR_UNAVAILABLE
+	var role: String = _last_session_role
+	var adapter_kind: String = _last_session_adapter_kind
+	var settings: Dictionary = _last_session_settings.duplicate(true)
+	var connect_info: Dictionary = _last_session_connect_info.duplicate(true)
+	leave_session(false)
+	if role == "host":
+		return host_session(adapter_kind, settings)
+	if role == "join":
+		return join_session(adapter_kind, connect_info)
+	return ERR_UNAVAILABLE
 
 
 func discover_lobbies(adapter_kind: String, filter: Dictionary) -> Error:
@@ -767,6 +853,103 @@ func set_pending_auto_host(adapter_kind: String, settings: Dictionary) -> void:
 	_pending_auto_join = {}
 
 
+func begin_direct_join_probe(adapter_kind: String, connect_info: Dictionary) -> Error:
+	if _direct_probe_active:
+		return ERR_BUSY
+	var adapter: NetworkAdapter = _adapters.get(adapter_kind, null)
+	if adapter == null or not adapter.is_available():
+		return ERR_UNAVAILABLE
+	if is_in_session():
+		leave_session()
+	_direct_probe_active = true
+	_direct_probe_kind = adapter_kind
+	_direct_probe_connect_info = connect_info.duplicate(true)
+	var err: Error = join_session(adapter_kind, connect_info)
+	if err != OK:
+		_clear_direct_probe_state()
+		return err
+	_direct_probe_timeout_timer.start()
+	return OK
+
+
+func is_direct_join_probe_active() -> bool:
+	return _direct_probe_active
+
+
+func cancel_direct_join_probe() -> void:
+	if not _direct_probe_active:
+		return
+	_clear_direct_probe_state()
+	if is_in_session() or _state == STATE_JOINING:
+		leave_session()
+
+
+func _clear_direct_probe_state() -> void:
+	_direct_probe_active = false
+	_direct_probe_kind = ""
+	_direct_probe_connect_info = {}
+	if _direct_probe_timeout_timer != null:
+		_direct_probe_timeout_timer.stop()
+
+
+func _finish_direct_join_probe(hello_ack: Dictionary) -> void:
+	var project_manifest_raw: Variant = hello_ack.get("project_manifest", null)
+	if typeof(project_manifest_raw) != TYPE_DICTIONARY:
+		_clear_direct_probe_state()
+		leave_session()
+		emit_signal("direct_join_failed", "Host did not provide a project manifest.")
+		return
+	var project: Project = _bootstrap_project_from_manifest(project_manifest_raw)
+	if project == null:
+		_clear_direct_probe_state()
+		leave_session()
+		emit_signal("direct_join_failed", "Could not bootstrap local project from host data.")
+		return
+	var saved_kind: String = _direct_probe_kind
+	var saved_connect_info: Dictionary = _direct_probe_connect_info.duplicate(true)
+	_clear_direct_probe_state()
+	leave_session()
+	emit_signal("direct_join_bootstrap_ready", project, saved_kind, saved_connect_info)
+
+
+func _on_direct_probe_timeout() -> void:
+	if not _direct_probe_active:
+		return
+	_clear_direct_probe_state()
+	if is_in_session() or _state == STATE_JOINING:
+		leave_session()
+	emit_signal("direct_join_failed", "Timed out waiting for host response.")
+
+
+func _bootstrap_project_from_manifest(project_manifest: Dictionary) -> Project:
+	var project_id: String = String(project_manifest.get("id", ""))
+	if project_id == "":
+		return null
+	var project_name: String = String(project_manifest.get("name", "Shared Project"))
+	var root_board_id: String = String(project_manifest.get("root_board_id", ""))
+	for rec_v: Variant in ProjectStore.recent():
+		if typeof(rec_v) != TYPE_DICTIONARY:
+			continue
+		var rec: Dictionary = rec_v
+		if String(rec.get("id", "")) == project_id:
+			var folder_path: String = String(rec.get("folder_path", ""))
+			if folder_path == "":
+				continue
+			var existing: Project = Project.load_from_folder(folder_path)
+			if existing != null:
+				return existing
+	var safe_name: String = project_name.strip_edges().replace("/", "_").replace("\\", "_").replace(":", "_")
+	if safe_name == "":
+		safe_name = "Shared"
+	var short_id: String = project_id.substr(0, 8) if project_id.length() >= 8 else project_id
+	var folder_user: String = "user://received_projects/%s_%s" % [safe_name, short_id]
+	var folder_abs: String = ProjectSettings.globalize_path(folder_user)
+	var existing_local: Project = Project.load_from_folder(folder_abs)
+	if existing_local != null and existing_local.id == project_id:
+		return existing_local
+	return Project.create_shell(folder_abs, project_id, project_name, root_board_id)
+
+
 func set_pending_auto_join(adapter_kind: String, connect_info: Dictionary) -> void:
 	_pending_auto_join = {"kind": adapter_kind, "connect_info": connect_info.duplicate(true)}
 	_pending_auto_host = {}
@@ -1023,13 +1206,26 @@ func _on_adapter_state_changed(state: int, adapter: NetworkAdapter) -> void:
 			_start_session_timers()
 			_request_root_board_if_missing()
 		NetworkAdapter.STATE_DISCONNECTED:
-			leave_session()
+			if _direct_probe_active:
+				_clear_direct_probe_state()
+				leave_session()
+				emit_signal("direct_join_failed", "Disconnected from host before handshake completed.")
+			else:
+				leave_session()
 		NetworkAdapter.STATE_ERROR:
 			_set_state(STATE_ERROR)
+			if _direct_probe_active:
+				_clear_direct_probe_state()
+				emit_signal("direct_join_failed", "Connection error while probing host.")
 
 
 func _on_adapter_error(message: String, _adapter: NetworkAdapter) -> void:
 	_log_error(message)
+	if _direct_probe_active:
+		_clear_direct_probe_state()
+		if is_in_session() or _state == STATE_JOINING:
+			leave_session()
+		emit_signal("direct_join_failed", message if message != "" else "Adapter error during direct connect.")
 
 
 func _on_local_op_emitted(op: Op) -> void:
@@ -1224,6 +1420,9 @@ func _handle_hello_ack(_from_network_id: int, payload: Variant) -> void:
 	if typeof(payload) != TYPE_DICTIONARY:
 		return
 	var d: Dictionary = payload
+	if _direct_probe_active:
+		_finish_direct_join_probe(d)
+		return
 	var manifest_raw: Variant = d.get("manifest", null)
 	if typeof(manifest_raw) == TYPE_DICTIONARY and _manifest != null:
 		var remote_manifest: ParticipantsManifest = ParticipantsManifest.from_dict(manifest_raw)

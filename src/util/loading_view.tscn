@@ -1,0 +1,74 @@
+[gd_scene format=3 uid="uid://c1cairxsd6fjw"]
+
+[ext_resource type="Script" path="res://src/util/loading_view.gd" id="1_lv_script"]
+[ext_resource type="Script" path="res://src/util/loading_spinner.gd" id="2_lv_spin"]
+
+[node name="LoadingView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1_lv_script")
+
+[node name="LoadingBackdrop" type="ColorRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.72)
+
+[node name="CenterRoot" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LoadingPanel" type="PanelContainer" parent="CenterRoot"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 1
+
+[node name="VBox" type="VBoxContainer" parent="CenterRoot/LoadingPanel"]
+layout_mode = 2
+custom_minimum_size = Vector2(340, 0)
+theme_override_constants/separation = 18
+mouse_filter = 2
+
+[node name="SpinnerHolder" type="CenterContainer" parent="CenterRoot/LoadingPanel/VBox"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="LoadingSpinner" type="Control" parent="CenterRoot/LoadingPanel/VBox/SpinnerHolder"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("2_lv_spin")
+
+[node name="LoadingTitleLabel" type="Label" parent="CenterRoot/LoadingPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Opening project…"
+horizontal_alignment = 1
+autowrap_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="LoadingSubtitleLabel" type="Label" parent="CenterRoot/LoadingPanel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 13

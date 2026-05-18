@@ -30,6 +30,27 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Owner-only operations: add/remove co-authors, transfer ownership."
 
+[node name="RoomCodeRow" type="HBoxContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="RoomCodeHeader" type="Label" parent="Margin/VBox/RoomCodeRow"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "WebRTC room code"
+
+[node name="RoomCodeLabel" type="Label" parent="Margin/VBox/RoomCodeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RoomCodeCopyButton" type="Button" parent="Margin/VBox/RoomCodeRow"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Copy"
+
 [node name="ParticipantList" type="ItemList" parent="Margin/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 240)

@@ -48,6 +48,7 @@ var custom_font_mono_path: String = ""
 var font_size: int = 14
 var ui_zoom: float = UI_ZOOM_DEFAULT
 var keybindings: Dictionary = {}
+var webrtc_last_room_code: String = ""
 var _outliner_collapsed_by_project: Dictionary = {}
 var _panel_layouts: Dictionary = {}
 var _loaded: bool = false
@@ -374,6 +375,14 @@ func has_explicit_ui_zoom() -> bool:
 	return _ui_zoom_explicit
 
 
+func set_webrtc_last_room_code(value: String) -> void:
+	var normalized: String = value.strip_edges().to_upper()
+	if webrtc_last_room_code == normalized:
+		return
+	webrtc_last_room_code = normalized
+	_save()
+
+
 func set_keybinding(action_id: String, event: Variant) -> void:
 	if action_id == "":
 		return
@@ -471,6 +480,7 @@ func _load() -> void:
 	font_size = int(data.get("font_size", font_size))
 	ui_zoom = clampf(float(data.get("ui_zoom", ui_zoom)), UI_ZOOM_MIN, UI_ZOOM_MAX)
 	_ui_zoom_explicit = data.has("ui_zoom")
+	webrtc_last_room_code = String(data.get("webrtc_last_room_code", webrtc_last_room_code))
 	var kb_raw: Variant = data.get("keybindings", {})
 	if typeof(kb_raw) == TYPE_DICTIONARY:
 		keybindings = (kb_raw as Dictionary).duplicate(true)
@@ -533,6 +543,7 @@ func _save() -> void:
 		"font_size": font_size,
 		"ui_zoom": ui_zoom,
 		"keybindings": keybindings,
+		"webrtc_last_room_code": webrtc_last_room_code,
 		"outliner_collapsed_by_project": _outliner_collapsed_by_project,
 		"panel_layouts": _panel_layouts,
 	}

@@ -100,3 +100,54 @@ size_flags_horizontal = 3
 min_value = 8.0
 max_value = 96.0
 value = 16.0
+
+[node name="AlignLabel" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "ALIGNMENT"
+
+[node name="HAlignRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HAlignLabel" type="Label" parent="Surface/Body/HAlignRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Horizontal"
+
+[node name="HAlignOption" type="OptionButton" parent="Surface/Body/HAlignRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 3
+popup/item_0/text = "Left"
+popup/item_0/id = 0
+popup/item_1/text = "Center"
+popup/item_1/id = 1
+popup/item_2/text = "Right"
+popup/item_2/id = 2
+
+[node name="VAlignRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="VAlignLabel" type="Label" parent="Surface/Body/VAlignRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Vertical"
+
+[node name="VAlignOption" type="OptionButton" parent="Surface/Body/VAlignRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 3
+popup/item_0/text = "Top"
+popup/item_0/id = 0
+popup/item_1/text = "Center"
+popup/item_1/id = 1
+popup/item_2/text = "Bottom"
+popup/item_2/id = 2

@@ -9,6 +9,8 @@ extends VBoxContainer
 @onready var _auto_width_check: CheckBox = %AutoWidthCheck
 @onready var _auto_height_check: CheckBox = %AutoHeightCheck
 @onready var _max_image_width_spin: SpinBox = %MaxImageWidthSpin
+@onready var _h_align_option: OptionButton = %HAlignOption
+@onready var _v_align_option: OptionButton = %VAlignOption
 
 var _item: RichTextNode
 var _editor: Node
@@ -36,6 +38,8 @@ func _ready() -> void:
 	_auto_width_check.button_pressed = _item.auto_width
 	_auto_height_check.button_pressed = _item.auto_height
 	_max_image_width_spin.value = _item.max_image_width
+	_h_align_option.select(clampi(_item.h_align, 0, 2))
+	_v_align_option.select(clampi(_item.v_align, 0, 2))
 	_suppress_signals = false
 	_binders["bbcode_text"] = PropertyBinder.new(_editor, _item, "bbcode_text", _item.bbcode_text)
 	_binders["font_size"] = PropertyBinder.new(_editor, _item, "font_size", _item.font_size)
@@ -44,6 +48,10 @@ func _ready() -> void:
 	_binders["auto_width"] = PropertyBinder.new(_editor, _item, "auto_width", _item.auto_width)
 	_binders["auto_height"] = PropertyBinder.new(_editor, _item, "auto_height", _item.auto_height)
 	_binders["max_image_width"] = PropertyBinder.new(_editor, _item, "max_image_width", _item.max_image_width)
+	_binders["h_align"] = PropertyBinder.new(_editor, _item, "h_align", _item.h_align)
+	_binders["v_align"] = PropertyBinder.new(_editor, _item, "v_align", _item.v_align)
+	_h_align_option.item_selected.connect(_on_h_align)
+	_v_align_option.item_selected.connect(_on_v_align)
 	_format_toolbar.bind_wysiwyg(_wysiwyg)
 	_format_toolbar.text_changed.connect(_on_toolbar_changed)
 	_wysiwyg.text_changed.connect(_on_wysiwyg_live)
@@ -63,12 +71,7 @@ func _ready() -> void:
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(_item)
 
 
 func _on_wysiwyg_live() -> void:
@@ -140,6 +143,20 @@ func _on_auto_height(pressed: bool) -> void:
 		return
 	_binders["auto_height"].live(pressed)
 	_binders["auto_height"].commit(pressed)
+
+
+func _on_h_align(idx: int) -> void:
+	if _suppress_signals:
+		return
+	_binders["h_align"].live(idx)
+	_binders["h_align"].commit(idx)
+
+
+func _on_v_align(idx: int) -> void:
+	if _suppress_signals:
+		return
+	_binders["v_align"].live(idx)
+	_binders["v_align"].commit(idx)
 
 
 func _on_max_image_width(value: float) -> void:

@@ -6,6 +6,7 @@ const MAX_PEERS: int = 32
 const CHANNEL_COUNT: int = 4
 const RPC_RELIABLE_OPS: int = 0
 const RPC_UNRELIABLE_PRESENCE: int = 0
+const CHUNK_ASSEMBLY_TIMEOUT_MSEC: int = 30000
 
 var _peer: ENetMultiplayerPeer = null
 var _scene_tree: SceneTree = null
@@ -15,6 +16,8 @@ var _bind_address: String = "*"
 var _bind_port: int = DEFAULT_PORT
 var _remote_address: String = ""
 var _remote_port: int = DEFAULT_PORT
+var _outbound_chunk_counter: int = 0
+var _inbound_chunks: Dictionary = {}
 
 
 func adapter_kind() -> String:
@@ -98,6 +101,7 @@ func leave() -> void:
 			api.multiplayer_peer = null
 	_peers_by_id.clear()
 	_pending_hellos.clear()
+	_inbound_chunks.clear()
 	_set_state(STATE_DISCONNECTED)
 
 
@@ -109,6 +113,11 @@ func send_to_peer(peer_network_id: int, kind: String, payload: Variant) -> Error
 	if peer_network_id == local_id:
 		emit_signal("message_received", local_id, kind, payload)
 		return OK
+	var max_bytes: int = _max_outbound_message_bytes()
+	if max_bytes > 0:
+		var encoded: PackedByteArray = var_to_bytes(payload)
+		if encoded.size() > max_bytes:
+			return _send_chunked_to_peer(peer_network_id, local_id, kind, encoded, max_bytes)
 	rpc_id(peer_network_id, "_remote_receive", local_id, kind, payload)
 	return OK
 
@@ -118,11 +127,94 @@ func send_to_all(kind: String, payload: Variant) -> Error:
 		return ERR_UNAVAILABLE
 	var api: MultiplayerAPI = _scene_tree.get_multiplayer()
 	var local_id: int = api.get_unique_id()
+	var max_bytes: int = _max_outbound_message_bytes()
+	var encoded: PackedByteArray = PackedByteArray()
+	var must_chunk: bool = false
+	if max_bytes > 0:
+		encoded = var_to_bytes(payload)
+		must_chunk = encoded.size() > max_bytes
 	for peer_id: int in api.get_peers():
 		if peer_id == local_id:
 			continue
-		rpc_id(peer_id, "_remote_receive", local_id, kind, payload)
+		if must_chunk:
+			_send_chunked_to_peer(peer_id, local_id, kind, encoded, max_bytes)
+		else:
+			rpc_id(peer_id, "_remote_receive", local_id, kind, payload)
 	return OK
+
+
+func _max_outbound_message_bytes() -> int:
+	return 0
+
+
+func _send_chunked_to_peer(peer_network_id: int, local_id: int, kind: String, encoded: PackedByteArray, max_bytes: int) -> Error:
+	if max_bytes <= 0:
+		return ERR_INVALID_PARAMETER
+	_outbound_chunk_counter += 1
+	var transfer_id: String = "%d-%d" % [local_id, _outbound_chunk_counter]
+	var total_bytes: int = encoded.size()
+	var total_chunks: int = int(ceil(float(total_bytes) / float(max_bytes)))
+	for chunk_index: int in total_chunks:
+		var start: int = chunk_index * max_bytes
+		var end: int = min(start + max_bytes, total_bytes)
+		var slice: PackedByteArray = encoded.slice(start, end)
+		rpc_id(peer_network_id, "_remote_receive_chunk", local_id, transfer_id, chunk_index, total_chunks, kind, slice)
+	return OK
+
+
+@rpc("any_peer", "reliable", "call_remote")
+func _remote_receive_chunk(_sender_remote_id: int, transfer_id: String, chunk_index: int, total_chunks: int, kind: String, chunk: PackedByteArray) -> void:
+	var sender_real_id: int = multiplayer.get_remote_sender_id()
+	if total_chunks <= 0 or chunk_index < 0 or chunk_index >= total_chunks:
+		return
+	var key: String = "%d::%s" % [sender_real_id, transfer_id]
+	_purge_stale_chunk_assemblies()
+	var state_v: Variant = _inbound_chunks.get(key, null)
+	var state: Dictionary
+	if state_v == null:
+		var parts: Array = []
+		parts.resize(total_chunks)
+		state = {
+			"parts": parts,
+			"received": 0,
+			"total": total_chunks,
+			"kind": kind,
+			"bytes": 0,
+			"started_msec": Time.get_ticks_msec(),
+		}
+		_inbound_chunks[key] = state
+	else:
+		state = state_v
+	if int(state["total"]) != total_chunks:
+		_inbound_chunks.erase(key)
+		return
+	var existing: Variant = (state["parts"] as Array)[chunk_index]
+	if existing != null and (existing as PackedByteArray).size() > 0:
+		return
+	(state["parts"] as Array)[chunk_index] = chunk
+	state["received"] = int(state["received"]) + 1
+	state["bytes"] = int(state["bytes"]) + chunk.size()
+	if int(state["received"]) < total_chunks:
+		return
+	_inbound_chunks.erase(key)
+	var combined: PackedByteArray = PackedByteArray()
+	for part_v: Variant in state["parts"] as Array:
+		combined.append_array(part_v as PackedByteArray)
+	var decoded: Variant = bytes_to_var(combined)
+	emit_signal("message_received", sender_real_id, kind, decoded)
+
+
+func _purge_stale_chunk_assemblies() -> void:
+	if _inbound_chunks.is_empty():
+		return
+	var now: int = Time.get_ticks_msec()
+	var stale_keys: Array = []
+	for key_v: Variant in _inbound_chunks.keys():
+		var st: Dictionary = _inbound_chunks[key_v]
+		if now - int(st.get("started_msec", now)) > CHUNK_ASSEMBLY_TIMEOUT_MSEC:
+			stale_keys.append(key_v)
+	for k: Variant in stale_keys:
+		_inbound_chunks.erase(k)
 
 
 func active_peers() -> Array[PeerIdentity]:

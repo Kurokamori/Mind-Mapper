@@ -89,6 +89,29 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(72, 0)
 layout_mode = 2
 
+[node name="WebRTCRoomRow" type="HBoxContainer" parent="Margin/VBox" unique_id=1928374120]
+unique_name_in_owner = true
+layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="WebRTCRoomLabel" type="Label" parent="Margin/VBox/WebRTCRoomRow" unique_id=1928374121]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+text = "Room code"
+
+[node name="WebRTCRoomField" type="LineEdit" parent="Margin/VBox/WebRTCRoomRow" unique_id=1928374122]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "ABC123"
+max_length = 32
+
+[node name="WebRTCGenerateButton" type="Button" parent="Margin/VBox/WebRTCRoomRow" unique_id=1928374123]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Generate"
+
 [node name="StableIdLabel" type="Label" parent="Margin/VBox" unique_id=974214108]
 unique_name_in_owner = true
 layout_mode = 2

@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://b7mobembedchoice0"]
+
+[ext_resource type="Script" path="res://src/mobile/dialogs/mobile_embed_choice_dialog.gd" id="1_mob_embed_dlg"]
+
+[node name="MobileEmbedChoiceDialog" type="Window"]
+title = "Embed or link?"
+position = Vector2i(0, 36)
+size = Vector2i(640, 320)
+popup_window = true
+script = ExtResource("1_mob_embed_dlg")
+
+[node name="Root" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Margin" type="MarginContainer" parent="Root"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="Column" type="VBoxContainer" parent="Root/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="PromptLabel" type="Label" parent="Root/Margin/Column"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Embed assets into the project, or keep them linked to the original files?"
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Root/Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Root/Margin/Column"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="EmbedButton" type="Button" parent="Root/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Embed (copy in)"
+
+[node name="LinkButton" type="Button" parent="Root/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Link (reference)"
+
+[node name="CancelButton" type="Button" parent="Root/Margin/Column/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Cancel"

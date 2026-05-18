@@ -19,6 +19,7 @@ const TYPE_TABLE: String = "table"
 const TYPE_EQUATION: String = "equation"
 const TYPE_STICKY: String = "sticky"
 const TYPE_DOCUMENT: String = "document"
+const TYPE_CONNECTOR: String = "connector"
 
 var _scenes: Dictionary = {}
 
@@ -43,6 +44,7 @@ func _ready() -> void:
 	_scenes[TYPE_EQUATION] = preload("res://src/nodes/equation/equation_node.tscn")
 	_scenes[TYPE_STICKY] = preload("res://src/nodes/sticky/sticky_node.tscn")
 	_scenes[TYPE_DOCUMENT] = preload("res://src/nodes/document/document_node.tscn")
+	_scenes[TYPE_CONNECTOR] = preload("res://src/nodes/connector/connector_node.tscn")
 
 
 func default_payload(type_id: String) -> Dictionary:
@@ -61,11 +63,23 @@ func default_payload(type_id: String) -> Dictionary:
 		TYPE_EQUATION: return {"latex": "E = mc^2"}
 		TYPE_STICKY: return {"text": "Sticky note", "color_index": 0}
 		TYPE_DOCUMENT: return {"title": "Untitled Document", "markdown_text": "# Document\n\nDouble-click to open the editor.\n", "font_size": 14}
+		TYPE_CONNECTOR: return {"style": 1, "color": [0.12, 0.14, 0.20, 1.0], "width": 2.5, "head_size": 14.0}
 	return {}
 
 
 func has_type(type_id: String) -> bool:
 	return _scenes.has(type_id)
+
+
+func default_size(type_id: String) -> Vector2:
+	if not _scenes.has(type_id):
+		return Vector2(160, 80)
+	var inst: BoardItem = instantiate(type_id)
+	if inst == null:
+		return Vector2(160, 80)
+	var sz: Vector2 = inst.default_size()
+	inst.free()
+	return sz
 
 
 func instantiate(type_id: String) -> BoardItem:

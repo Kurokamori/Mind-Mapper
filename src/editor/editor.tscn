@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://d4artmehmwrw3" path="res://src/editor/alignment_guides.gd" id="9_align"]
 [ext_resource type="PackedScene" path="res://src/editor/connection_layer.tscn" id="10_conn"]
 [ext_resource type="PackedScene" path="res://src/editor/annotation_layer.tscn" id="10_ann"]
+[ext_resource type="PackedScene" path="res://src/nodes/connector/connector_draw_preview.tscn" id="10_cdp"]
 [ext_resource type="PackedScene" uid="uid://bturem1p2q4fu" path="res://src/editor/board_outliner.tscn" id="11_outliner"]
 [ext_resource type="PackedScene" path="res://src/editor/minimap.tscn" id="12_minimap"]
 [ext_resource type="PackedScene" path="res://src/editor/command_palette.tscn" id="13_palette"]
@@ -61,6 +62,9 @@ anchors_preset = 0
 mouse_filter = 2
 
 [node name="AnnotationLayer" parent="World" unique_id=918273645 instance=ExtResource("10_ann")]
+unique_name_in_owner = true
+
+[node name="ConnectorDrawPreview" parent="World" unique_id=918273700 instance=ExtResource("10_cdp")]
 unique_name_in_owner = true
 
 [node name="AlignmentGuides" type="Node2D" parent="World" unique_id=532476146]

@@ -18,6 +18,7 @@ const MODE_BOARD_SETTINGS: String = "board_settings"
 const MODE_OUTLINER: String = "outliner"
 const MODE_SNAP: String = "snap"
 const MODE_ARRANGE: String = "arrange"
+const MODE_MULTIPLAYER: String = "multiplayer"
 
 const ITEM_PAGE_SCENE: PackedScene = preload("res://src/mobile/sheets/mobile_item_sheet.tscn")
 const BOARDS_PAGE_SCENE: PackedScene = preload("res://src/mobile/sheets/mobile_board_browser_sheet.tscn")
@@ -29,6 +30,7 @@ const BOARD_SETTINGS_PAGE_SCENE: PackedScene = preload("res://src/mobile/sheets/
 const OUTLINER_PAGE_SCENE: PackedScene = preload("res://src/mobile/sheets/mobile_outliner_sheet.tscn")
 const SNAP_PAGE_SCENE: PackedScene = preload("res://src/mobile/sheets/mobile_snap_settings_sheet.tscn")
 const ARRANGE_PAGE_SCENE: PackedScene = preload("res://src/mobile/sheets/mobile_arrange_sheet.tscn")
+const MULTIPLAYER_PAGE_SCENE: PackedScene = preload("res://src/mobile/sheets/mobile_multiplayer_sheet.tscn")
 
 @onready var _header_label: Label = %HeaderLabel
 @onready var _close_button: Button = %CloseSheetButton
@@ -200,6 +202,16 @@ func show_arrange(selection_count: int) -> void:
 	page.action_chosen.connect(_on_arrange_action_chosen)
 	_header_label.text = "Arrange"
 	_mode = MODE_ARRANGE
+	visible = true
+
+
+func show_multiplayer() -> void:
+	_clear_content()
+	var page: MobileMultiplayerSheet = MULTIPLAYER_PAGE_SCENE.instantiate()
+	_current_page = page
+	_content_root.add_child(page)
+	_header_label.text = "Multiplayer"
+	_mode = MODE_MULTIPLAYER
 	visible = true
 
 

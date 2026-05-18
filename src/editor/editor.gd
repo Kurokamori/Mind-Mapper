@@ -21,6 +21,7 @@ const SAVE_DEBOUNCE_SEC: float = 0.5
 @onready var _export_dialog: FileDialog = %ExportDialog
 @onready var _connection_layer: ConnectionLayer = %ConnectionLayer
 @onready var _annotation_layer: AnnotationLayer = %AnnotationLayer
+@onready var _connector_draw_preview: ConnectorDrawPreview = %ConnectorDrawPreview
 @onready var _board_outliner: BoardOutliner = %BoardOutliner
 @onready var _minimap: Minimap = %Minimap
 @onready var _command_palette: CommandPalette = %CommandPalette
@@ -76,6 +77,7 @@ var _board_comments: Array = []
 var _comments_button_state: bool = false
 var _chat_button_state: bool = false
 var _chat_unread_count: int = 0
+var _lan_broadcasts_window: DesktopLanBrowserWindow = null
 var _annotation_tool: String = "none"
 var _annotation_color: Color = AnnotationStroke.DEFAULT_COLOR
 var _annotation_width: float = AnnotationStroke.DEFAULT_WIDTH
@@ -86,6 +88,15 @@ var _pen_last_point_world: Vector2 = Vector2.ZERO
 var _eraser_active: bool = false
 var _eraser_pending_snapshots: Array = []
 var _eraser_pending_ids: Dictionary = {}
+
+var _connector_tool: String = "none"
+var _connector_color: Color = ConnectorNode.DEFAULT_COLOR
+var _connector_width: float = ConnectorNode.DEFAULT_WIDTH
+var _connector_draw_phase: String = "idle"
+var _connector_draw_start_world: Vector2 = Vector2.ZERO
+var _connector_draw_press_screen: Vector2 = Vector2.ZERO
+
+const CONNECTOR_DRAG_THRESHOLD_PX: float = 6.0
 
 const ANNOTATION_LIVE_EMIT_INTERVAL_MSEC: int = 33
 const ANNOTATION_MIN_POINT_DISTANCE_PX: float = 1.5
@@ -185,12 +196,17 @@ func _ready() -> void:
 		_comments_panel.jump_to_target_requested.connect(_on_comment_jump_requested)
 	if _chat_panel != null:
 		_chat_panel.close_requested.connect(_on_chat_panel_close_requested)
+	if DesktopLanSyncService != null:
+		DesktopLanSyncService.hosts_changed.connect(_on_lan_broadcasts_hosts_changed)
+		_on_lan_broadcasts_hosts_changed(DesktopLanSyncService.discovered_hosts())
 	MultiplayerService.chat_message_received.connect(_on_chat_message_for_unread)
 	MultiplayerService.chat_history_cleared.connect(_on_chat_history_cleared_for_unread)
 	MultiplayerService.live_stroke_received.connect(_on_live_stroke_received)
 	_build_item_context_menu()
 	_annotation_color = _toolbar.annotation_color()
 	_annotation_width = _toolbar.annotation_width()
+	_connector_color = _toolbar.connector_color()
+	_connector_width = _toolbar.connector_width()
 
 
 func _refresh_tag_filter_menu() -> void:
@@ -400,6 +416,9 @@ func _input(event: InputEvent) -> void:
 				get_viewport().set_input_as_handled()
 				return
 	if _handle_annotation_input(event):
+		get_viewport().set_input_as_handled()
+		return
+	if _handle_connector_input(event):
 		get_viewport().set_input_as_handled()
 		return
 	if _marquee.active:
@@ -1071,6 +1090,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		KeybindingService.ACTION_LOCK_TOGGLE:
 			_toggle_lock_on_selection(); get_viewport().set_input_as_handled(); return
 	if k.keycode == KEY_ESCAPE:
+		if _connector_tool_active() and _connector_draw_phase != "idle":
+			_cancel_connector_draw()
+			get_viewport().set_input_as_handled()
+			return
+		if _connector_tool_active():
+			_set_connector_tool("none")
+			if _toolbar != null:
+				_toolbar.set_connector_tool("none")
+			get_viewport().set_input_as_handled()
+			return
 		if _pen_stroke_active or _eraser_active:
 			_cancel_active_annotation_stroke()
 			get_viewport().set_input_as_handled()
@@ -1249,6 +1278,8 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 			_toggle_comments_panel(bool(payload))
 		EditorToolbar.ACTION_TOGGLE_CHAT:
 			_toggle_chat_panel(bool(payload))
+		EditorToolbar.ACTION_TOGGLE_LAN_BROADCASTS:
+			_toggle_lan_broadcasts_window(bool(payload))
 		EditorToolbar.ACTION_OPEN_TODOS:
 			_open_open_todos_board()
 		EditorToolbar.ACTION_UNDO:
@@ -1291,6 +1322,13 @@ func _on_toolbar_action(action: String, payload: Variant) -> void:
 				_annotation_color = payload
 		EditorToolbar.ACTION_ANNOTATION_WIDTH:
 			_annotation_width = AnnotationStroke.clamp_width(float(payload))
+		EditorToolbar.ACTION_CONNECTOR_TOOL:
+			_set_connector_tool(String(payload))
+		EditorToolbar.ACTION_CONNECTOR_COLOR:
+			if typeof(payload) == TYPE_COLOR:
+				_connector_color = payload
+		EditorToolbar.ACTION_CONNECTOR_WIDTH:
+			_connector_width = clamp(float(payload), ConnectorNode.MIN_WIDTH, ConnectorNode.MAX_WIDTH)
 		EditorToolbar.ACTION_IMPORT_TILESET:
 			_open_import_tileset_dialog()
 		EditorToolbar.ACTION_NEW_TILESET_FROM_IMAGE:
@@ -1338,6 +1376,10 @@ func _handle_arrange(op: String) -> void:
 			_perform_distribute(true)
 		EditorToolbar.ARRANGE_DISTRIBUTE_V:
 			_perform_distribute(false)
+		EditorToolbar.ARRANGE_AS_GRID:
+			_perform_grid_arrange()
+		EditorToolbar.ARRANGE_AS_GRID_COMPACT:
+			_perform_grid_compact_arrange()
 		EditorToolbar.ARRANGE_BRING_FORWARD:
 			_perform_reorder(ReorderItemsCommand.DIR_BRING_FORWARD)
 		EditorToolbar.ARRANGE_BRING_TO_FRONT:
@@ -1433,6 +1475,174 @@ func _perform_distribute(horizontal: bool) -> void:
 		return
 	History.push_already_done(MoveItemsCommand.new(self, entries))
 	request_save()
+
+
+const GRID_ARRANGE_GAP: float = 40.0
+
+
+func _perform_grid_arrange() -> void:
+	var current: Array = SelectionBus.current()
+	if current.size() < 2:
+		return
+	var movable: Array = []
+	var origin_x: float = INF
+	var origin_y: float = INF
+	for it in current:
+		var item: BoardItem = it
+		if item.locked:
+			continue
+		movable.append(item)
+		origin_x = min(origin_x, item.position.x)
+		origin_y = min(origin_y, item.position.y)
+	var count: int = movable.size()
+	if count < 2:
+		return
+	movable.sort_custom(func(a: BoardItem, b: BoardItem) -> bool:
+		if not is_equal_approx(a.position.y, b.position.y):
+			return a.position.y < b.position.y
+		return a.position.x < b.position.x
+	)
+	var cols: int = int(ceil(sqrt(float(count))))
+	if cols < 1:
+		cols = 1
+	var rows: int = int(ceil(float(count) / float(cols)))
+	var col_widths: PackedFloat32Array = PackedFloat32Array()
+	col_widths.resize(cols)
+	var row_heights: PackedFloat32Array = PackedFloat32Array()
+	row_heights.resize(rows)
+	for c in range(cols):
+		col_widths[c] = 0.0
+	for r in range(rows):
+		row_heights[r] = 0.0
+	for i in range(count):
+		var row_index: int = i / cols
+		var col_index: int = i % cols
+		var item_size: Vector2 = (movable[i] as BoardItem).size
+		if item_size.x > col_widths[col_index]:
+			col_widths[col_index] = item_size.x
+		if item_size.y > row_heights[row_index]:
+			row_heights[row_index] = item_size.y
+	var col_offsets: PackedFloat32Array = PackedFloat32Array()
+	col_offsets.resize(cols)
+	var accum_x: float = 0.0
+	for c in range(cols):
+		col_offsets[c] = accum_x
+		accum_x += col_widths[c] + GRID_ARRANGE_GAP
+	var row_offsets: PackedFloat32Array = PackedFloat32Array()
+	row_offsets.resize(rows)
+	var accum_y: float = 0.0
+	for r in range(rows):
+		row_offsets[r] = accum_y
+		accum_y += row_heights[r] + GRID_ARRANGE_GAP
+	var entries: Array = []
+	for i in range(count):
+		var row_index2: int = i / cols
+		var col_index2: int = i % cols
+		var item: BoardItem = movable[i]
+		var cell_w: float = col_widths[col_index2]
+		var cell_h: float = row_heights[row_index2]
+		var target_x: float = origin_x + col_offsets[col_index2] + (cell_w - item.size.x) * 0.5
+		var target_y: float = origin_y + row_offsets[row_index2] + (cell_h - item.size.y) * 0.5
+		var from_pos: Vector2 = item.position
+		var to_pos: Vector2 = Vector2(target_x, target_y)
+		if from_pos != to_pos:
+			item.position = to_pos
+			entries.append({"id": item.item_id, "from": [from_pos.x, from_pos.y], "to": [to_pos.x, to_pos.y]})
+	if entries.is_empty():
+		return
+	History.push_already_done(MoveItemsCommand.new(self, entries))
+	request_save()
+
+
+func _perform_grid_compact_arrange() -> void:
+	var current: Array = SelectionBus.current()
+	if current.size() < 2:
+		return
+	var movable: Array = []
+	var origin_x: float = INF
+	var origin_y: float = INF
+	for it in current:
+		var item: BoardItem = it
+		if item.locked:
+			continue
+		movable.append(item)
+		origin_x = min(origin_x, item.position.x)
+		origin_y = min(origin_y, item.position.y)
+	var count: int = movable.size()
+	if count < 2:
+		return
+	movable.sort_custom(func(a: BoardItem, b: BoardItem) -> bool:
+		if not is_equal_approx(a.position.y, b.position.y):
+			return a.position.y < b.position.y
+		return a.position.x < b.position.x
+	)
+	var best_rows: Array = _best_compact_row_packing(movable)
+	var entries: Array = []
+	var y_cursor: float = origin_y
+	for row in best_rows:
+		var row_items: Array = row
+		var row_height: float = 0.0
+		for ri in row_items:
+			var rh: float = (ri as BoardItem).size.y
+			if rh > row_height:
+				row_height = rh
+		var x_cursor: float = origin_x
+		for ri2 in row_items:
+			var item: BoardItem = ri2
+			var target_y: float = y_cursor + (row_height - item.size.y) * 0.5
+			var from_pos: Vector2 = item.position
+			var to_pos: Vector2 = Vector2(x_cursor, target_y)
+			if from_pos != to_pos:
+				item.position = to_pos
+				entries.append({"id": item.item_id, "from": [from_pos.x, from_pos.y], "to": [to_pos.x, to_pos.y]})
+			x_cursor += item.size.x + GRID_ARRANGE_GAP
+		y_cursor += row_height + GRID_ARRANGE_GAP
+	if entries.is_empty():
+		return
+	History.push_already_done(MoveItemsCommand.new(self, entries))
+	request_save()
+
+
+func _best_compact_row_packing(items: Array) -> Array:
+	var count: int = items.size()
+	var best_rows: Array = []
+	var best_score: float = INF
+	for row_count in range(1, count + 1):
+		var target_per_row: int = int(ceil(float(count) / float(row_count)))
+		var rows: Array = []
+		var current_row: Array = []
+		for item in items:
+			if current_row.size() >= target_per_row:
+				rows.append(current_row)
+				current_row = []
+			current_row.append(item)
+		if current_row.size() > 0:
+			rows.append(current_row)
+		var total_w: float = 0.0
+		var total_h: float = 0.0
+		for r in rows:
+			var row_w: float = 0.0
+			var row_h: float = 0.0
+			for it in r:
+				var b: BoardItem = it
+				row_w += b.size.x
+				if b.size.y > row_h:
+					row_h = b.size.y
+			row_w += GRID_ARRANGE_GAP * float(max(0, (r as Array).size() - 1))
+			if row_w > total_w:
+				total_w = row_w
+			total_h += row_h
+		total_h += GRID_ARRANGE_GAP * float(max(0, rows.size() - 1))
+		if total_w <= 0.0 or total_h <= 0.0:
+			continue
+		var ratio: float = total_w / total_h
+		if ratio < 1.0:
+			ratio = 1.0 / ratio
+		var score: float = ratio - 1.0
+		if score < best_score:
+			best_score = score
+			best_rows = rows
+	return best_rows
 
 
 func _perform_reorder(direction: String) -> void:
@@ -1940,9 +2150,35 @@ func _handle_add(type_id: String) -> void:
 			PopupSizer.popup_fit(_image_dialog, {"ratio": Vector2(0.7, 0.7)})
 		ItemRegistry.TYPE_SOUND:
 			PopupSizer.popup_fit(_sound_dialog, {"ratio": Vector2(0.7, 0.7)})
+		ItemRegistry.TYPE_CONNECTOR:
+			_add_connector_at_anchor()
 		_:
 			if ItemRegistry.has_type(type_id):
 				_add_simple(type_id, ItemRegistry.default_payload(type_id))
+
+
+func _add_connector_at_anchor() -> void:
+	if not _can_emit_connector() or AppState.current_board == null:
+		return
+	var anchor: Vector2 = _add_anchor_world()
+	var start_world: Vector2 = anchor + Vector2(-80, 0)
+	var end_world: Vector2 = anchor + Vector2(80, 0)
+	var min_p: Vector2 = Vector2(start_world.x - ConnectorNode.BBOX_PADDING_PX, start_world.y - ConnectorNode.BBOX_PADDING_PX)
+	var max_p: Vector2 = Vector2(end_world.x + ConnectorNode.BBOX_PADDING_PX, end_world.y + ConnectorNode.BBOX_PADDING_PX)
+	var d: Dictionary = {
+		"id": Uuid.v4(),
+		"type": ItemRegistry.TYPE_CONNECTOR,
+		"position": [min_p.x, min_p.y],
+		"size": [max(max_p.x - min_p.x, ConnectorNode.BBOX_PADDING_PX * 2.0), max(max_p.y - min_p.y, ConnectorNode.BBOX_PADDING_PX * 2.0)],
+		"style": ConnectorNode.Style.ARROW,
+		"color": ColorUtil.to_array(_connector_color),
+		"width": _connector_width,
+		"head_size": ConnectorNode.DEFAULT_HEAD_SIZE,
+		"start": [start_world.x, start_world.y],
+		"end": [end_world.x, end_world.y],
+	}
+	History.push(AddItemsCommand.new(self, [d]))
+	_after_added(find_item_by_id(String(d["id"])))
 
 
 func _add_anchor_world() -> Vector2:
@@ -1993,6 +2229,10 @@ func _on_add_popup_map_page_requested() -> void:
 
 
 func _on_add_popup_hidden() -> void:
+	call_deferred("_finalize_add_popup_close")
+
+
+func _finalize_add_popup_close() -> void:
 	if not _add_popup_selection_active:
 		_clear_pending_add_state()
 	_add_popup_selection_active = false
@@ -2167,10 +2407,11 @@ func _broadcast_create_board(board_id: String, parent_board_id: String, board_na
 
 func _add_simple(type_id: String, extra: Dictionary) -> void:
 	var anchor: Vector2 = _add_anchor_world()
+	var size_v: Vector2 = ItemRegistry.default_size(type_id)
 	var d: Dictionary = {
 		"id": Uuid.v4(),
 		"type": type_id,
-		"position": [anchor.x - 110, anchor.y - 50],
+		"position": [anchor.x - size_v.x * 0.5, anchor.y - size_v.y * 0.5],
 	}
 	for k in extra.keys():
 		d[k] = extra[k]
@@ -2828,6 +3069,52 @@ func _on_comments_panel_close_requested() -> void:
 	_toggle_comments_panel(false)
 
 
+func _toggle_lan_broadcasts_window(visible_state: bool) -> void:
+	if _lan_broadcasts_window == null or not is_instance_valid(_lan_broadcasts_window):
+		var scene: PackedScene = load("res://src/mobile/sync/desktop_lan_browser_window.tscn") as PackedScene
+		if scene == null:
+			return
+		_lan_broadcasts_window = scene.instantiate() as DesktopLanBrowserWindow
+		add_child(_lan_broadcasts_window)
+		_lan_broadcasts_window.hidden_by_user.connect(_on_lan_broadcasts_window_hidden)
+		var panel: DesktopLanBrowserPanel = _lan_broadcasts_window.panel()
+		if panel != null:
+			panel.host_pulled.connect(_on_lan_broadcasts_host_pulled)
+			panel.host_synced.connect(_on_lan_broadcasts_host_synced)
+			panel.toast_requested.connect(_on_lan_broadcasts_toast)
+	if visible_state:
+		PopupSizer.popup_fit(_lan_broadcasts_window, {"preferred": Vector2i(520, 480)})
+	else:
+		_lan_broadcasts_window.hide()
+	if _toolbar != null and _toolbar.has_method("set_lan_broadcasts_pressed"):
+		_toolbar.set_lan_broadcasts_pressed(visible_state)
+
+
+func _on_lan_broadcasts_window_hidden() -> void:
+	if _toolbar != null and _toolbar.has_method("set_lan_broadcasts_pressed"):
+		_toolbar.set_lan_broadcasts_pressed(false)
+
+
+func _on_lan_broadcasts_hosts_changed(hosts: Array) -> void:
+	if _toolbar != null and _toolbar.has_method("set_lan_broadcasts_count"):
+		_toolbar.set_lan_broadcasts_count(hosts.size())
+
+
+func _on_lan_broadcasts_host_pulled(folder_path: String, _project_id: String, _host_entry: Dictionary) -> void:
+	var project: Project = ProjectStore.open_project(folder_path)
+	if project == null:
+		return
+	emit_signal("back_to_projects_requested")
+
+
+func _on_lan_broadcasts_host_synced(_folder_path: String, _project_id: String, _host_entry: Dictionary) -> void:
+	pass
+
+
+func _on_lan_broadcasts_toast(_severity: String, _message: String) -> void:
+	pass
+
+
 func _toggle_chat_panel(visible_state: bool) -> void:
 	if _chat_panel == null:
 		return
@@ -3043,9 +3330,137 @@ func _on_live_stroke_received(stable_id: String, payload: Dictionary) -> void:
 	_annotation_layer.update_live_stroke(stable_id, payload)
 
 
+func _connector_tool_active() -> bool:
+	return _connector_tool == "line" or _connector_tool == "arrow"
+
+
+func _connector_style_for_tool() -> int:
+	if _connector_tool == "line":
+		return ConnectorNode.Style.LINE
+	return ConnectorNode.Style.ARROW
+
+
+func _set_connector_tool(tool_name: String) -> void:
+	if tool_name == _connector_tool:
+		return
+	_cancel_connector_draw()
+	_connector_tool = tool_name
+	if _connector_tool_active():
+		if _annotation_tool_active():
+			_set_annotation_tool("none")
+			if _toolbar != null:
+				_toolbar.set_annotation_tool("none")
+		if _connect_tool_active:
+			_set_connect_tool_active(false)
+
+
+func _cancel_connector_draw() -> void:
+	_connector_draw_phase = "idle"
+	if _connector_draw_preview != null:
+		_connector_draw_preview.clear_preview()
+
+
+func _can_emit_connector() -> bool:
+	if get_tree() == null:
+		return true
+	var root: Node = get_tree().root
+	if root == null or not root.has_node("MultiplayerService"):
+		return true
+	return MultiplayerService.local_can_emit(OpKinds.CREATE_ITEM)
+
+
+func _commit_connector(start_world: Vector2, end_world: Vector2) -> void:
+	if not _can_emit_connector():
+		_cancel_connector_draw()
+		return
+	if AppState.current_board == null:
+		_cancel_connector_draw()
+		return
+	var min_x: float = min(start_world.x, end_world.x) - ConnectorNode.BBOX_PADDING_PX
+	var min_y: float = min(start_world.y, end_world.y) - ConnectorNode.BBOX_PADDING_PX
+	var max_x: float = max(start_world.x, end_world.x) + ConnectorNode.BBOX_PADDING_PX
+	var max_y: float = max(start_world.y, end_world.y) + ConnectorNode.BBOX_PADDING_PX
+	var pos: Vector2 = Vector2(min_x, min_y)
+	var sz: Vector2 = Vector2(
+		max(max_x - min_x, ConnectorNode.BBOX_PADDING_PX * 2.0),
+		max(max_y - min_y, ConnectorNode.BBOX_PADDING_PX * 2.0)
+	)
+	var d: Dictionary = {
+		"id": Uuid.v4(),
+		"type": ItemRegistry.TYPE_CONNECTOR,
+		"position": [pos.x, pos.y],
+		"size": [sz.x, sz.y],
+		"style": _connector_style_for_tool(),
+		"color": ColorUtil.to_array(_connector_color),
+		"width": _connector_width,
+		"head_size": ConnectorNode.DEFAULT_HEAD_SIZE,
+		"start": [start_world.x, start_world.y],
+		"end": [end_world.x, end_world.y],
+	}
+	History.push(AddItemsCommand.new(self, [d]))
+	var newly: BoardItem = find_item_by_id(String(d["id"]))
+	if newly != null:
+		SelectionBus.set_single(newly)
+	_cancel_connector_draw()
+
+
+func _handle_connector_input(event: InputEvent) -> bool:
+	if not _connector_tool_active():
+		return false
+	if event is InputEventMouseButton:
+		var mb: InputEventMouseButton = event as InputEventMouseButton
+		if mb.button_index != MOUSE_BUTTON_LEFT:
+			return false
+		var world_pos: Vector2 = SnapService.maybe_snap(_camera.screen_to_world(mb.position))
+		if mb.pressed:
+			if not _is_visible_canvas_hover():
+				return false
+			match _connector_draw_phase:
+				"idle":
+					_commit_active_edits()
+					SelectionBus.clear()
+					_connector_draw_phase = "press_drag"
+					_connector_draw_start_world = world_pos
+					_connector_draw_press_screen = mb.position
+					if _connector_draw_preview != null:
+						_connector_draw_preview.begin(_connector_style_for_tool(), _connector_color, _connector_width, world_pos)
+					return true
+				"two_click":
+					if world_pos != _connector_draw_start_world:
+						_commit_connector(_connector_draw_start_world, world_pos)
+					else:
+						_cancel_connector_draw()
+					return true
+				_:
+					return true
+		else:
+			if _connector_draw_phase == "press_drag":
+				var moved: float = (mb.position - _connector_draw_press_screen).length()
+				if moved >= CONNECTOR_DRAG_THRESHOLD_PX:
+					_commit_connector(_connector_draw_start_world, world_pos)
+				else:
+					_connector_draw_phase = "two_click"
+					if _connector_draw_preview != null:
+						_connector_draw_preview.update_end(world_pos)
+				return true
+			return false
+	if event is InputEventMouseMotion:
+		if _connector_draw_phase == "press_drag" or _connector_draw_phase == "two_click":
+			var motion: InputEventMouseMotion = event as InputEventMouseMotion
+			var world_pos: Vector2 = SnapService.maybe_snap(_camera.screen_to_world(motion.position))
+			if _connector_draw_preview != null:
+				_connector_draw_preview.update_end(world_pos)
+			return true
+	return false
+
+
 func _set_annotation_tool(tool_name: String) -> void:
 	if tool_name == _annotation_tool:
 		return
+	if tool_name != "none" and _connector_tool_active():
+		_set_connector_tool("none")
+		if _toolbar != null:
+			_toolbar.set_connector_tool("none")
 	if _pen_stroke_active:
 		_cancel_active_annotation_stroke()
 	if _eraser_active:
@@ -3336,6 +3751,11 @@ func _show_item_context_menu(item: BoardItem, screen_pos: Vector2) -> void:
 			_item_context_menu.set_item_disabled(_item_context_menu.get_item_index(menu_id), not can_comment)
 	_item_context_menu.add_separator()
 	_item_context_menu.add_item("Show comments panel", 2)
+	if item is DocumentNode:
+		_item_context_menu.add_separator("Document")
+		_item_context_menu.add_item("Export as Markdown…", 200)
+		_item_context_menu.add_item("Export as PDF…", 201)
+		_item_context_menu.add_item("Replace from file…", 202)
 	_item_context_menu.reset_size()
 	_item_context_menu.position = DisplayServer.mouse_get_position()
 	_item_context_menu.popup()
@@ -3348,10 +3768,124 @@ func _on_item_context_menu_id_pressed(id: int) -> void:
 	if id == 2:
 		_toggle_comments_panel(true)
 		return
-	if id >= 100:
+	if id == 200:
+		_document_context_export_markdown()
+		return
+	if id == 201:
+		_document_context_export_pdf()
+		return
+	if id == 202:
+		_document_context_replace_from_file()
+		return
+	if id >= 100 and id < 200:
 		var card_idx: int = id - 100
 		if card_idx >= 0 and card_idx < _item_context_menu_card_ids.size():
 			add_comment_for_item(_item_context_menu_target_item_id, String(_item_context_menu_card_ids[card_idx]))
+
+
+func _document_context_target() -> DocumentNode:
+	if _item_context_menu_target_item_id == "":
+		return null
+	var item: BoardItem = find_item_by_id(_item_context_menu_target_item_id)
+	return item as DocumentNode
+
+
+func _document_context_export_markdown() -> void:
+	var doc: DocumentNode = _document_context_target()
+	if doc == null:
+		return
+	var default_name: String = DocumentExporter.suggested_basename(doc) + ".md"
+	var dialog: FileDialog = _make_document_save_dialog("Export document as Markdown", default_name, "md", PackedStringArray(["*.md ; Markdown"]))
+	add_child(dialog)
+	dialog.file_selected.connect(func(path: String) -> void:
+		var normalized: String = _ensure_document_extension(path, "md")
+		DocumentExporter.export_markdown(doc, normalized)
+		dialog.queue_free()
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.popup_centered_ratio(0.7)
+
+
+func _document_context_export_pdf() -> void:
+	var doc: DocumentNode = _document_context_target()
+	if doc == null:
+		return
+	var default_name: String = DocumentExporter.suggested_basename(doc) + ".pdf"
+	var dialog: FileDialog = _make_document_save_dialog("Export document as PDF", default_name, "pdf", PackedStringArray(["*.pdf ; PDF Document"]))
+	add_child(dialog)
+	var host: Node = self
+	dialog.file_selected.connect(func(path: String) -> void:
+		var normalized: String = _ensure_document_extension(path, "pdf")
+		dialog.queue_free()
+		await DocumentExporter.export_pdf(doc, host, normalized)
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.popup_centered_ratio(0.7)
+
+
+func _document_context_replace_from_file() -> void:
+	var doc: DocumentNode = _document_context_target()
+	if doc == null:
+		return
+	var dialog: FileDialog = FileDialog.new()
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	dialog.use_native_dialog = true
+	dialog.title = "Replace document content"
+	dialog.filters = PackedStringArray([
+		"*.md,*.markdown ; Markdown",
+		"*.txt ; Plain Text",
+		"*.rtf ; Rich Text Format",
+		"*.docx ; Word Document",
+		"*.pdf ; PDF",
+	])
+	add_child(dialog)
+	var item_id: String = doc.item_id
+	dialog.file_selected.connect(func(path: String) -> void:
+		dialog.queue_free()
+		_apply_document_replace(item_id, path)
+	)
+	dialog.canceled.connect(func() -> void: dialog.queue_free())
+	dialog.popup_centered_ratio(0.7)
+
+
+func _make_document_save_dialog(title_text: String, default_name: String, extension: String, filters: PackedStringArray) -> FileDialog:
+	var dialog: FileDialog = FileDialog.new()
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	dialog.use_native_dialog = true
+	dialog.title = title_text
+	dialog.filters = filters
+	dialog.current_file = default_name
+	return dialog
+
+
+func _ensure_document_extension(path: String, extension: String) -> String:
+	var normalized: String = path.replace("\\", "/")
+	var dot_ext: String = "." + extension.to_lower()
+	if normalized.to_lower().ends_with(dot_ext):
+		return normalized
+	return normalized + dot_ext
+
+
+func _apply_document_replace(item_id: String, path: String) -> void:
+	if item_id == "" or path == "":
+		return
+	var item: BoardItem = find_item_by_id(item_id)
+	var doc: DocumentNode = item as DocumentNode
+	if doc == null:
+		return
+	var result: DocumentImporter.ImportResult = DocumentImporter.import_to_markdown(path)
+	if not result.ok:
+		return
+	var new_markdown: String = result.markdown
+	if new_markdown != doc.markdown_text:
+		History.push(ModifyPropertyCommand.new(self, doc.item_id, "markdown_text", doc.markdown_text, new_markdown))
+	var current_title: String = doc.title
+	var should_update_title: bool = current_title == "" or current_title == DocumentNode.DEFAULT_TITLE
+	var new_title: String = path.get_file().get_basename()
+	if should_update_title and new_title != current_title:
+		History.push(ModifyPropertyCommand.new(self, doc.item_id, "title", current_title, new_title))
 
 
 func _collect_commentable_card_entries(item: BoardItem) -> Array:

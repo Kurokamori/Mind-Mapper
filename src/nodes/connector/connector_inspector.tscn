@@ -1,0 +1,155 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/nodes/connector/connector_inspector.gd" id="1_ci"]
+
+[node name="ConnectorInspector" type="VBoxContainer"]
+script = ExtResource("1_ci")
+theme_override_constants/separation = 8
+
+[node name="Header" type="Label" parent="."]
+layout_mode = 2
+theme_type_variation = &"InspectorTitleLabel"
+text = "Connector"
+
+[node name="Surface" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_type_variation = &"InspectorSectionPanel"
+
+[node name="Body" type="VBoxContainer" parent="Surface"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StyleRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StyleLabel" type="Label" parent="Surface/Body/StyleRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Style"
+
+[node name="StyleOption" type="OptionButton" parent="Surface/Body/StyleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ColorRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ColorLabel" type="Label" parent="Surface/Body/ColorRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Color"
+
+[node name="ColorPicker" type="ColorPickerButton" parent="Surface/Body/ColorRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 22)
+layout_mode = 2
+
+[node name="WidthRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WidthLabel" type="Label" parent="Surface/Body/WidthRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Width"
+
+[node name="WidthSpin" type="SpinBox" parent="Surface/Body/WidthRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 32.0
+step = 0.5
+value = 2.5
+suffix = "px"
+
+[node name="HeadRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeadLabel" type="Label" parent="Surface/Body/HeadRow"]
+custom_minimum_size = Vector2(96, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"InspectorFieldLabel"
+text = "Arrow head"
+
+[node name="HeadSpin" type="SpinBox" parent="Surface/Body/HeadRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 6.0
+max_value = 64.0
+step = 1.0
+value = 14.0
+suffix = "px"
+
+[node name="EndpointsLabel" type="Label" parent="Surface/Body"]
+layout_mode = 2
+theme_type_variation = &"InspectorSubsectionLabel"
+text = "ENDPOINTS"
+
+[node name="StartRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StartLabel" type="Label" parent="Surface/Body/StartRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
+text = "Start"
+
+[node name="StartXSpin" type="SpinBox" parent="Surface/Body/StartRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1000000.0
+max_value = 1000000.0
+step = 1.0
+prefix = "x"
+
+[node name="StartYSpin" type="SpinBox" parent="Surface/Body/StartRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1000000.0
+max_value = 1000000.0
+step = 1.0
+prefix = "y"
+
+[node name="EndRow" type="HBoxContainer" parent="Surface/Body"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EndLabel" type="Label" parent="Surface/Body/EndRow"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_type_variation = &"InspectorFieldLabel"
+text = "End"
+
+[node name="EndXSpin" type="SpinBox" parent="Surface/Body/EndRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1000000.0
+max_value = 1000000.0
+step = 1.0
+prefix = "x"
+
+[node name="EndYSpin" type="SpinBox" parent="Surface/Body/EndRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = -1000000.0
+max_value = 1000000.0
+step = 1.0
+prefix = "y"

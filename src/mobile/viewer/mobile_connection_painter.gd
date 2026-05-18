@@ -5,7 +5,7 @@ const ARROW_HEAD_LENGTH: float = 12.0
 const ARROW_HEAD_WIDTH: float = 8.0
 const BEZIER_SAMPLES: int = 24
 const SMOOTH_SAMPLES_PER_SEGMENT: int = 14
-const SMOOTH_TENSION: float = 0.85
+const SMOOTH_CENTRIPETAL_ALPHA: float = 0.5
 
 const SELECTION_OUTLINE_COLOR: Color = Color(0.35, 0.7, 1.0, 1.0)
 const SELECTION_OUTLINE_EXTRA_WIDTH: float = 4.0
@@ -237,32 +237,37 @@ func _build_path(c: Connection, start_point: Vector2, end_point: Vector2) -> Pac
 
 
 func _smooth_through_points(pts: PackedVector2Array) -> PackedVector2Array:
-	if pts.size() < 2:
+	var count: int = pts.size()
+	if count < 2:
+		return pts
+	if count == 2:
 		return pts
 	var out: PackedVector2Array = PackedVector2Array()
 	out.append(pts[0])
-	var last: int = pts.size() - 1
-	for i: int in range(pts.size() - 1):
+	var last: int = count - 1
+	for i: int in range(last):
 		var p1: Vector2 = pts[i]
 		var p2: Vector2 = pts[i + 1]
-		var p0: Vector2 = pts[i - 1] if i - 1 >= 0 else (2.0 * p1 - p2)
-		var p3: Vector2 = pts[i + 2] if i + 2 <= last else (2.0 * p2 - p1)
-		for s in range(1, SMOOTH_SAMPLES_PER_SEGMENT + 1):
+		var p0: Vector2 = pts[i - 1] if i > 0 else p1 + (p1 - p2)
+		var p3: Vector2 = pts[i + 2] if i + 2 <= last else p2 + (p2 - p1)
+		for s: int in range(1, SMOOTH_SAMPLES_PER_SEGMENT + 1):
 			var t: float = float(s) / float(SMOOTH_SAMPLES_PER_SEGMENT)
-			out.append(_catmull(p0, p1, p2, p3, t))
+			out.append(_centripetal_catmull_rom(p0, p1, p2, p3, t))
 	return out
 
 
-func _catmull(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: float) -> Vector2:
-	var t2: float = t * t
-	var t3: float = t2 * t
-	var m1: Vector2 = (p2 - p0) * SMOOTH_TENSION
-	var m2: Vector2 = (p3 - p1) * SMOOTH_TENSION
-	var h00: float = 2.0 * t3 - 3.0 * t2 + 1.0
-	var h10: float = t3 - 2.0 * t2 + t
-	var h01: float = -2.0 * t3 + 3.0 * t2
-	var h11: float = t3 - t2
-	return h00 * p1 + h10 * m1 + h01 * p2 + h11 * m2
+func _centripetal_catmull_rom(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, t: float) -> Vector2:
+	var t0: float = 0.0
+	var t1: float = t0 + pow(maxf(p0.distance_to(p1), 0.0001), SMOOTH_CENTRIPETAL_ALPHA)
+	var t2: float = t1 + pow(maxf(p1.distance_to(p2), 0.0001), SMOOTH_CENTRIPETAL_ALPHA)
+	var t3: float = t2 + pow(maxf(p2.distance_to(p3), 0.0001), SMOOTH_CENTRIPETAL_ALPHA)
+	var u: float = lerp(t1, t2, t)
+	var a1: Vector2 = ((t1 - u) / (t1 - t0)) * p0 + ((u - t0) / (t1 - t0)) * p1
+	var a2: Vector2 = ((t2 - u) / (t2 - t1)) * p1 + ((u - t1) / (t2 - t1)) * p2
+	var a3: Vector2 = ((t3 - u) / (t3 - t2)) * p2 + ((u - t2) / (t3 - t2)) * p3
+	var b1: Vector2 = ((t2 - u) / (t2 - t0)) * a1 + ((u - t0) / (t2 - t0)) * a2
+	var b2: Vector2 = ((t3 - u) / (t3 - t1)) * a2 + ((u - t1) / (t3 - t1)) * a3
+	return ((t2 - u) / (t2 - t1)) * b1 + ((u - t1) / (t2 - t1)) * b2
 
 
 func _build_bezier_path(start_point: Vector2, end_point: Vector2) -> PackedVector2Array:

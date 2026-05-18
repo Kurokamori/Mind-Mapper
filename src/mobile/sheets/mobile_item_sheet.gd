@@ -51,6 +51,8 @@ func bind_item(project: Project, board: Board, item_dict: Dictionary, board_view
 func refresh_with(board: Board, item_dict: Dictionary) -> void:
 	_board = board
 	_item_dict = item_dict.duplicate(true)
+	if _applying:
+		return
 	_rebuild()
 
 
@@ -77,27 +79,19 @@ func _rebuild_overview() -> void:
 		child.queue_free()
 	var type_id: String = String(_item_dict.get("type", ""))
 	_overview_root.add_child(_kv_row("Type", _label_for_type(type_id)))
-	if _item_dict.has("title"):
-		_overview_root.add_child(_text_field_row("Title", "title", String(_item_dict["title"]), false))
-	if _item_dict.has("text"):
-		_overview_root.add_child(_text_field_row("Text", "text", String(_item_dict["text"]), true))
-	if _item_dict.has("bbcode_text"):
-		_overview_root.add_child(_text_field_row("Rich text (BBCode)", "bbcode_text", String(_item_dict["bbcode_text"]), true))
-	if _item_dict.has("markdown_text"):
-		_overview_root.add_child(_text_field_row("Document (Markdown)", "markdown_text", String(_item_dict["markdown_text"]), true))
-	if _item_dict.has("code"):
-		_overview_root.add_child(_text_field_row("Code", "code", String(_item_dict["code"]), true))
-		_overview_root.add_child(_line_field_row("Language", "language", String(_item_dict.get("language", "plaintext"))))
-	if _item_dict.has("latex"):
-		_overview_root.add_child(_text_field_row("LaTeX", "latex", String(_item_dict["latex"]), true))
-	if _item_dict.has("url"):
-		_overview_root.add_child(_line_field_row("URL", "url", String(_item_dict["url"])))
-	if _item_dict.has("font_size"):
-		_overview_root.add_child(_int_field_row("Font size", "font_size", int(_item_dict["font_size"]), 8, 96))
-	if type_id == ItemRegistry.TYPE_STICKY:
-		_overview_root.add_child(_int_field_row("Color index", "color_index", int(_item_dict.get("color_index", 0)), 0, 7))
-	if type_id == ItemRegistry.TYPE_PRIMITIVE:
-		_overview_root.add_child(_int_field_row("Shape", "shape", int(_item_dict.get("shape", 0)), 0, 7))
+	var item_id: String = String(_item_dict.get("id", ""))
+	var node: BoardItem = null
+	if _board_view != null and item_id != "":
+		node = _board_view.find_item_node(item_id)
+	var attached_typed_inspector: bool = false
+	if node != null:
+		var typed_inspector: Control = node.build_inspector()
+		if typed_inspector != null:
+			typed_inspector.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			_overview_root.add_child(typed_inspector)
+			attached_typed_inspector = true
+	if not attached_typed_inspector:
+		_overview_root.add_child(_fallback_no_inspector_label())
 	var dimensions: Vector2 = _vector_of(_item_dict, "size", Vector2.ZERO)
 	if dimensions.x > 0.0 and dimensions.y > 0.0:
 		_overview_root.add_child(_size_row(dimensions))
@@ -118,6 +112,56 @@ func _rebuild_overview() -> void:
 			var pinned_board: String = String(_item_dict.get("target_board_id", ""))
 			if pinned_board != "":
 				_overview_root.add_child(_navigation_button("Open pinboard", BoardItem.LINK_KIND_BOARD, pinned_board))
+		ItemRegistry.TYPE_DOCUMENT:
+			_overview_root.add_child(_document_editor_button())
+	_apply_touch_scroll_passthrough(_overview_root)
+
+
+func _fallback_no_inspector_label() -> Control:
+	var lbl: Label = Label.new()
+	lbl.text = "No inspector available for this item type."
+	lbl.add_theme_color_override("font_color", Color(0.65, 0.72, 0.85))
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return lbl
+
+
+func _apply_touch_scroll_passthrough(root: Control) -> void:
+	if root == null:
+		return
+	_relax_mouse_filter_recursive(root)
+
+
+func _relax_mouse_filter_recursive(node: Node) -> void:
+	if node is Control:
+		var ctrl: Control = node
+		if _should_relax_mouse_filter(ctrl):
+			ctrl.mouse_filter = Control.MOUSE_FILTER_PASS
+	for child: Node in node.get_children():
+		_relax_mouse_filter_recursive(child)
+
+
+func _should_relax_mouse_filter(ctrl: Control) -> bool:
+	if ctrl is LineEdit:
+		return false
+	if ctrl is TextEdit:
+		return false
+	if ctrl is SpinBox:
+		return false
+	if ctrl is BaseButton:
+		return false
+	if ctrl is ScrollContainer:
+		return false
+	if ctrl is Slider:
+		return false
+	if ctrl is TabContainer:
+		return false
+	if ctrl is TabBar:
+		return false
+	if ctrl is ItemList:
+		return false
+	if ctrl is Tree:
+		return false
+	return true
 
 
 func _rebuild_todo() -> void:
@@ -186,6 +230,27 @@ func _navigation_button(label_text: String, kind: String, target_id: String) -> 
 	return b
 
 
+func _document_editor_button() -> Button:
+	var b: Button = Button.new()
+	b.text = "Open document editor"
+	b.custom_minimum_size = Vector2(0, 56)
+	b.theme_type_variation = &"MobilePrimaryButton"
+	b.pressed.connect(_on_open_document_editor)
+	return b
+
+
+func _on_open_document_editor() -> void:
+	if _board_view == null:
+		return
+	var item_id: String = String(_item_dict.get("id", ""))
+	if item_id == "":
+		return
+	var node: DocumentNode = _board_view.find_item_node(item_id) as DocumentNode
+	if node == null:
+		return
+	node.open_editor()
+
+
 func _kv_row(label_text: String, value_text: String) -> Control:
 	var row: VBoxContainer = VBoxContainer.new()
 	row.add_theme_constant_override("separation", 2)
@@ -198,54 +263,6 @@ func _kv_row(label_text: String, value_text: String) -> Control:
 	value.text = value_text
 	value.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	row.add_child(value)
-	return row
-
-
-func _text_field_row(label_text: String, payload_key: String, value_text: String, multiline: bool) -> Control:
-	var row: VBoxContainer = VBoxContainer.new()
-	row.add_theme_constant_override("separation", 2)
-	var caption: Label = Label.new()
-	caption.text = label_text
-	caption.add_theme_color_override("font_color", Color(0.65, 0.72, 0.85))
-	caption.add_theme_font_size_override("font_size", 12)
-	row.add_child(caption)
-	if multiline:
-		var text_edit: TextEdit = TextEdit.new()
-		text_edit.text = value_text
-		text_edit.custom_minimum_size = Vector2(0, 120)
-		text_edit.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
-		text_edit.text_changed.connect(func() -> void: _apply_payload_field(payload_key, text_edit.text))
-		row.add_child(text_edit)
-	else:
-		var line_edit: LineEdit = LineEdit.new()
-		line_edit.text = value_text
-		line_edit.custom_minimum_size = Vector2(0, 40)
-		line_edit.text_submitted.connect(func(t: String) -> void: _apply_payload_field(payload_key, t))
-		line_edit.focus_exited.connect(func() -> void: _apply_payload_field(payload_key, line_edit.text))
-		row.add_child(line_edit)
-	return row
-
-
-func _line_field_row(label_text: String, payload_key: String, value_text: String) -> Control:
-	return _text_field_row(label_text, payload_key, value_text, false)
-
-
-func _int_field_row(label_text: String, payload_key: String, value: int, min_v: int, max_v: int) -> Control:
-	var row: VBoxContainer = VBoxContainer.new()
-	row.add_theme_constant_override("separation", 2)
-	var caption: Label = Label.new()
-	caption.text = label_text
-	caption.add_theme_color_override("font_color", Color(0.65, 0.72, 0.85))
-	caption.add_theme_font_size_override("font_size", 12)
-	row.add_child(caption)
-	var spin: SpinBox = SpinBox.new()
-	spin.min_value = float(min_v)
-	spin.max_value = float(max_v)
-	spin.step = 1.0
-	spin.value = float(value)
-	spin.custom_minimum_size = Vector2(0, 40)
-	spin.value_changed.connect(func(v: float) -> void: _apply_payload_field(payload_key, int(v)))
-	row.add_child(spin)
 	return row
 
 
@@ -378,23 +395,18 @@ func _actions_row() -> Control:
 	return hbox
 
 
-func _apply_payload_field(key: String, value: Variant) -> void:
-	if _applying or _board_view == null:
-		return
-	_item_dict[key] = value
-	_persist_item_dict()
-
-
 func _apply_property(key: String, value: Variant) -> void:
 	if _applying or _board_view == null:
 		return
 	var item_id: String = String(_item_dict.get("id", ""))
 	if item_id == "":
 		return
+	_applying = true
 	_board_view.set_property_for_item(item_id, key, value)
 	var refreshed: Dictionary = _board_view.find_item_dict(item_id)
 	if not refreshed.is_empty():
 		_item_dict = refreshed
+	_applying = false
 
 
 func _apply_size(new_size: Vector2) -> void:
@@ -403,10 +415,12 @@ func _apply_size(new_size: Vector2) -> void:
 	var item_id: String = String(_item_dict.get("id", ""))
 	if item_id == "":
 		return
+	_applying = true
 	_board_view.set_property_for_item(item_id, "size", [new_size.x, new_size.y])
 	var refreshed: Dictionary = _board_view.find_item_dict(item_id)
 	if not refreshed.is_empty():
 		_item_dict = refreshed
+	_applying = false
 
 
 func _apply_tags(text: String) -> void:
@@ -457,13 +471,6 @@ func _on_delete_pressed() -> void:
 	if node == null:
 		return
 	History.push(RemoveItemsCommand.new(_board_view, [node]))
-
-
-func _persist_item_dict() -> void:
-	var item_id: String = String(_item_dict.get("id", ""))
-	if item_id == "" or _board_view == null:
-		return
-	_board_view.update_item_payload(item_id, _item_dict)
 
 
 func _label_for_type(type_id: String) -> String:

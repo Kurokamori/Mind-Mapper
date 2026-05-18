@@ -25,13 +25,26 @@ const TYPES: Array[Array] = [
 	[ItemRegistry.TYPE_MAP_PAGE, "Map page", "res://assets/ui/icons/map.png"],
 ]
 
-const ICON_SIZE: Vector2 = Vector2(32, 32)
+const ICON_SIZE_SCALE: float = 2.0
+const TILE_LABEL_SCALE: float = 0.85
+const TILE_HEIGHT_SCALE: float = 6.0
 
 @onready var _grid: GridContainer = %TypeGrid
 
 
 func _ready() -> void:
 	size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_rebuild()
+	if not UserPrefs.theme_changed.is_connected(_on_theme_changed):
+		UserPrefs.theme_changed.connect(_on_theme_changed)
+
+
+func _exit_tree() -> void:
+	if UserPrefs != null and UserPrefs.theme_changed.is_connected(_on_theme_changed):
+		UserPrefs.theme_changed.disconnect(_on_theme_changed)
+
+
+func _on_theme_changed() -> void:
 	_rebuild()
 
 
@@ -46,16 +59,20 @@ func _rebuild() -> void:
 
 
 func _build_tile(type_id: String, label: String, icon_path: String) -> Control:
+	var base_font: int = ThemeManager.scaled_font_size(1.0)
+	var label_font: int = int(round(float(base_font) * TILE_LABEL_SCALE))
+	var icon_px: int = int(round(float(base_font) * ICON_SIZE_SCALE))
+	var tile_height: float = float(base_font) * TILE_HEIGHT_SCALE
 	var btn: Button = Button.new()
 	btn.text = label
 	btn.icon = _load_icon(icon_path)
 	btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	btn.expand_icon = false
-	btn.custom_minimum_size = Vector2(0, 96)
+	btn.custom_minimum_size = Vector2(0, tile_height)
 	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn.add_theme_font_size_override("font_size", 12)
-	btn.add_theme_constant_override("icon_max_width", int(ICON_SIZE.x))
+	btn.add_theme_font_size_override("font_size", label_font)
+	btn.add_theme_constant_override("icon_max_width", icon_px)
 	btn.pressed.connect(func() -> void: type_chosen.emit(type_id))
 	return btn
 

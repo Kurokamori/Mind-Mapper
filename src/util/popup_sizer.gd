@@ -37,8 +37,15 @@ const ABSOLUTE_MIN_SCREEN_SPAN: int = 120
 ## Resizes [param window] to fit its content, clamps it to the target screen,
 ## centers it there and shows it via [code]Window.popup()[/code]. Safe to call
 ## without [code]await[/code]; the correction pass runs deferred on its own.
+##
+## On mobile runtimes the window is instead shown borderless and sized to the
+## host viewport, so popups feel like full-screen panels rather than draggable
+## floating windows.
 static func popup_fit(window: Window, opts: Dictionary = {}) -> void:
 	if window == null:
+		return
+	if Bootstrap._is_mobile_runtime():
+		_popup_mobile_fullscreen(window)
 		return
 	var cfg: Dictionary = _resolve_config(window, opts)
 	if not window.is_inside_tree():
@@ -61,7 +68,54 @@ static func popup_fit(window: Window, opts: Dictionary = {}) -> void:
 static func fit(window: Window, opts: Dictionary = {}) -> void:
 	if window == null or not window.is_inside_tree():
 		return
+	if Bootstrap._is_mobile_runtime():
+		_fit_mobile_fullscreen(window)
+		return
 	_fit(window, _resolve_config(window, opts))
+
+
+## Shows [param window] as a borderless full-viewport panel. Used on mobile so
+## that dialogs occupy the same surface as a "screen" rather than appearing as
+## a floating sub-window. The host viewport must have
+## [code]gui_embed_subwindows = true[/code] (mobile already enables it).
+static func _popup_mobile_fullscreen(window: Window) -> void:
+	if window == null:
+		return
+	window.borderless = true
+	window.unresizable = true
+	window.transient = true
+	window.always_on_top = false
+	window.min_size = Vector2i.ZERO
+	window.max_size = Vector2i.ZERO
+	if not window.is_inside_tree():
+		push_warning("PopupSizer._popup_mobile_fullscreen: window is not inside the scene tree; showing without fit")
+		window.popup()
+		return
+	_fit_mobile_fullscreen(window)
+	window.popup()
+	var tree: SceneTree = window.get_tree()
+	if tree == null:
+		return
+	await tree.process_frame
+	if is_instance_valid(window) and window.visible:
+		_fit_mobile_fullscreen(window)
+
+
+static func _fit_mobile_fullscreen(window: Window) -> void:
+	if not is_instance_valid(window) or not window.is_inside_tree():
+		return
+	var parent_window: Window = _resolve_parent_window(window)
+	if parent_window == null:
+		parent_window = window.get_tree().root
+	if parent_window == null:
+		return
+	var vp_size: Vector2i = Vector2i(parent_window.get_visible_rect().size)
+	if vp_size.x <= 0 or vp_size.y <= 0:
+		vp_size = Vector2i(parent_window.size)
+	if vp_size.x <= 0 or vp_size.y <= 0:
+		return
+	window.size = vp_size
+	window.position = Vector2i.ZERO
 
 
 static func _resolve_config(window: Window, opts: Dictionary) -> Dictionary:
@@ -161,6 +215,22 @@ static func _usable_screen_rect(window: Window, margin: Vector2i) -> Rect2i:
 	return rect
 
 
+## Walks up from [param window] to the first ancestor [Window] it is embedded
+## in (its host viewport / parent dialog). Returns [code]null[/code] when the
+## window has no parent window — typically because it is the scene root or has
+## not been added to the tree yet.
+static func _resolve_parent_window(window: Window) -> Window:
+	if window == null:
+		return null
+	var parent_node: Node = window.get_parent()
+	if parent_node == null:
+		return null
+	var host: Viewport = parent_node.get_viewport()
+	if host is Window:
+		return host as Window
+	return null
+
+
 static func _screen_index(window: Window) -> int:
 	var count: int = DisplayServer.get_screen_count()
 	if count <= 0:
@@ -174,7 +244,7 @@ static func _screen_index(window: Window) -> int:
 			idx = live_index
 
 	if idx < 0 or idx >= count:
-		var parent: Window = window.get_parent_visible_window()
+		var parent: Window = _resolve_parent_window(window)
 		if parent != null:
 			idx = parent.current_screen
 

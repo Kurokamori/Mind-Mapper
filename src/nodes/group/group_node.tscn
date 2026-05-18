@@ -1,13 +1,15 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://ujjmhikyd8qn"]
 
-[ext_resource type="Script" path="res://src/nodes/group/group_node.gd" id="1_group"]
+[ext_resource type="Script" uid="uid://6bq18fhte7ml" path="res://src/nodes/group/group_node.gd" id="1_group"]
 
-[node name="GroupNode" type="Control"]
+[node name="GroupNode" type="Control" unique_id=1719551892]
 custom_minimum_size = Vector2(160, 80)
+layout_mode = 3
+anchors_preset = 0
 mouse_filter = 1
 script = ExtResource("1_group")
 
-[node name="TitleLabel" type="Label" parent="."]
+[node name="TitleLabel" type="Label" parent="." unique_id=966879182]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 10.0
@@ -17,7 +19,7 @@ offset_bottom = 24.0
 text = "Group"
 vertical_alignment = 1
 
-[node name="TitleEdit" type="LineEdit" parent="."]
+[node name="TitleEdit" type="LineEdit" parent="." unique_id=1540823637]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0

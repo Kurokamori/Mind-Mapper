@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://bu8ja2r6wgbfm"]
 
 [ext_resource type="Script" uid="uid://phjyu3hhr360" path="res://src/editor/auxilary/splash.gd" id="1_dmlnu"]
-[ext_resource type="Texture2D" uid="uid://cggd8cij7jn6h" path="res://assets/ui/splash.png" id="2_bc7cy"]
+[ext_resource type="Texture2D" uid="uid://cfu7agsgcjvgw" path="res://assets/ui/branding/logo_title.png" id="2_dmlnu"]
 
 [sub_resource type="Animation" id="Animation_dmlnu"]
 length = 0.001
@@ -71,20 +71,21 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 1)
+color = Color(0.11657327, 0.10477751, 0.1368959, 1)
 
 [node name="Splash" type="TextureRect" parent="." unique_id=1276552861]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0)
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_bc7cy")
-expand_mode = 1
-stretch_mode = 6
+texture = ExtResource("2_dmlnu")
+stretch_mode = 5
 
 [node name="Animation" type="AnimationPlayer" parent="." unique_id=1070539073]
 unique_name_in_owner = true

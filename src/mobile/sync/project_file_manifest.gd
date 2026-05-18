@@ -54,6 +54,11 @@ static func is_writable_from_client(rel: String) -> bool:
 		return false
 	if rel.begins_with(Project.BOARDS_DIR + "/"):
 		return rel.ends_with(".json")
+	if rel.begins_with(Project.ASSETS_DIR + "/"):
+		var ext: String = rel.get_extension().to_lower()
+		if ext == "":
+			return false
+		return PROJECT_FILE_EXTENSIONS_BINARY.has(ext) or PROJECT_FILE_EXTENSIONS_TEXT.has(ext)
 	return false
 
 

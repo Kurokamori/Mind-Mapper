@@ -9,6 +9,8 @@ extends VBoxContainer
 @onready var _italic_check: CheckBox = %ItalicCheck
 @onready var _auto_width_check: CheckBox = %AutoWidthCheck
 @onready var _auto_height_check: CheckBox = %AutoHeightCheck
+@onready var _h_align_option: OptionButton = %HAlignOption
+@onready var _v_align_option: OptionButton = %VAlignOption
 
 var _item: LabelNode
 var _editor: Node
@@ -34,6 +36,8 @@ func _ready() -> void:
 	_italic_check.button_pressed = _item.italic
 	_auto_width_check.button_pressed = _item.auto_width
 	_auto_height_check.button_pressed = _item.auto_height
+	_h_align_option.select(clampi(_item.h_align, 0, 2))
+	_v_align_option.select(clampi(_item.v_align, 0, 2))
 	_suppress_signals = false
 	_binders["text"] = PropertyBinder.new(_editor, _item, "text", _item.text)
 	_binders["font_size"] = PropertyBinder.new(_editor, _item, "font_size", _item.font_size)
@@ -43,6 +47,8 @@ func _ready() -> void:
 	_binders["italic"] = PropertyBinder.new(_editor, _item, "italic", _item.italic)
 	_binders["auto_width"] = PropertyBinder.new(_editor, _item, "auto_width", _item.auto_width)
 	_binders["auto_height"] = PropertyBinder.new(_editor, _item, "auto_height", _item.auto_height)
+	_binders["h_align"] = PropertyBinder.new(_editor, _item, "h_align", _item.h_align)
+	_binders["v_align"] = PropertyBinder.new(_editor, _item, "v_align", _item.v_align)
 	_install_reset_button(_bg_picker, "bg_color", _item.resolved_bg_color)
 	_install_reset_button(_fg_picker, "fg_color", _item.resolved_fg_color)
 	ThemeManager.theme_applied.connect(_on_theme_applied)
@@ -59,15 +65,12 @@ func _ready() -> void:
 	_italic_check.toggled.connect(_on_italic)
 	_auto_width_check.toggled.connect(_on_auto_width)
 	_auto_height_check.toggled.connect(_on_auto_height)
+	_h_align_option.item_selected.connect(_on_h_align)
+	_v_align_option.item_selected.connect(_on_v_align)
 
 
 func _find_editor() -> Node:
-	var n: Node = get_parent()
-	while n != null:
-		if n.has_method("instantiate_item_from_dict"):
-			return n
-		n = n.get_parent()
-	return null
+	return EditorLocator.find_for(_item)
 
 
 func _on_text_live(new_text: String) -> void:
@@ -140,6 +143,20 @@ func _on_auto_height(pressed: bool) -> void:
 		return
 	_binders["auto_height"].live(pressed)
 	_binders["auto_height"].commit(pressed)
+
+
+func _on_h_align(idx: int) -> void:
+	if _suppress_signals:
+		return
+	_binders["h_align"].live(idx)
+	_binders["h_align"].commit(idx)
+
+
+func _on_v_align(idx: int) -> void:
+	if _suppress_signals:
+		return
+	_binders["v_align"].live(idx)
+	_binders["v_align"].commit(idx)
 
 
 func _install_reset_button(picker: ColorPickerButton, slot: String, resolver: Callable) -> void:

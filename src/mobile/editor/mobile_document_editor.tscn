@@ -1,0 +1,271 @@
+[gd_scene load_steps=3 format=3 uid="uid://c1mobiledocedit"]
+
+[ext_resource type="Script" path="res://src/mobile/editor/mobile_document_editor.gd" id="1_mde_script"]
+[ext_resource type="PackedScene" path="res://src/nodes/rich_text/wysiwyg/wysiwyg_rich_editor.tscn" id="2_mde_wyse"]
+
+[node name="MobileDocumentEditor" type="Window"]
+title = "Document"
+size = Vector2i(960, 640)
+popup_window = true
+script = ExtResource("1_mde_script")
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Root" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/Root"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CancelButton" type="Button" parent="Margin/Root/HeaderRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 56)
+layout_mode = 2
+theme_type_variation = &"MobileButton"
+text = "Cancel"
+
+[node name="TitleEdit" type="LineEdit" parent="Margin/Root/HeaderRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+placeholder_text = "Document title"
+
+[node name="SaveButton" type="Button" parent="Margin/Root/HeaderRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 56)
+layout_mode = 2
+theme_type_variation = &"MobilePrimaryButton"
+text = "Save"
+
+[node name="ToolbarScroll" type="ScrollContainer" parent="Margin/Root"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 0
+
+[node name="Toolbar" type="HBoxContainer" parent="Margin/Root/ToolbarScroll"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BoldButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Bold"
+theme_type_variation = &"MobileButton"
+text = "B"
+
+[node name="ItalicButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Italic"
+theme_type_variation = &"MobileButton"
+text = "I"
+
+[node name="UnderlineButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Underline"
+theme_type_variation = &"MobileButton"
+text = "U"
+
+[node name="StrikeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Strikethrough"
+theme_type_variation = &"MobileButton"
+text = "S"
+
+[node name="CodeButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Inline code"
+theme_type_variation = &"MobileButton"
+text = "</>"
+
+[node name="Sep1" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="H1Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Heading 1 size"
+theme_type_variation = &"MobileButton"
+text = "H1"
+
+[node name="H2Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Heading 2 size"
+theme_type_variation = &"MobileButton"
+text = "H2"
+
+[node name="H3Button" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Heading 3 size"
+theme_type_variation = &"MobileButton"
+text = "H3"
+
+[node name="BodyButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Body size"
+theme_type_variation = &"MobileButton"
+text = "Body"
+
+[node name="Sep2" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="ColorButton" type="ColorPickerButton" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Text color"
+edit_alpha = false
+
+[node name="LinkButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Insert link"
+theme_type_variation = &"MobileButton"
+text = "Link"
+
+[node name="ClearFormatButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Clear formatting"
+theme_type_variation = &"MobileButton"
+text = "Clear"
+
+[node name="Sep3" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="ImageButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Insert image from device"
+theme_type_variation = &"MobileButton"
+text = "Image"
+
+[node name="ImportButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Import document (txt, md, rtf, docx, pdf)"
+theme_type_variation = &"MobileButton"
+text = "Import"
+
+[node name="Sep4" type="VSeparator" parent="Margin/Root/ToolbarScroll/Toolbar"]
+layout_mode = 2
+
+[node name="UndoButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Undo"
+theme_type_variation = &"MobileButton"
+text = "Undo"
+
+[node name="RedoButton" type="Button" parent="Margin/Root/ToolbarScroll/Toolbar"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(72, 56)
+layout_mode = 2
+focus_mode = 0
+tooltip_text = "Redo"
+theme_type_variation = &"MobileButton"
+text = "Redo"
+
+[node name="EditorPanel" type="PanelContainer" parent="Margin/Root"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_type_variation = &"CardPanel"
+
+[node name="WysiwygEditor" parent="Margin/Root/EditorPanel" instance=ExtResource("2_mde_wyse")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="Margin/Root"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"MutedLabel"
+text = ""
+
+[node name="LinkDialog" type="AcceptDialog" parent="."]
+unique_name_in_owner = true
+title = "Insert link"
+size = Vector2i(480, 240)
+ok_button_text = "Insert"
+
+[node name="LinkBox" type="VBoxContainer" parent="LinkDialog"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 468.0
+offset_bottom = 180.0
+theme_override_constants/separation = 8
+
+[node name="UrlLabel" type="Label" parent="LinkDialog/LinkBox"]
+layout_mode = 2
+text = "URL"
+
+[node name="LinkUrlEdit" type="LineEdit" parent="LinkDialog/LinkBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+placeholder_text = "https://example.com"
+
+[node name="LabelLabel" type="Label" parent="LinkDialog/LinkBox"]
+layout_mode = 2
+text = "Label (optional)"
+
+[node name="LinkLabelEdit" type="LineEdit" parent="LinkDialog/LinkBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+placeholder_text = "Visible link text"
